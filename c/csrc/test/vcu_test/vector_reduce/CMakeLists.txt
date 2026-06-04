@@ -1,0 +1,15 @@
+function(compile fname)
+  add_executable(${fname} ${fname}.cpp)
+  target_link_libraries(${fname} dl)
+endfunction()
+
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/exe)
+
+compile(softmax)
+compile(layernorm)
+compile(quant_int8)
+compile(quant_int4)
+compile(rmsnorm)
+compile(test_rmsnorm_op)
+compile(quant_int8_no_outlier)
+compile(test_softmax_op)

@@ -1,0 +1,542 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="512" viewBox="0 0 960 512">
+  <g transform="translate(0.5,0.5)" text-anchor="middle" font-size="14" font-family="Times" font-weight="normal">
+    <g transform="translate(4,469)">
+      <g stroke="black" stroke-width="1" stroke-linecap="round">
+        <line x2="951"/>
+        <line y2="39"/>
+        <line x2="951" y1="39" y2="39"/>
+        <line x1="951" x2="951" y2="39"/>
+        <line x1="892" x2="892" y2="4"/>
+        <line x1="892" x2="892" y1="39" y2="35"/>
+        <line x1="832" x2="832" y2="4"/>
+        <line x1="832" x2="832" y1="39" y2="35"/>
+        <line x1="773" x2="773" y2="4"/>
+        <line x1="773" x2="773" y1="39" y2="35"/>
+        <line x1="713" x2="713" y2="4"/>
+        <line x1="713" x2="713" y1="39" y2="35"/>
+        <line x1="654" x2="654" y2="4"/>
+        <line x1="654" x2="654" y1="39" y2="35"/>
+        <line x1="594" x2="594" y2="39"/>
+        <line x1="535" x2="535" y2="4"/>
+        <line x1="535" x2="535" y1="39" y2="35"/>
+        <line x1="476" x2="476" y2="4"/>
+        <line x1="476" x2="476" y1="39" y2="35"/>
+        <line x1="416" x2="416" y2="4"/>
+        <line x1="416" x2="416" y1="39" y2="35"/>
+        <line x1="357" x2="357" y2="39"/>
+        <line x1="297" x2="297" y2="4"/>
+        <line x1="297" x2="297" y1="39" y2="35"/>
+        <line x1="238" x2="238" y2="4"/>
+        <line x1="238" x2="238" y1="39" y2="35"/>
+        <line x1="178" x2="178" y2="39"/>
+        <line x1="119" x2="119" y2="4"/>
+        <line x1="119" x2="119" y1="39" y2="35"/>
+        <line x1="59" x2="59" y2="39"/>
+      </g>
+      <g>
+        <g>
+          <rect x="594" width="357" height="39" field="insn_opcode" style="fill-opacity:0.1;fill:#ff0000"/>
+          <rect x="357" width="238" height="39" field="insn_number" style="fill-opacity:0.1;fill:#aaff00"/>
+          <rect x="178" width="178" height="39" field="insn_kind" style="fill-opacity:0.1;fill:#00ffd5"/>
+          <rect x="59" width="119" height="39" field="sparse_base" style="fill-opacity:0.1;fill:#ffbf00"/>
+          <rect width="59" height="39" field="sparse_ratio" style="fill-opacity:0.1;fill:#00ff19"/>
+        </g>
+        <g transform="translate(30,-11)">
+          <g transform="translate(892)">
+            <text y="6">0</text>
+          </g>
+          <g transform="translate(594)">
+            <text y="6">5</text>
+          </g>
+          <g transform="translate(535)">
+            <text y="6">6</text>
+          </g>
+          <g transform="translate(357)">
+            <text y="6">9</text>
+          </g>
+          <g transform="translate(297)">
+            <text y="6">10</text>
+          </g>
+          <g transform="translate(178)">
+            <text y="6">12</text>
+          </g>
+          <g transform="translate(119)">
+            <text y="6">13</text>
+          </g>
+          <g transform="translate(59)">
+            <text y="6">14</text>
+          </g>
+          <g transform="translate(0)">
+            <text y="6">15</text>
+          </g>
+        </g>
+        <g transform="translate(30,19)">
+          <g transform="translate(743)">
+            <text y="6">
+              <tspan>insn_opcode</tspan>
+            </text>
+          </g>
+          <g transform="translate(446)">
+            <text y="6">
+              <tspan>insn_number</tspan>
+            </text>
+          </g>
+          <g transform="translate(238)">
+            <text y="6">
+              <tspan>insn_kind</tspan>
+            </text>
+          </g>
+          <g transform="translate(89)">
+            <text y="6">
+              <tspan>sparse_base</tspan>
+            </text>
+          </g>
+          <g transform="translate(0)">
+            <text y="6">
+              <tspan>sparse_ratio</tspan>
+            </text>
+          </g>
+        </g>
+        <g transform="translate(30,47)"/>
+      </g>
+    </g>
+    <g transform="translate(4,405)">
+      <g stroke="black" stroke-width="1" stroke-linecap="round">
+        <line x2="951"/>
+        <line y2="39"/>
+        <line x2="951" y1="39" y2="39"/>
+        <line x1="951" x2="951" y2="39"/>
+        <line x1="892" x2="892" y2="39"/>
+        <line x1="832" x2="832" y2="39"/>
+        <line x1="773" x2="773" y2="39"/>
+        <line x1="713" x2="713" y2="39"/>
+        <line x1="654" x2="654" y2="4"/>
+        <line x1="654" x2="654" y1="39" y2="35"/>
+        <line x1="594" x2="594" y2="4"/>
+        <line x1="594" x2="594" y1="39" y2="35"/>
+        <line x1="535" x2="535" y2="4"/>
+        <line x1="535" x2="535" y1="39" y2="35"/>
+        <line x1="476" x2="476" y2="39"/>
+        <line x1="416" x2="416" y2="4"/>
+        <line x1="416" x2="416" y1="39" y2="35"/>
+        <line x1="357" x2="357" y2="4"/>
+        <line x1="357" x2="357" y1="39" y2="35"/>
+        <line x1="297" x2="297" y2="4"/>
+        <line x1="297" x2="297" y1="39" y2="35"/>
+        <line x1="238" x2="238" y2="39"/>
+        <line x1="178" x2="178" y2="4"/>
+        <line x1="178" x2="178" y1="39" y2="35"/>
+        <line x1="119" x2="119" y2="4"/>
+        <line x1="119" x2="119" y1="39" y2="35"/>
+        <line x1="59" x2="59" y2="4"/>
+        <line x1="59" x2="59" y1="39" y2="35"/>
+      </g>
+      <g>
+        <g>
+          <rect x="892" width="59" height="39" field="sparse_ratio" style="fill-opacity:0.1;fill:#00ff19"/>
+          <rect x="832" width="59" height="39" field="non_uniform_quantization" style="fill-opacity:0.1;fill:#006aff"/>
+          <rect x="773" width="59" height="39" field="outlier_enable" style="fill-opacity:0.1;fill:#ff00ff"/>
+          <rect x="713" width="59" height="39" field="expand_weight_sram" style="fill-opacity:0.1;fill:#00ffea"/>
+          <rect x="476" width="238" height="39" field="ifmap_sram_base_highaddr" style="fill-opacity:0.1;fill:#ff00bf"/>
+          <rect x="238" width="238" height="39" field="weight_sram_base_highaddr" style="fill-opacity:0.1;fill:#00ff80"/>
+          <rect width="238" height="39" field="psum_sram_base_highaddr" style="fill-opacity:0.1;fill:#ff0059"/>
+        </g>
+        <g transform="translate(30,-11)">
+          <g transform="translate(892)">
+            <text y="6">16</text>
+          </g>
+          <g transform="translate(832)">
+            <text y="6">17</text>
+          </g>
+          <g transform="translate(773)">
+            <text y="6">18</text>
+          </g>
+          <g transform="translate(713)">
+            <text y="6">19</text>
+          </g>
+          <g transform="translate(654)">
+            <text y="6">20</text>
+          </g>
+          <g transform="translate(476)">
+            <text y="6">23</text>
+          </g>
+          <g transform="translate(416)">
+            <text y="6">24</text>
+          </g>
+          <g transform="translate(238)">
+            <text y="6">27</text>
+          </g>
+          <g transform="translate(178)">
+            <text y="6">28</text>
+          </g>
+          <g transform="translate(0)">
+            <text y="6">31</text>
+          </g>
+        </g>
+        <g transform="translate(30,19)">
+          <g transform="translate(892)">
+            <text y="6">
+              <tspan>sparse_ratio</tspan>
+            </text>
+          </g>
+          <g transform="translate(832)">
+            <text y="6">
+              <tspan>non_uniform_...</tspan>
+            </text>
+          </g>
+          <g transform="translate(773)">
+            <text y="6">
+              <tspan>outlier_enable</tspan>
+            </text>
+          </g>
+          <g transform="translate(713)">
+            <text y="6">
+              <tspan>expand_weigh...</tspan>
+            </text>
+          </g>
+          <g transform="translate(565)">
+            <text y="6">
+              <tspan>ifmap_sram_base_highaddr</tspan>
+            </text>
+          </g>
+          <g transform="translate(327)">
+            <text y="6">
+              <tspan>weight_sram_base_highaddr</tspan>
+            </text>
+          </g>
+          <g transform="translate(89)">
+            <text y="6">
+              <tspan>psum_sram_base_highaddr</tspan>
+            </text>
+          </g>
+        </g>
+        <g transform="translate(30,47)"/>
+      </g>
+    </g>
+    <g transform="translate(4,341)">
+      <g stroke="black" stroke-width="1" stroke-linecap="round">
+        <line x2="951"/>
+        <line y2="39"/>
+        <line x2="951" y1="39" y2="39"/>
+        <line x1="951" x2="951" y2="39"/>
+        <line x1="892" x2="892" y2="4"/>
+        <line x1="892" x2="892" y1="39" y2="35"/>
+        <line x1="832" x2="832" y2="4"/>
+        <line x1="832" x2="832" y1="39" y2="35"/>
+        <line x1="773" x2="773" y2="4"/>
+        <line x1="773" x2="773" y1="39" y2="35"/>
+        <line x1="713" x2="713" y2="4"/>
+        <line x1="713" x2="713" y1="39" y2="35"/>
+        <line x1="654" x2="654" y2="39"/>
+        <line x1="594" x2="594" y2="4"/>
+        <line x1="594" x2="594" y1="39" y2="35"/>
+        <line x1="535" x2="535" y2="4"/>
+        <line x1="535" x2="535" y1="39" y2="35"/>
+        <line x1="476" x2="476" y2="4"/>
+        <line x1="476" x2="476" y1="39" y2="35"/>
+        <line x1="416" x2="416" y2="4"/>
+        <line x1="416" x2="416" y1="39" y2="35"/>
+        <line x1="357" x2="357" y2="39"/>
+        <line x1="297" x2="297" y2="4"/>
+        <line x1="297" x2="297" y1="39" y2="35"/>
+        <line x1="238" x2="238" y2="4"/>
+        <line x1="238" x2="238" y1="39" y2="35"/>
+        <line x1="178" x2="178" y2="4"/>
+        <line x1="178" x2="178" y1="39" y2="35"/>
+        <line x1="119" x2="119" y2="4"/>
+        <line x1="119" x2="119" y1="39" y2="35"/>
+        <line x1="59" x2="59" y2="39"/>
+      </g>
+      <g>
+        <g>
+          <rect x="654" width="297" height="39" field="stride_width" style="fill-opacity:0.1;fill:#00ff40"/>
+          <rect x="357" width="297" height="39" field="stride_height" style="fill-opacity:0.1;fill:#ff0020"/>
+          <rect x="59" width="297" height="39" field="dilation_width" style="fill-opacity:0.1;fill:#00ff20"/>
+          <rect width="59" height="39" field="dilation_height" style="fill-opacity:0.1;fill:#ff0010"/>
+        </g>
+        <g transform="translate(30,-11)">
+          <g transform="translate(892)">
+            <text y="6">32</text>
+          </g>
+          <g transform="translate(654)">
+            <text y="6">36</text>
+          </g>
+          <g transform="translate(594)">
+            <text y="6">37</text>
+          </g>
+          <g transform="translate(357)">
+            <text y="6">41</text>
+          </g>
+          <g transform="translate(297)">
+            <text y="6">42</text>
+          </g>
+          <g transform="translate(59)">
+            <text y="6">46</text>
+          </g>
+          <g transform="translate(0)">
+            <text y="6">47</text>
+          </g>
+        </g>
+        <g transform="translate(30,19)">
+          <g transform="translate(773)">
+            <text y="6">
+              <tspan>stride_width</tspan>
+            </text>
+          </g>
+          <g transform="translate(476)">
+            <text y="6">
+              <tspan>stride_height</tspan>
+            </text>
+          </g>
+          <g transform="translate(178)">
+            <text y="6">
+              <tspan>dilation_width</tspan>
+            </text>
+          </g>
+          <g transform="translate(0)">
+            <text y="6">
+              <tspan>dilation_height</tspan>
+            </text>
+          </g>
+        </g>
+        <g transform="translate(30,47)"/>
+      </g>
+    </g>
+    <g transform="translate(4,277)">
+      <g stroke="black" stroke-width="1" stroke-linecap="round">
+        <line x2="951"/>
+        <line y2="39"/>
+        <line x2="951" y1="39" y2="39"/>
+        <line x1="951" x2="951" y2="39"/>
+        <line x1="892" x2="892" y2="4"/>
+        <line x1="892" x2="892" y1="39" y2="35"/>
+        <line x1="832" x2="832" y2="4"/>
+        <line x1="832" x2="832" y1="39" y2="35"/>
+        <line x1="773" x2="773" y2="4"/>
+        <line x1="773" x2="773" y1="39" y2="35"/>
+        <line x1="713" x2="713" y2="4"/>
+        <line x1="713" x2="713" y1="39" y2="35"/>
+        <line x1="654" x2="654" y2="4"/>
+        <line x1="654" x2="654" y1="39" y2="35"/>
+        <line x1="594" x2="594" y2="4"/>
+        <line x1="594" x2="594" y1="39" y2="35"/>
+        <line x1="535" x2="535" y2="4"/>
+        <line x1="535" x2="535" y1="39" y2="35"/>
+        <line x1="476" x2="476" y2="4"/>
+        <line x1="476" x2="476" y1="39" y2="35"/>
+        <line x1="416" x2="416" y2="4"/>
+        <line x1="416" x2="416" y1="39" y2="35"/>
+        <line x1="357" x2="357" y2="4"/>
+        <line x1="357" x2="357" y1="39" y2="35"/>
+        <line x1="297" x2="297" y2="4"/>
+        <line x1="297" x2="297" y1="39" y2="35"/>
+        <line x1="238" x2="238" y2="4"/>
+        <line x1="238" x2="238" y1="39" y2="35"/>
+        <line x1="178" x2="178" y2="4"/>
+        <line x1="178" x2="178" y1="39" y2="35"/>
+        <line x1="119" x2="119" y2="4"/>
+        <line x1="119" x2="119" y1="39" y2="35"/>
+        <line x1="59" x2="59" y2="4"/>
+        <line x1="59" x2="59" y1="39" y2="35"/>
+      </g>
+      <g>
+        <g>
+          <rect x="713" width="238" height="39" field="dilation_height" style="fill-opacity:0.1;fill:#ff0010"/>
+        </g>
+        <g transform="translate(30,-11)">
+          <g transform="translate(892)">
+            <text y="6">48</text>
+          </g>
+          <g transform="translate(713)">
+            <text y="6">51</text>
+          </g>
+        </g>
+        <g transform="translate(30,19)">
+          <g transform="translate(802)">
+            <text y="6">
+              <tspan>dilation_height</tspan>
+            </text>
+          </g>
+        </g>
+        <g transform="translate(30,47)"/>
+      </g>
+    </g>
+    <g transform="translate(4,213)">
+      <g stroke="black" stroke-width="1" stroke-linecap="round">
+        <line x2="951"/>
+        <line y2="39"/>
+        <line x2="951" y1="39" y2="39"/>
+        <line x1="951" x2="951" y2="39"/>
+        <line x1="892" x2="892" y2="4"/>
+        <line x1="892" x2="892" y1="39" y2="35"/>
+        <line x1="832" x2="832" y2="4"/>
+        <line x1="832" x2="832" y1="39" y2="35"/>
+        <line x1="773" x2="773" y2="4"/>
+        <line x1="773" x2="773" y1="39" y2="35"/>
+        <line x1="713" x2="713" y2="4"/>
+        <line x1="713" x2="713" y1="39" y2="35"/>
+        <line x1="654" x2="654" y2="4"/>
+        <line x1="654" x2="654" y1="39" y2="35"/>
+        <line x1="594" x2="594" y2="4"/>
+        <line x1="594" x2="594" y1="39" y2="35"/>
+        <line x1="535" x2="535" y2="4"/>
+        <line x1="535" x2="535" y1="39" y2="35"/>
+        <line x1="476" x2="476" y2="4"/>
+        <line x1="476" x2="476" y1="39" y2="35"/>
+        <line x1="416" x2="416" y2="4"/>
+        <line x1="416" x2="416" y1="39" y2="35"/>
+        <line x1="357" x2="357" y2="4"/>
+        <line x1="357" x2="357" y1="39" y2="35"/>
+        <line x1="297" x2="297" y2="4"/>
+        <line x1="297" x2="297" y1="39" y2="35"/>
+        <line x1="238" x2="238" y2="4"/>
+        <line x1="238" x2="238" y1="39" y2="35"/>
+        <line x1="178" x2="178" y2="4"/>
+        <line x1="178" x2="178" y1="39" y2="35"/>
+        <line x1="119" x2="119" y2="4"/>
+        <line x1="119" x2="119" y1="39" y2="35"/>
+        <line x1="59" x2="59" y2="4"/>
+        <line x1="59" x2="59" y1="39" y2="35"/>
+      </g>
+      <g>
+        <g/>
+        <g transform="translate(30,-11)"/>
+        <g transform="translate(30,19)"/>
+        <g transform="translate(30,47)"/>
+      </g>
+    </g>
+    <g transform="translate(4,149)">
+      <g stroke="black" stroke-width="1" stroke-linecap="round">
+        <line x2="951"/>
+        <line y2="39"/>
+        <line x2="951" y1="39" y2="39"/>
+        <line x1="951" x2="951" y2="39"/>
+        <line x1="892" x2="892" y2="4"/>
+        <line x1="892" x2="892" y1="39" y2="35"/>
+        <line x1="832" x2="832" y2="4"/>
+        <line x1="832" x2="832" y1="39" y2="35"/>
+        <line x1="773" x2="773" y2="4"/>
+        <line x1="773" x2="773" y1="39" y2="35"/>
+        <line x1="713" x2="713" y2="4"/>
+        <line x1="713" x2="713" y1="39" y2="35"/>
+        <line x1="654" x2="654" y2="4"/>
+        <line x1="654" x2="654" y1="39" y2="35"/>
+        <line x1="594" x2="594" y2="4"/>
+        <line x1="594" x2="594" y1="39" y2="35"/>
+        <line x1="535" x2="535" y2="4"/>
+        <line x1="535" x2="535" y1="39" y2="35"/>
+        <line x1="476" x2="476" y2="4"/>
+        <line x1="476" x2="476" y1="39" y2="35"/>
+        <line x1="416" x2="416" y2="4"/>
+        <line x1="416" x2="416" y1="39" y2="35"/>
+        <line x1="357" x2="357" y2="4"/>
+        <line x1="357" x2="357" y1="39" y2="35"/>
+        <line x1="297" x2="297" y2="4"/>
+        <line x1="297" x2="297" y1="39" y2="35"/>
+        <line x1="238" x2="238" y2="4"/>
+        <line x1="238" x2="238" y1="39" y2="35"/>
+        <line x1="178" x2="178" y2="4"/>
+        <line x1="178" x2="178" y1="39" y2="35"/>
+        <line x1="119" x2="119" y2="4"/>
+        <line x1="119" x2="119" y1="39" y2="35"/>
+        <line x1="59" x2="59" y2="4"/>
+        <line x1="59" x2="59" y1="39" y2="35"/>
+      </g>
+      <g>
+        <g/>
+        <g transform="translate(30,-11)"/>
+        <g transform="translate(30,19)"/>
+        <g transform="translate(30,47)"/>
+      </g>
+    </g>
+    <g transform="translate(4,85)">
+      <g stroke="black" stroke-width="1" stroke-linecap="round">
+        <line x2="951"/>
+        <line y2="39"/>
+        <line x2="951" y1="39" y2="39"/>
+        <line x1="951" x2="951" y2="39"/>
+        <line x1="892" x2="892" y2="4"/>
+        <line x1="892" x2="892" y1="39" y2="35"/>
+        <line x1="832" x2="832" y2="4"/>
+        <line x1="832" x2="832" y1="39" y2="35"/>
+        <line x1="773" x2="773" y2="4"/>
+        <line x1="773" x2="773" y1="39" y2="35"/>
+        <line x1="713" x2="713" y2="4"/>
+        <line x1="713" x2="713" y1="39" y2="35"/>
+        <line x1="654" x2="654" y2="4"/>
+        <line x1="654" x2="654" y1="39" y2="35"/>
+        <line x1="594" x2="594" y2="4"/>
+        <line x1="594" x2="594" y1="39" y2="35"/>
+        <line x1="535" x2="535" y2="4"/>
+        <line x1="535" x2="535" y1="39" y2="35"/>
+        <line x1="476" x2="476" y2="4"/>
+        <line x1="476" x2="476" y1="39" y2="35"/>
+        <line x1="416" x2="416" y2="4"/>
+        <line x1="416" x2="416" y1="39" y2="35"/>
+        <line x1="357" x2="357" y2="4"/>
+        <line x1="357" x2="357" y1="39" y2="35"/>
+        <line x1="297" x2="297" y2="4"/>
+        <line x1="297" x2="297" y1="39" y2="35"/>
+        <line x1="238" x2="238" y2="4"/>
+        <line x1="238" x2="238" y1="39" y2="35"/>
+        <line x1="178" x2="178" y2="4"/>
+        <line x1="178" x2="178" y1="39" y2="35"/>
+        <line x1="119" x2="119" y2="4"/>
+        <line x1="119" x2="119" y1="39" y2="35"/>
+        <line x1="59" x2="59" y2="4"/>
+        <line x1="59" x2="59" y1="39" y2="35"/>
+      </g>
+      <g>
+        <g/>
+        <g transform="translate(30,-11)"/>
+        <g transform="translate(30,19)"/>
+        <g transform="translate(30,47)"/>
+      </g>
+    </g>
+    <g transform="translate(4,21)">
+      <g stroke="black" stroke-width="1" stroke-linecap="round">
+        <line x2="951"/>
+        <line y2="39"/>
+        <line x2="951" y1="39" y2="39"/>
+        <line x1="951" x2="951" y2="39"/>
+        <line x1="892" x2="892" y2="4"/>
+        <line x1="892" x2="892" y1="39" y2="35"/>
+        <line x1="832" x2="832" y2="4"/>
+        <line x1="832" x2="832" y1="39" y2="35"/>
+        <line x1="773" x2="773" y2="4"/>
+        <line x1="773" x2="773" y1="39" y2="35"/>
+        <line x1="713" x2="713" y2="4"/>
+        <line x1="713" x2="713" y1="39" y2="35"/>
+        <line x1="654" x2="654" y2="4"/>
+        <line x1="654" x2="654" y1="39" y2="35"/>
+        <line x1="594" x2="594" y2="4"/>
+        <line x1="594" x2="594" y1="39" y2="35"/>
+        <line x1="535" x2="535" y2="4"/>
+        <line x1="535" x2="535" y1="39" y2="35"/>
+        <line x1="476" x2="476" y2="4"/>
+        <line x1="476" x2="476" y1="39" y2="35"/>
+        <line x1="416" x2="416" y2="4"/>
+        <line x1="416" x2="416" y1="39" y2="35"/>
+        <line x1="357" x2="357" y2="4"/>
+        <line x1="357" x2="357" y1="39" y2="35"/>
+        <line x1="297" x2="297" y2="4"/>
+        <line x1="297" x2="297" y1="39" y2="35"/>
+        <line x1="238" x2="238" y2="4"/>
+        <line x1="238" x2="238" y1="39" y2="35"/>
+        <line x1="178" x2="178" y2="4"/>
+        <line x1="178" x2="178" y1="39" y2="35"/>
+        <line x1="119" x2="119" y2="4"/>
+        <line x1="119" x2="119" y1="39" y2="35"/>
+        <line x1="59" x2="59" y2="4"/>
+        <line x1="59" x2="59" y1="39" y2="35"/>
+      </g>
+      <g>
+        <g/>
+        <g transform="translate(30,-11)"/>
+        <g transform="translate(30,19)"/>
+        <g transform="translate(30,47)"/>
+      </g>
+    </g>
+  </g>
+</svg>
+

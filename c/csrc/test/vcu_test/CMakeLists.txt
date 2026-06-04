@@ -1,0 +1,5 @@
+add_subdirectory(test_vcu_opcode)
+add_subdirectory(test_vcu_transpose)
+add_subdirectory(test_vcu_sample)
+add_subdirectory(test_vcu_parallelism_convertion)
+add_subdirectory(vector_reduce)

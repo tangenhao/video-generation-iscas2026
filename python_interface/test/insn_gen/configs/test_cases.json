@@ -1,0 +1,89 @@
+{
+  "gemm": {
+    "small": {
+      "description": "Small GEMM for unit testing",
+      "m": 64,
+      "n": 128,
+      "k": 256,
+      "tile_m": 64,
+      "block_n_group": 2,
+      "block_k_group": 8
+    },
+    "medium": {
+      "description": "Medium GEMM for integration testing",
+      "m": 128,
+      "n": 256,
+      "k": 512,
+      "tile_m": 128,
+      "block_n_group": 4,
+      "block_k_group": 16
+    },
+    "large": {
+      "description": "Large GEMM for stress testing",
+      "m": 256,
+      "n": 512,
+      "k": 1024,
+      "tile_m": 256,
+      "block_n_group": 8,
+      "block_k_group": 32
+    }
+  },
+  "rmsnorm": {
+    "standard": {
+      "description": "Standard RMSNorm configuration",
+      "seq_len": 64,
+      "d_model": 256,
+      "tile_m": 64,
+      "block_oc_group": 4,
+      "epsilon": 1e-6,
+      "dtype": "kFloat32"
+    },
+    "large": {
+      "description": "Large RMSNorm for performance testing",
+      "seq_len": 128,
+      "d_model": 512,
+      "tile_m": 64,
+      "block_oc_group": 8,
+      "epsilon": 1e-6,
+      "dtype": "kFloat32"
+    }
+  },
+  "softmax": {
+    "attention": {
+      "description": "Attention Softmax",
+      "seq_len": 64,
+      "d_model": 256,
+      "tile_m": 64,
+      "block_oc_group": 4
+    },
+    "large_attention": {
+      "description": "Large Attention Softmax",
+      "seq_len": 128,
+      "d_model": 512,
+      "tile_m": 64,
+      "block_oc_group": 8
+    }
+  },
+  "llama_block": {
+    "mini": {
+      "description": "Mini Llama block for testing",
+      "seq_len": 64,
+      "hidden_size": 128,
+      "intermediate_size": 128,
+      "num_attention_heads": 2,
+      "rmsnorm_epsilon": 1e-6,
+      "hidden_dtype": "kFloat32",
+      "weight_dtype": "kHalf"
+    },
+    "standard": {
+      "description": "Standard Llama block",
+      "seq_len": 32,
+      "hidden_size": 4096,
+      "intermediate_size": 11008,
+      "num_attention_heads": 32,
+      "rmsnorm_epsilon": 1e-6,
+      "hidden_dtype": "kFloat32",
+      "weight_dtype": "kHalf"
+    }
+  }
+}

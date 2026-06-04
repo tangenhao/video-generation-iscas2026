@@ -1,0 +1,16 @@
+function(compile fname)
+  add_executable(${fname} ${fname}.cpp)
+  target_link_libraries(${fname} dl)
+endfunction()
+
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/exe)
+
+compile(test_vcu_maxpool_float32)
+compile(test_vcu_maxpool_float16)
+compile(test_vcu_maxpool_bfloat16)
+# compile(test_vcu_avgpool_float32)
+compile(test_vcu_avgpool_float16)
+# compile(test_vcu_avgpool_bfloat16)
+# compile(test_vcu_upsample_float32)
+compile(test_vcu_upsample_float16)
+# compile(test_vcu_upsample_bfloat16)

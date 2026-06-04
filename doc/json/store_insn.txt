@@ -1,0 +1,38 @@
+{signal: [
+  {name:'clk',         wave: 'p...........' },
+  {name:'',            wave: '2...........', data: 'equal_frequency' },
+  [{name:'sram_rvalid', wave: '01...0..1...'},
+   {name:'sram_rready', wave: '01..........'},
+   {name:'sram_rdata', wave: '.x=====..====', data: ['data0', 'data1', 'data2', 'data3', '0', 'data4', 'data5', 'data6', 'data7']},
+   {name:'sram_rdata_valid', wave: '0.1...0..1...'},
+   {name:'sram_rdata_reg', wave: '.x.====...====', data: ['data0', 'data1', 'data2', 'data3', 'data4', 'data5', 'data6', 'data7']},
+   {name:'peripheral_W_data_valid', wave: '0..1.....01...'},
+   {name:'peripheral_W_data_ready', wave: '1....0..1.....'},
+   {name:'peripheral_W_data', wave: 'x..===...=====', data: ['data0', 'data1', 'data2', 'data3', 'data4', 'data5', 'data6']},
+  ],
+  {},
+  {name:'',            wave: '2...........', data: 'logic_faster' },
+  [
+    {name:'sram_rvalid', wave: '01...01010101'},
+    {name:'sram_rready', wave: '01..........'},
+    {name:'sram_rdata', wave: '.x======.=.=.=.', data: ['data0', 'data1', 'data2', 'data3', '0', 'data4', 'data5', 'data6', 'data7']},
+    {name:'sram_rdata_valid', wave: '0.1...01010101'},
+    {name:'sram_rdata_reg', wave: '.x.====.=.=.=.=.', data: ['data0', 'data1', 'data2', 'data3', 'data4', 'data5', 'data6', 'data7']},
+    {name:'peripheral_W_data_valid', wave: '0..1...01010101'},
+    {name:'peripheral_W_data_ready', wave: '1....01010101'},
+    {name:'peripheral_W_data', wave: 'x..===.=.=.=.=.=.', data: ['data0', 'data1', 'data2', 'data3', 'data4', 'data5', 'data6']},
+  ]
+],
+ head:{
+   text:'store_insn',
+   tick:0,
+  //  every:1
+ },
+ foot:{
+  //  text:'Figure 100',
+  //  tock:0
+ },
+ config:{
+    hscale:2
+ }
+}

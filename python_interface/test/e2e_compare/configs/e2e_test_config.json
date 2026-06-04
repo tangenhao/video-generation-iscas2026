@@ -1,0 +1,122 @@
+{
+    "gemm": {
+        "test_cases": [
+            {
+                "name": "small_fp16",
+                "M": 64,
+                "K": 128, 
+                "N": 256,
+                "tile_m": 64,
+                "block_n_group": 4,
+                "block_k_group": 8,
+                "k_group_size": 16,
+                "n_group_size": 32
+            },
+            {
+                "name": "medium_fp16", 
+                "M": 128,
+                "K": 256,
+                "N": 512,
+                "tile_m": 128,
+                "block_n_group": 8,
+                "block_k_group": 16,
+                "k_group_size": 16,
+                "n_group_size": 32
+            }
+        ],
+        "tolerance": {
+            "max_absolute_error": 1e-3,
+            "min_cosine_similarity": 0.999,
+            "mean_absolute_error": 1e-4,
+            "max_relative_error": 0.02,
+            "outlier_absolute_threshold": 1e-4,
+            "outlier_relative_threshold": 0.01,
+            "max_outlier_percentage": 0.1
+        }
+    },
+    "rmsnorm": {
+        "test_cases": [
+            {
+                "name": "standard",
+                "seq_len": 64,
+                "d_model": 128,
+                "epsilon": 1e-6,
+                "oc_group_size": 32
+            },
+            {
+                "name": "large",
+                "seq_len": 128, 
+                "d_model": 256,
+                "epsilon": 1e-6,
+                "oc_group_size": 32
+            }
+        ],
+        "tolerance": {
+            "max_absolute_error": 1e-4,
+            "min_cosine_similarity": 0.9999,
+            "mean_absolute_error": 1e-5,
+            "max_relative_error": 0.01,
+            "outlier_absolute_threshold": 1e-5,
+            "outlier_relative_threshold": 0.001,
+            "max_outlier_percentage": 0.05
+        }
+    },
+    "softmax": {
+        "test_cases": [
+            {
+                "name": "attention",
+                "seq_len": 64,
+                "d_model": 256,
+                "oc_group_size": 32
+            },
+            {
+                "name": "large_attention", 
+                "seq_len": 128,
+                "d_model": 512,
+                "oc_group_size": 32
+            }
+        ],
+        "tolerance": {
+            "max_absolute_error": 1e-5,
+            "min_cosine_similarity": 0.9999,
+            "mean_absolute_error": 1e-6,
+            "max_relative_error": 0.001,
+            "outlier_absolute_threshold": 1e-6,
+            "outlier_relative_threshold": 0.0001,
+            "max_outlier_percentage": 0.02
+        }
+    },
+    "llama_block": {
+        "test_cases": [
+            {
+                "name": "mini_block",
+                "seq_len": 64,
+                "hidden_size": 256,
+                "intermediate_size": 512,
+                "num_attention_heads": 4,
+                "rmsnorm_epsilon": 1e-6,
+                "hidden_dtype": "kFloat32",
+                "weight_dtype": "kHalf"
+            },
+            {
+                "name": "standard_block",
+                "seq_len": 32,
+                "hidden_size": 4096,
+                "intermediate_size": 11008,
+                "num_attention_heads": 32,
+                "rmsnorm_epsilon": 1e-6,
+                "hidden_dtype": "kFloat32",
+                "weight_dtype": "kHalf"
+            }
+        ],
+        "tolerance": {
+            "max_absolute_error": 1e-3,
+            "min_cosine_similarity": 0.999,
+            "mean_absolute_error": 1e-4,
+            "max_relative_error": 0.05,
+            "outlier_absolute_threshold": 1e-4,
+            "outlier_relative_threshold": 0.01,
+            "max_outlier_percentage": 0.15
+        }
+    }
+}

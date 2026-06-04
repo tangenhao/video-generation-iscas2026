@@ -1,0 +1,20 @@
+function(compile fname)
+  add_executable(${fname} ${fname}.cpp)
+  target_link_libraries(${fname} dl)
+endfunction()
+
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/exe)
+
+# compile(test_crossdie_load_ddr)
+# compile(test_crossdie_load_ddr_nocheck)
+# compile(test_crossdie_load_sram)
+# compile(test_crossdie_store_ddr)
+# compile(test_crossdie_store_ddr_nocheck)
+# compile(test_crossdie_store_sram)
+# compile(test_sync_iteration)
+# compile(test_store_master)
+# compile(test_dispatch)
+
+compile(test_load_psum_128bit)
+compile(test_load_psum_256bit)
+compile(test_load_psum_512bit)
