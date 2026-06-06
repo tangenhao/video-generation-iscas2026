@@ -183,7 +183,7 @@ assign peripheral_M_rdata_valid = !data_fifo_hfull;
 
 
 localparam REGFILE_ID       = 4'b0000;
-localparam IFMAP_ID         = 4'b0110;
+localparam IFMAP_ID         = 4'b0001;
 localparam VCUCODE_ID       = 4'b1000;
 localparam VCULUT_ID        = 4'b1001;
 localparam VCUPARA_ID       = 4'b1010;

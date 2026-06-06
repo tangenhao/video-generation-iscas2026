@@ -60,7 +60,6 @@ parameter VCUCODE_ADDR_BITS  = 7;
 parameter DATA_IN_WIDTH     = 512;
 parameter VCUCODE_WIDTH     = 64;
 parameter DATA_OUT_WIDTH    = 512;
-parameter STREAM_SUM_FIFO_DEPTH = 64;
 
 parameter IDLE       = 4'b0000;
 parameter DECODE     = 4'b0001;
@@ -228,33 +227,21 @@ reg [DATA_WIDTH*16-1:0]  stream_l1_data;
 reg [DATA_WIDTH*8-1:0]   stream_l2_data;
 reg [DATA_WIDTH*4-1:0]   stream_l3_data;
 reg [DATA_WIDTH*2-1:0]   stream_l4_data;
-reg [DATA_WIDTH-1:0]     stream_sum_fifo[0:STREAM_SUM_FIFO_DEPTH-1];
-reg                      stream_sum_first_fifo[0:STREAM_SUM_FIFO_DEPTH-1];
-reg                      stream_sum_last_fifo[0:STREAM_SUM_FIFO_DEPTH-1];
-reg [5:0]                stream_sum_wr_ptr;
-reg [5:0]                stream_sum_rd_ptr;
-reg [6:0]                stream_sum_fifo_count;
 reg                      stream_l1_valid;
 reg                      stream_l2_valid;
 reg                      stream_l3_valid;
 reg                      stream_l4_valid;
-reg                      stream_sum_valid;
 reg                      stream_l1_first;
 reg                      stream_l2_first;
 reg                      stream_l3_first;
 reg                      stream_l4_first;
-reg                      stream_sum_first;
 reg                      stream_l1_last;
 reg                      stream_l2_last;
 reg                      stream_l3_last;
 reg                      stream_l4_last;
-reg                      stream_sum_last;
 reg                      stream_acc_busy;
 reg                      stream_acc_last_pending;
 reg [DATA_WIDTH-1:0]     stream_acc_reg;
-reg [DATA_WIDTH-1:0]     stream_acc_op_a;
-reg [DATA_WIDTH-1:0]     stream_acc_op_b;
-reg                      stream_acc_valid;
 reg                      stream_done_reg;
 reg                      stream_active;
 reg                      stream_l1_fire;
@@ -279,6 +266,7 @@ reg                      stream_reduce_first_reg;
 reg                      stream_reduce_last_reg;
 wire                     stream_sum_enq;
 wire                     stream_acc_start;
+wire [DATA_WIDTH-1:0]    stream_acc_value;
 wire                     stream_l1_done_fire;
 wire                     stream_l2_done_fire;
 wire                     stream_l3_done_fire;
@@ -287,11 +275,22 @@ wire                     stream_acc_done_fire;
 wire                     stream_ewise_active;
 wire                     stream_select;
 wire                     stream_ewise_fma;
+wire                     stream_reduce_max_op;
+wire                     stream_reduce_max_active;
+wire [5:0]               stream_reduce_operation;
 reg [PARALLELISM-1:0]    stream_fpu_valid;
 reg [DATA_IN_WIDTH-1:0]  stream_fpu_add_op1;
 reg [DATA_IN_WIDTH-1:0]  stream_fpu_add_op2;
 reg [DATA_IN_WIDTH-1:0]  stream_fpu_mul_op1;
 reg [DATA_IN_WIDTH-1:0]  stream_fpu_mul_op2;
+reg [DATA_IN_WIDTH-1:0]  stream_fpu_comp_op1;
+reg [DATA_IN_WIDTH-1:0]  stream_fpu_comp_op2;
+reg [DATA_IN_WIDTH-1:0]  stream_fpu_comp_op3;
+reg [DATA_IN_WIDTH-1:0]  stream_fpu_comp_op4;
+reg [DATA_IN_WIDTH-1:0]  stream_fpu_comp_op1_d;
+reg [DATA_IN_WIDTH-1:0]  stream_fpu_comp_op2_d;
+reg [DATA_IN_WIDTH-1:0]  stream_fpu_comp_op3_d;
+reg [DATA_IN_WIDTH-1:0]  stream_fpu_comp_op4_d;
 wire [PARALLELISM-1:0]   stream_fuse_valid;
 wire [PARALLELISM-1:0]   stream_fuse_done;
 wire [DATA_OUT_WIDTH-1:0] stream_fuse_out;
@@ -312,6 +311,9 @@ assign stream_reduce_out = {PARALLELISM{stream_acc_reg}};
 assign stream_ewise_done = stream_ewise_done_reg;
 assign stream_ewise_out = stream_ewise_out_reg;
 assign stream_ewise_fma = stream_ewise_opcode_reg == FMA;
+assign stream_reduce_max_op = opcode[5:0] == REDUCE_MAX;
+assign stream_reduce_max_active = stream_reduce_max_op && (stream_active || stream_reduce_valid);
+assign stream_reduce_operation = stream_reduce_max_op ? COMP_GEQ : ADD;
 assign stream_fuse_valid = {PARALLELISM{stream_ewise_valid_d && stream_ewise_fma}};
 assign stream_l1_done_fire = stream_l1_issue_valid && &done[15:0];
 assign stream_l2_done_fire = stream_l2_issue_valid && &done[23:16];
@@ -319,7 +321,8 @@ assign stream_l3_done_fire = stream_l3_issue_valid && &done[27:24];
 assign stream_l4_done_fire = stream_l4_issue_valid && &done[29:28];
 assign stream_sum_enq = stream_sum_issue_valid && done[30];
 assign stream_acc_done_fire = stream_acc_issue_valid && done[31];
-assign stream_acc_start = !stream_acc_busy && (stream_sum_fifo_count != 0);
+assign stream_acc_start = stream_sum_enq && (!stream_acc_busy || stream_acc_done_fire);
+assign stream_acc_value = (stream_acc_done_fire && stream_acc_busy) ? out[31*DATA_WIDTH +: DATA_WIDTH] : stream_acc_reg;
 assign stream_ewise_active = stream_ewise_valid || stream_ewise_valid_d || stream_ewise_busy;
 assign stream_select = stream_active || stream_reduce_valid || stream_ewise_active;
 
@@ -687,10 +690,10 @@ generate
       .fma_op1            ( fma_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]       ),
       .fma_op2            ( fma_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]       ),
       .fma_op3            ( fma_op3[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]       ),
-      .comp_op1           ( comp_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]      ),
-      .comp_op2           ( comp_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]      ),
-      .comp_op3           ( comp_op3[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]      ),
-      .comp_op4           ( comp_op4[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]      ),
+      .comp_op1           ( stream_reduce_max_active ? stream_fpu_comp_op1_d[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] : comp_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
+      .comp_op2           ( stream_reduce_max_active ? stream_fpu_comp_op2_d[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] : comp_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
+      .comp_op3           ( stream_reduce_max_active ? stream_fpu_comp_op3_d[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] : comp_op3[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
+      .comp_op4           ( stream_reduce_max_active ? stream_fpu_comp_op4_d[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] : comp_op4[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
       .srt16_op1          ( srt16_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]     ),
       .srt16_op2          ( srt16_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]     ),
       .fast_func_op1      ( fast_func_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
@@ -703,7 +706,7 @@ generate
       .stream_fuse_done   ( stream_fuse_done[fpu_i]                                ),
       .stream_fuse_out    ( stream_fuse_out[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
       .operation          ( stream_ewise_active ? (stream_ewise_valid ? stream_ewise_opcode : stream_ewise_opcode_reg) :
-                            ((stream_active || stream_reduce_valid) ? ADD : operation_fpu[6*(fpu_i+1)-1 : 6*fpu_i]) ),
+                            ((stream_active || stream_reduce_valid) ? stream_reduce_operation : operation_fpu[6*(fpu_i+1)-1 : 6*fpu_i]) ),
       .out                ( out[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]           ),
       .done               ( done[fpu_i]                                            ),
       .vculut_rvalid      ( vculut_rvalid[fpu_i]                                   ),
@@ -714,7 +717,6 @@ generate
     end
 endgenerate
 
-integer stream_fifo_i;
 integer stream_dispatch_i;
 always @(*) begin
   stream_fpu_valid   = 'd0;
@@ -722,6 +724,10 @@ always @(*) begin
   stream_fpu_add_op2 = 'd0;
   stream_fpu_mul_op1 = 'd0;
   stream_fpu_mul_op2 = 'd0;
+  stream_fpu_comp_op1 = 'd0;
+  stream_fpu_comp_op2 = 'd0;
+  stream_fpu_comp_op3 = 'd0;
+  stream_fpu_comp_op4 = 'd0;
 
   if (stream_ewise_valid_d && !stream_ewise_fma) begin
     stream_fpu_valid   = {PARALLELISM{1'b1}};
@@ -736,6 +742,10 @@ always @(*) begin
       stream_fpu_valid[stream_dispatch_i] = 1'b1;
       stream_fpu_add_op1[stream_dispatch_i*DATA_WIDTH +: DATA_WIDTH] = stream_reduce_data_reg[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
       stream_fpu_add_op2[stream_dispatch_i*DATA_WIDTH +: DATA_WIDTH] = stream_reduce_data_reg[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op1[stream_dispatch_i*DATA_WIDTH +: DATA_WIDTH] = stream_reduce_data_reg[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op2[stream_dispatch_i*DATA_WIDTH +: DATA_WIDTH] = stream_reduce_data_reg[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op3[stream_dispatch_i*DATA_WIDTH +: DATA_WIDTH] = stream_reduce_data_reg[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op4[stream_dispatch_i*DATA_WIDTH +: DATA_WIDTH] = stream_reduce_data_reg[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
     end
   end
 
@@ -744,6 +754,10 @@ always @(*) begin
       stream_fpu_valid[16+stream_dispatch_i] = 1'b1;
       stream_fpu_add_op1[(16+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l1_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
       stream_fpu_add_op2[(16+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l1_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op1[(16+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l1_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op2[(16+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l1_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op3[(16+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l1_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op4[(16+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l1_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
     end
   end
 
@@ -752,6 +766,10 @@ always @(*) begin
       stream_fpu_valid[24+stream_dispatch_i] = 1'b1;
       stream_fpu_add_op1[(24+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l2_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
       stream_fpu_add_op2[(24+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l2_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op1[(24+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l2_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op2[(24+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l2_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op3[(24+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l2_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op4[(24+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l2_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
     end
   end
 
@@ -760,6 +778,10 @@ always @(*) begin
       stream_fpu_valid[28+stream_dispatch_i] = 1'b1;
       stream_fpu_add_op1[(28+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l3_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
       stream_fpu_add_op2[(28+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l3_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op1[(28+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l3_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op2[(28+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l3_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op3[(28+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l3_data[(2*stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH];
+      stream_fpu_comp_op4[(28+stream_dispatch_i)*DATA_WIDTH +: DATA_WIDTH] = stream_l3_data[(2*stream_dispatch_i+1)*DATA_WIDTH +: DATA_WIDTH];
     end
   end
 
@@ -767,12 +789,20 @@ always @(*) begin
     stream_fpu_valid[30] = 1'b1;
     stream_fpu_add_op1[30*DATA_WIDTH +: DATA_WIDTH] = stream_l4_data[0*DATA_WIDTH +: DATA_WIDTH];
     stream_fpu_add_op2[30*DATA_WIDTH +: DATA_WIDTH] = stream_l4_data[1*DATA_WIDTH +: DATA_WIDTH];
+    stream_fpu_comp_op1[30*DATA_WIDTH +: DATA_WIDTH] = stream_l4_data[0*DATA_WIDTH +: DATA_WIDTH];
+    stream_fpu_comp_op2[30*DATA_WIDTH +: DATA_WIDTH] = stream_l4_data[1*DATA_WIDTH +: DATA_WIDTH];
+    stream_fpu_comp_op3[30*DATA_WIDTH +: DATA_WIDTH] = stream_l4_data[0*DATA_WIDTH +: DATA_WIDTH];
+    stream_fpu_comp_op4[30*DATA_WIDTH +: DATA_WIDTH] = stream_l4_data[1*DATA_WIDTH +: DATA_WIDTH];
   end
 
-  if (stream_acc_valid) begin
+  if (stream_acc_start) begin
     stream_fpu_valid[31] = 1'b1;
-    stream_fpu_add_op1[31*DATA_WIDTH +: DATA_WIDTH] = stream_acc_op_a;
-    stream_fpu_add_op2[31*DATA_WIDTH +: DATA_WIDTH] = stream_acc_op_b;
+    stream_fpu_add_op1[31*DATA_WIDTH +: DATA_WIDTH] = out[30*DATA_WIDTH +: DATA_WIDTH];
+    stream_fpu_add_op2[31*DATA_WIDTH +: DATA_WIDTH] = stream_sum_issue_first ? {DATA_WIDTH{1'b0}} : stream_acc_value;
+    stream_fpu_comp_op1[31*DATA_WIDTH +: DATA_WIDTH] = out[30*DATA_WIDTH +: DATA_WIDTH];
+    stream_fpu_comp_op2[31*DATA_WIDTH +: DATA_WIDTH] = stream_sum_issue_first ? {DATA_WIDTH{1'b0}} : stream_acc_value;
+    stream_fpu_comp_op3[31*DATA_WIDTH +: DATA_WIDTH] = out[30*DATA_WIDTH +: DATA_WIDTH];
+    stream_fpu_comp_op4[31*DATA_WIDTH +: DATA_WIDTH] = stream_sum_issue_first ? {DATA_WIDTH{1'b0}} : stream_acc_value;
   end
 end
 
@@ -786,26 +816,17 @@ always @(posedge clk or negedge rst_n) begin
     stream_l2_valid        <= 1'b0;
     stream_l3_valid        <= 1'b0;
     stream_l4_valid        <= 1'b0;
-    stream_sum_valid       <= 1'b0;
     stream_l1_first        <= 1'b0;
     stream_l2_first        <= 1'b0;
     stream_l3_first        <= 1'b0;
     stream_l4_first        <= 1'b0;
-    stream_sum_first       <= 1'b0;
     stream_l1_last         <= 1'b0;
     stream_l2_last         <= 1'b0;
     stream_l3_last         <= 1'b0;
     stream_l4_last         <= 1'b0;
-    stream_sum_last        <= 1'b0;
-    stream_sum_wr_ptr      <= 'd0;
-    stream_sum_rd_ptr      <= 'd0;
-    stream_sum_fifo_count  <= 'd0;
     stream_acc_busy        <= 1'b0;
     stream_acc_last_pending<= 1'b0;
     stream_acc_reg         <= {DATA_WIDTH{1'b0}};
-    stream_acc_op_a        <= {DATA_WIDTH{1'b0}};
-    stream_acc_op_b        <= {DATA_WIDTH{1'b0}};
-    stream_acc_valid       <= 1'b0;
     stream_done_reg        <= 1'b0;
     stream_ewise_out_reg   <= 'd0;
     stream_ewise_done_reg  <= 1'b0;
@@ -816,6 +837,10 @@ always @(posedge clk or negedge rst_n) begin
     stream_ewise_op2_data_d <= 'd0;
     stream_ewise_op3_data_d <= 'd0;
     stream_ewise_fma_busy_pipe <= 3'd0;
+    stream_fpu_comp_op1_d  <= 'd0;
+    stream_fpu_comp_op2_d  <= 'd0;
+    stream_fpu_comp_op3_d  <= 'd0;
+    stream_fpu_comp_op4_d  <= 'd0;
     stream_active          <= 1'b0;
     stream_l1_fire         <= 1'b0;
     stream_l1_issue_valid  <= 1'b0;
@@ -837,34 +862,22 @@ always @(posedge clk or negedge rst_n) begin
     stream_reduce_data_reg <= 'd0;
     stream_reduce_first_reg<= 1'b0;
     stream_reduce_last_reg <= 1'b0;
-    for (stream_fifo_i = 0; stream_fifo_i < STREAM_SUM_FIFO_DEPTH; stream_fifo_i = stream_fifo_i + 1) begin
-      stream_sum_fifo[stream_fifo_i]       <= {DATA_WIDTH{1'b0}};
-      stream_sum_first_fifo[stream_fifo_i] <= 1'b0;
-      stream_sum_last_fifo[stream_fifo_i]  <= 1'b0;
-    end
   end
   else if (!vcu_execute_start) begin
     stream_l1_valid        <= 1'b0;
     stream_l2_valid        <= 1'b0;
     stream_l3_valid        <= 1'b0;
     stream_l4_valid        <= 1'b0;
-    stream_sum_valid       <= 1'b0;
     stream_l1_first        <= 1'b0;
     stream_l2_first        <= 1'b0;
     stream_l3_first        <= 1'b0;
     stream_l4_first        <= 1'b0;
-    stream_sum_first       <= 1'b0;
     stream_l1_last         <= 1'b0;
     stream_l2_last         <= 1'b0;
     stream_l3_last         <= 1'b0;
     stream_l4_last         <= 1'b0;
-    stream_sum_last        <= 1'b0;
-    stream_sum_wr_ptr      <= 'd0;
-    stream_sum_rd_ptr      <= 'd0;
-    stream_sum_fifo_count  <= 'd0;
     stream_acc_busy        <= 1'b0;
     stream_acc_last_pending<= 1'b0;
-    stream_acc_valid       <= 1'b0;
     stream_done_reg        <= 1'b0;
     stream_ewise_done_reg  <= 1'b0;
     stream_ewise_busy      <= 1'b0;
@@ -874,6 +887,10 @@ always @(posedge clk or negedge rst_n) begin
     stream_ewise_op2_data_d <= 'd0;
     stream_ewise_op3_data_d <= 'd0;
     stream_ewise_fma_busy_pipe <= 3'd0;
+    stream_fpu_comp_op1_d  <= 'd0;
+    stream_fpu_comp_op2_d  <= 'd0;
+    stream_fpu_comp_op3_d  <= 'd0;
+    stream_fpu_comp_op4_d  <= 'd0;
     stream_active          <= 1'b0;
     stream_l1_fire         <= 1'b0;
     stream_l1_issue_valid  <= 1'b0;
@@ -898,10 +915,13 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     stream_done_reg  <= 1'b0;
-    stream_acc_valid <= 1'b0;
     stream_l1_fire   <= 1'b0;
     stream_ewise_done_reg <= 1'b0;
     stream_ewise_valid_d <= stream_ewise_valid;
+    stream_fpu_comp_op1_d <= stream_fpu_comp_op1;
+    stream_fpu_comp_op2_d <= stream_fpu_comp_op2;
+    stream_fpu_comp_op3_d <= stream_fpu_comp_op3;
+    stream_fpu_comp_op4_d <= stream_fpu_comp_op4;
     if (stream_ewise_valid) begin
       stream_ewise_opcode_reg <= stream_ewise_opcode;
       stream_ewise_op1_data_d <= stream_ewise_op1_data;
@@ -943,7 +963,7 @@ always @(posedge clk or negedge rst_n) begin
     stream_sum_issue_first <= stream_l4_first;
     stream_sum_issue_last  <= stream_l4_last;
 
-    stream_acc_issue_valid <= stream_acc_valid;
+    stream_acc_issue_valid <= stream_acc_start;
 
     stream_l1_valid <= stream_l1_done_fire;
     if (stream_l1_done_fire) begin
@@ -973,26 +993,6 @@ always @(posedge clk or negedge rst_n) begin
       stream_l4_last  <= stream_l4_issue_last;
     end
 
-    stream_sum_valid <= stream_sum_enq;
-    if (stream_sum_enq) begin
-      stream_sum_first <= stream_sum_issue_first;
-      stream_sum_last  <= stream_sum_issue_last;
-      stream_sum_fifo[stream_sum_wr_ptr]       <= out[30*DATA_WIDTH +: DATA_WIDTH];
-      stream_sum_first_fifo[stream_sum_wr_ptr] <= stream_sum_issue_first;
-      stream_sum_last_fifo[stream_sum_wr_ptr]  <= stream_sum_issue_last;
-      stream_sum_wr_ptr                        <= stream_sum_wr_ptr + 1'b1;
-    end
-
-    if (stream_sum_enq && !stream_acc_start) begin
-      stream_sum_fifo_count <= stream_sum_fifo_count + 1'b1;
-    end
-    else if (!stream_sum_enq && stream_acc_start) begin
-      stream_sum_fifo_count <= stream_sum_fifo_count - 1'b1;
-    end
-    else begin
-      stream_sum_fifo_count <= stream_sum_fifo_count;
-    end
-
     if (stream_acc_done_fire && stream_acc_busy) begin
       stream_acc_reg  <= out[31*DATA_WIDTH +: DATA_WIDTH];
       stream_acc_busy <= 1'b0;
@@ -1004,12 +1004,8 @@ always @(posedge clk or negedge rst_n) begin
     end
 
     if (stream_acc_start) begin
-      stream_acc_valid        <= 1'b1;
       stream_acc_busy         <= 1'b1;
-      stream_acc_last_pending <= stream_sum_last_fifo[stream_sum_rd_ptr];
-      stream_acc_op_a         <= stream_sum_fifo[stream_sum_rd_ptr];
-      stream_acc_op_b         <= stream_sum_first_fifo[stream_sum_rd_ptr] ? {DATA_WIDTH{1'b0}} : stream_acc_reg;
-      stream_sum_rd_ptr       <= stream_sum_rd_ptr + 1'b1;
+      stream_acc_last_pending <= stream_sum_issue_last;
     end
 
     if ((stream_ewise_fma && stream_ewise_fma_busy_pipe[1] && &stream_fuse_done) ||

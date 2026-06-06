@@ -69,17 +69,23 @@ int main(int argc, const char** argv)
   auto data_in = randn<half>({oc_group, seq_len, oc_group_size}, kHalf, half(-1.0f), half(1.0f), 0);
 
   Tensor<half> data_out({oc_group, seq_len, oc_group_size}, kHalf);
-  std::vector<half> row_sum(oc_group * seq_len);
+  half         max_value = data_in[0];
+  std::vector<half> row_max(oc_group * seq_len);
   for (int row = 0; row < oc_group * seq_len; ++row) {
-    float sum = 0.0f;
+    half row_max_value = data_in[row * oc_group_size];
     for (int j = 0; j < oc_group_size; ++j) {
-      sum += static_cast<float>(data_in[row * oc_group_size + j]);
+      half value = data_in[row * oc_group_size + j];
+      if (static_cast<float>(value) > static_cast<float>(row_max_value)) {
+        row_max_value = value;
+      }
+      if (static_cast<float>(value) > static_cast<float>(max_value)) {
+        max_value = value;
+      }
     }
-    half sum_half(sum);
-    row_sum[row] = sum_half;
-    for (int j = 0; j < oc_group_size; ++j) {
-      data_out[row * oc_group_size + j] = sum_half;
-    }
+    row_max[row] = row_max_value;
+  }
+  for (int i = 0; i < data_out.numel(); ++i) {
+    data_out[i] = max_value;
   }
 
   auto fp16_hex = [](half value) {
@@ -89,17 +95,27 @@ int main(int argc, const char** argv)
   };
 
   std::cout << std::fixed << std::setprecision(6);
-  std::cout << "\n================ reduce_sum pipeline golden ================\n";
+  std::cout << "\n================ reduce_max pipeline golden ================\n";
   std::cout << "shape: oc_group=" << oc_group << ", seq_len=" << seq_len << ", oc_group_size=" << oc_group_size << "\n";
   std::cout << "dtype: fp16\n";
-  if (row_sum.size() == 1) {
-    std::cout << "expected scalar sum: " << fp16_hex(row_sum[0]) << " (" << static_cast<float>(row_sum[0]) << ")\n";
+  std::cout << "expected scalar output: " << fp16_hex(max_value) << " (" << static_cast<float>(max_value) << ")\n";
+  std::cout << "ofmap golden pattern: all fp16 lanes = " << fp16_hex(max_value) << "\n";
+  std::cout << "row max values:\n";
+  for (int row = 0; row < oc_group * seq_len; ++row) {
+    std::cout << "  row[" << std::setw(2) << row << "] max = " << fp16_hex(row_max[row]) << " (" << std::setw(10)
+              << static_cast<float>(row_max[row]) << ")\n";
   }
-  else {
-    std::cout << "expected row sums:\n";
-    for (int row = 0; row < oc_group * seq_len; ++row) {
-      std::cout << "  row[" << std::setw(2) << row << "] sum = " << fp16_hex(row_sum[row]) << " (" << std::setw(10)
-                << static_cast<float>(row_sum[row]) << ")\n";
+  std::cout << "input fp16 hex values (* marks global max):\n";
+  for (int row = 0; row < oc_group * seq_len; ++row) {
+    for (int lane_base = 0; lane_base < oc_group_size; lane_base += 16) {
+      int lane_end = std::min(lane_base + 15, oc_group_size - 1);
+      std::cout << "  row[" << std::setw(2) << row << "] lane[" << std::setw(2) << lane_base << ":" << std::setw(2) << lane_end << "]:";
+      for (int j = lane_base; j <= lane_end; ++j) {
+        half value = data_in[row * oc_group_size + j];
+        bool is_global_max = value.storage == max_value.storage;
+        std::cout << " " << (is_global_max ? "*" : " ") << fp16_hex(value);
+      }
+      std::cout << "\n";
     }
   }
   std::cout << "=============================================================\n\n";
@@ -114,7 +130,7 @@ int main(int argc, const char** argv)
   /*                                                opcode gen                                                */
   /* -------------------------------------------------------------------------------------------------------- */
 
-  auto vcucode_series = vcu::asm_vcu_op({"redsum ifmap, reg11, 32"});
+  auto vcucode_series = vcu::asm_vcu_op({"redmax ifmap, reg11, 32"});
 
   auto   num_vcucodes      = vcucode_series.size();
   size_t vcucode_bytes     = vcucode_series.size() * sizeof(uint64_t);
@@ -138,8 +154,13 @@ int main(int argc, const char** argv)
 
   auto seq_1_offset = split_exp_fra(seq_len * oc_group_size * bytes_input);
 
-  insn_series.push_back(insn::load_iteration_2<0>(
-    data_in_ddr_base_addr, seq_len * bytes_input * oc_group_size / 32 - 1, seq_1_offset.first, seq_1_offset.second, oc_group - 1, MASTER_IFMAP_ADDR, 0));
+  insn_series.push_back(insn::load_iteration_2<0>(data_in_ddr_base_addr,
+                                                  seq_len * bytes_input * oc_group_size / 32 - 1,
+                                                  seq_1_offset.first,
+                                                  seq_1_offset.second,
+                                                  oc_group - 1,
+                                                  MASTER_IFMAP_ADDR,
+                                                  0));
 
   using vcu_cfg_t               = vcu::VcuConfig;
   vcu_cfg_t::Arguments cfg_args = {0, 0, 1, 2, 3, 0, 0, 0, 0, 0};
@@ -148,37 +169,42 @@ int main(int argc, const char** argv)
 
   insn_series.insert(insn_series.end(), vcu_cfg_insns.begin(), vcu_cfg_insns.end());
   using vcu_t           = vcu::VcuExecute;
-  vcu_t::Arguments args = {psum_data_type,
-                           resadd_para_type,
-                           data_out_type,
-                           data_out_ram,
-                           num_vcucodes,
-                           opcode_addr,
-                           psum_in_addr,
-                           para_in_addr,
-                           resadd_in_addr,
-                           ram_out_addr,
-                           (uint64_t)num_data - 1,
-                           (uint64_t)oc_group - 1,
-                           para_func,
-                           0,                      // psum_sram_valid
-                           0,                      // resadd_sram_valid
-                           0,                      // para_sram_valid
-                           0,                      // psum_addr_hop
-                           0,                      // acc_clear
-                           1,                      // stream_reduce_en
-                           1,                      // ifmap_sram_valid
-                           0                       // ifmap_in_addr  
-                          };
+  vcu_t::Arguments args = {
+    psum_data_type,
+    resadd_para_type,
+    data_out_type,
+    data_out_ram,
+    num_vcucodes,
+    opcode_addr,
+    psum_in_addr,
+    para_in_addr,
+    resadd_in_addr,
+    ram_out_addr,
+    (uint64_t)num_data - 1,
+    (uint64_t)oc_group - 1,
+    para_func,
+    0,  // psum_sram_valid
+    0,  // resadd_sram_valid
+    0,  // para_sram_valid
+    0,  // psum_addr_hop
+    0,  // acc_clear
+    1,  // stream_reduce_en
+    1,  // ifmap_sram_valid
+    0   // ifmap_in_addr
+  };
 
   vcu_t vcu_op;
   auto  vcu_insns = vcu_op(args);
 
   insn_series.insert(insn_series.end(), vcu_insns.begin(), vcu_insns.end());
 
-  insn_series.push_back(insn::store_iteration_2<0>(
-    data_out_ddr_base_addr, seq_len * bytes_input * oc_group_size / 32 - 1, seq_1_offset.first, seq_1_offset.second, oc_group - 1, MASTER_PSUM_ADDR, 1));
-
+  insn_series.push_back(insn::store_iteration_2<0>(data_out_ddr_base_addr,
+                                                   seq_len * bytes_input * oc_group_size / 32 - 1,
+                                                   seq_1_offset.first,
+                                                   seq_1_offset.second,
+                                                   oc_group - 1,
+                                                   MASTER_PSUM_ADDR,
+                                                   1));
 
   common::insn::pad_serial_sync_word(insn_series);
 

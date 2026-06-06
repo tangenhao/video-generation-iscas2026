@@ -59,6 +59,7 @@ localparam ADD = 6'b000001;
 localparam MUL = 6'b000010;
 localparam FMA = 6'b000011;
 localparam REDUCE_SUM = 6'b010000;
+localparam REDUCE_MAX = 6'b010001;
 
 input                                clk;
 input                                rst_n;
@@ -1329,7 +1330,7 @@ always @(*) begin
 
     STREAM_OPCODE_PREPARE: begin
       if (stream_opcode_prepare_done) begin
-        if ((vcucode_rdata[5:0] == REDUCE_SUM) || (vcucode_rdata[5:0] == ADD) || (vcucode_rdata[5:0] == MUL) || (vcucode_rdata[5:0] == FMA)) begin
+        if ((vcucode_rdata[5:0] == REDUCE_SUM) || (vcucode_rdata[5:0] == REDUCE_MAX) || (vcucode_rdata[5:0] == ADD) || (vcucode_rdata[5:0] == MUL) || (vcucode_rdata[5:0] == FMA)) begin
           next_state = STREAM_READ;
         end
         else begin
@@ -1588,7 +1589,7 @@ always @(posedge clk or negedge rst_n) begin
 end
 
 //address update--------------------------------------------------------------------
-assign stream_reduce_opcode = stream_reduce_en && (vcucode_rdata_reg[5:0] == REDUCE_SUM);
+assign stream_reduce_opcode = stream_reduce_en && ((vcucode_rdata_reg[5:0] == REDUCE_SUM) || (vcucode_rdata_reg[5:0] == REDUCE_MAX));
 assign stream_ewise_opcode = stream_reduce_en && ((vcucode_rdata_reg[5:0] == ADD) || (vcucode_rdata_reg[5:0] == MUL) || (vcucode_rdata_reg[5:0] == FMA));
 assign stream_compute_done = stream_recv_done && stream_reduce_done;
 assign compute_done = stream_reduce_opcode ? stream_compute_done :
