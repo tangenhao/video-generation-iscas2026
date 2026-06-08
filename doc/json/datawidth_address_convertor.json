@@ -1,0 +1,47 @@
+{signal: [
+  {name:'clk',         wave: 'p.......' },
+  {},
+  {name:'',            wave: '2.......', data: 'input_width==output_width' },
+  [
+    {name:'data_in',         wave: 'x345..6x', data: 'a b c d' },
+    {name:'valid_in',        wave: '01.....0' },
+    {name:'ready_in',        wave: '01.0.1.0' },
+    {name:'data_out',        wave: 'x345..6x', data: 'a b c d' },
+    {name:'valid_out',       wave: '01.....0' },
+    {name:'ready_out',       wave: '01.0.1.0' },    
+  ],
+  {},
+  {name:'',            wave: '2.......', data: 'input_width==4output_width' },
+  [
+    {name:'data_in',         wave: 'x34....x', data: 'a b c d' },
+    {name:'valid_in',        wave: '01.....0' },
+    {name:'ready_in',        wave: '010...10' },
+    {name:'data_out',        wave: 'x333.34.', data: 'a0 a1 a2 a3 b0' },
+    {name:'valid_out',       wave: '01......' },
+    {name:'ready_out',       wave: '01.01.0.' },    
+  ],
+  {},
+  {name:'',            wave: '2.......', data: '4input_width==output_width' },
+  [
+    {name:'data_in',         wave: 'x33334.4', data: 'a0 a1 a2 a3 b0 b1' },
+    {name:'valid_in',        wave: '01......' },
+    {name:'ready_in',        wave: '01...01.' },
+    {name:'data_out',        wave: 'x...3.x.', data: 'a ' },
+    {name:'valid_out',       wave: '0...1.0.' },
+    {name:'ready_out',       wave: '1....01.' },    
+  ],
+
+],
+ head:{
+   text:'datawidth_convertor',
+   tick:0,
+  //  every:1
+ },
+ foot:{
+  //  text:'Figure 100',
+  //  tock:0
+ },
+ config:{
+    hscale:2
+ }
+}

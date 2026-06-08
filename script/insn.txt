@@ -1,0 +1,353 @@
+====  synchronize_indie ====
+
+reg [5:0]insn_opcode             insn[4:0]
+reg [2:0]sync_insns              insn[6:5]
+reg [3:0]valid_insn_number       insn[9:7]
+reg [18:0]sync_word_0            insn[27:10]
+reg [18:0]sync_word_1            insn[45:28]
+reg [18:0]sync_word_2            insn[63:46]
+reg [18:0]sync_word_3            insn[81:64]
+reg [18:0]sync_word_4            insn[99:82]
+reg [18:0]sync_word_5            insn[117:100]
+reg [1:0]load_highaddr_config    insn[118:118]
+reg [1:0]store_highaddr_config   insn[119:119]
+
+
+====  synchronize_iteration ====
+
+reg [5:0]insn_opcode             insn[4:0]
+reg [2:0]sync_insns              insn[6:5]
+reg [7:0]next_word               insn[13:7]
+reg [8:0]iteration_times         insn[21:14]
+reg [3:0]valid_insn_number       insn[24:22]
+reg [18:0]sync_word_0            insn[42:25]
+reg [18:0]sync_word_1            insn[60:43]
+reg [18:0]sync_word_2            insn[78:61]
+reg [18:0]sync_word_3            insn[96:79]
+reg [18:0]sync_word_4            insn[114:97]
+reg [1:0]load_highaddr_config    insn[115:115]
+reg [1:0]store_highaddr_config   insn[116:116]
+
+
+====  synchronize_cross ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [2:0]sync_insns         insn[6:5]
+reg [18:0]sync_word         insn[24:7]
+reg [19:0]load_highaddr     insn[43:25]
+reg [32:0]check_reg_value   insn[75:44]
+reg [19:0]store_highaddr    insn[94:76]
+reg [32:0]set_reg_value     insn[126:95]
+
+
+====  load_master_iteration_4_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [2:0]load_insns         insn[11:10]
+reg [38:0]ddr_addr          insn[49:12]
+reg [8:0]sequ_burst_0       insn[57:50]
+reg [3:0]hop_offset_1_exp   insn[60:58]
+reg [8:0]hop_offset_1_fra   insn[68:61]
+reg [5:0]sequ_burst_1       insn[73:69]
+reg [4:0]hop_offset_2_exp   insn[77:74]
+reg [8:0]hop_offset_2_fra   insn[85:78]
+reg [4:0]sequ_burst_2       insn[89:86]
+reg [5:0]hop_offset_3_exp   insn[94:90]
+reg [8:0]hop_offset_3_fra   insn[102:95]
+reg [4:0]sequ_burst_3       insn[106:103]
+reg [20:0]sram_addr         insn[126:107]
+reg [1:0]all_done           insn[127:127]
+
+
+====  load_master_iteration_3_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [2:0]load_insns         insn[11:10]
+reg [38:0]ddr_addr          insn[49:12]
+reg [11:0]sequ_burst_0      insn[60:50]
+reg [5:0]hop_offset_1_exp   insn[65:61]
+reg [8:0]hop_offset_1_fra   insn[73:66]
+reg [10:0]sequ_burst_1      insn[83:74]
+reg [5:0]hop_offset_2_exp   insn[88:84]
+reg [8:0]hop_offset_2_fra   insn[96:89]
+reg [10:0]sequ_burst_2      insn[106:97]
+reg [20:0]sram_addr         insn[126:107]
+reg [1:0]all_done           insn[127:127]
+
+
+====  load_master_iteration_2_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [2:0]load_insns         insn[11:10]
+reg [38:0]ddr_addr          insn[49:12]
+reg [22:0]sequ_burst_0      insn[71:50]
+reg [5:0]hop_offset_1_exp   insn[76:72]
+reg [8:0]hop_offset_1_fra   insn[84:77]
+reg [22:0]sequ_burst_1      insn[106:85]
+reg [20:0]sram_addr         insn[126:107]
+reg [1:0]all_done           insn[127:127]
+
+
+====  store_master_iteration_4_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [2:0]store_insns        insn[11:10]
+reg [38:0]ddr_addr          insn[49:12]
+reg [8:0]sequ_burst_0       insn[57:50]
+reg [3:0]hop_offset_1_exp   insn[60:58]
+reg [8:0]hop_offset_1_fra   insn[68:61]
+reg [5:0]sequ_burst_1       insn[73:69]
+reg [4:0]hop_offset_2_exp   insn[77:74]
+reg [8:0]hop_offset_2_fra   insn[85:78]
+reg [4:0]sequ_burst_2       insn[89:86]
+reg [5:0]hop_offset_3_exp   insn[94:90]
+reg [8:0]hop_offset_3_fra   insn[102:95]
+reg [4:0]sequ_burst_3       insn[106:103]
+reg [20:0]sram_addr         insn[126:107]
+reg [1:0]all_done           insn[127:127]
+
+
+====  store_master_iteration_3_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [2:0]load_insns         insn[11:10]
+reg [38:0]ddr_addr          insn[49:12]
+reg [11:0]sequ_burst_0      insn[60:50]
+reg [5:0]hop_offset_1_exp   insn[65:61]
+reg [8:0]hop_offset_1_fra   insn[73:66]
+reg [10:0]sequ_burst_1      insn[83:74]
+reg [5:0]hop_offset_2_exp   insn[88:84]
+reg [8:0]hop_offset_2_fra   insn[96:89]
+reg [10:0]sequ_burst_2      insn[106:97]
+reg [20:0]sram_addr         insn[126:107]
+reg [1:0]all_done           insn[127:127]
+
+
+====  store_master_iteration_2_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [2:0]load_insns         insn[11:10]
+reg [38:0]ddr_addr          insn[49:12]
+reg [22:0]sequ_burst_0      insn[71:50]
+reg [5:0]hop_offset_1_exp   insn[76:72]
+reg [8:0]hop_offset_1_fra   insn[84:77]
+reg [22:0]sequ_burst_1      insn[106:85]
+reg [20:0]sram_addr         insn[126:107]
+reg [1:0]all_done           insn[127:127]
+
+
+====  pea_config_insn ====
+
+reg [5:0]insn_opcode                 insn[4:0]
+reg [5:0]insn_number                 insn[9:5]
+reg [3:0]insn_kind                   insn[12:10]
+reg [2:0]sparse_base                 insn[14:13]
+reg [2:0]sparse_ratio                insn[16:15]
+reg [1:0]non_uniform_quantization    insn[17:17]
+reg [1:0]outlier_enable              insn[18:18]
+reg [1:0]expand_weight_sram          insn[19:19]
+reg [3:0]ifmap_sram_base_highaddr    insn[22:20]
+reg [3:0]weight_sram_base_highaddr   insn[25:23]
+reg [3:0]psum_sram_base_highaddr     insn[28:26]
+reg [5:0]stride_width                insn[33:29]
+reg [5:0]stride_height               insn[38:34]
+reg [5:0]dilation_width              insn[43:39]
+reg [5:0]dilation_height             insn[48:44]
+
+
+====  convlution_execute_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [3:0]insn_kind          insn[12:10]
+reg [3:0]type_a             insn[15:13]
+reg [3:0]type_b             insn[18:16]
+reg [1:0]type_accumulator   insn[19:19]
+reg [2:0]type_output        insn[21:20]
+reg [11:0]ifmap_width       insn[32:22]
+reg [11:0]ifmap_height      insn[43:33]
+reg [7:0]weight_width       insn[50:44]
+reg [7:0]weight_height      insn[57:51]
+reg [11:0]psum_width        insn[68:58]
+reg [11:0]psum_height       insn[79:69]
+reg [7:0]ic_group           insn[86:80]
+reg [7:0]oc_group           insn[93:87]
+reg [1:0]ifmap_highaddr     insn[94:94]
+reg [1:0]weight_highaddr    insn[95:95]
+reg [2:0]psum_highaddr      insn[97:96]
+reg [5:0]pad_left           insn[102:98]
+reg [5:0]pad_top            insn[107:103]
+reg [7:0]psum_number        insn[114:108]
+reg [1:0]psum_accumulated   insn[115:115]
+
+
+====  gemm_execute_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [3:0]insn_kind          insn[12:10]
+reg [3:0]type_a             insn[15:13]
+reg [3:0]type_b             insn[18:16]
+reg [1:0]type_accumulator   insn[19:19]
+reg [2:0]type_output        insn[21:20]
+reg [11:0]tile_m            insn[32:22]
+reg [7:0]n_groups           insn[39:33]
+reg [7:0]k_groups           insn[46:40]
+reg [1:0]ifmap_highaddr     insn[47:47]
+reg [1:0]weight_highaddr    insn[48:48]
+reg [2:0]psum_highaddr      insn[50:49]
+reg [11:0]psum_number       insn[61:51]
+reg [1:0]psum_accumulated   insn[62:62]
+
+
+====  vcu_config_insn ====
+
+reg [5:0]insn_opcode                    insn[4:0]
+reg [5:0]insn_number                    insn[9:5]
+reg [4:0]insn_kind                      insn[13:10]
+reg [2:0]sin_cos_lut_base_highaddr      insn[15:14]
+reg [2:0]reciprocal_lut_base_highaddr   insn[17:16]
+reg [2:0]log_lut_base_highaddr          insn[19:18]
+reg [2:0]exp_lut_base_highaddr          insn[21:20]
+reg [2:0]rsqrt_lut_base_highaddr        insn[23:22]
+reg [2:0]tanh_lut_base_highaddr         insn[25:24]
+reg [2:0]sigmoid_lut_base_highaddr      insn[27:26]
+reg [2:0]swish_lut_base_highaddr        insn[29:28]
+reg [2:0]mish_lut_base_highaddr         insn[31:30]
+reg [2:0]gelu_lut_base_highaddr         insn[33:32]
+
+
+====  vcu_execute_insn ====
+
+reg [5:0]insn_opcode        insn[4:0]
+reg [5:0]insn_number        insn[9:5]
+reg [4:0]insn_kind          insn[13:10]
+reg [3:0]psum_data_type     insn[16:14]
+reg [3:0]resadd_para_type   insn[19:17]
+reg [3:0]data_out_type      insn[22:20]
+reg [1:0]data_out_ram       insn[23:23]
+reg [7:0]opcode_number      insn[30:24]
+reg [7:0]opcode_addr        insn[37:31]
+reg [13:0]psum_in_addr      insn[50:38]
+reg [6:0]para_in_addr       insn[56:51]
+reg [12:0]resadd_in_addr    insn[68:57]
+reg [13:0]ram_out_addr      insn[81:69]
+reg [10:0]num_data_cnt      insn[91:82]
+reg [4:0]oc_group_cnt       insn[95:92]
+reg [2:0]para_func_cnt      insn[97:96]
+
+
+====  vcu_pipe_insn ====
+
+reg [5:0]insn_opcode   insn[4:0]
+reg [5:0]insn_number   insn[9:5]
+reg [4:0]insn_kind     insn[13:10]
+
+
+====  vcu_maxpool_insn ====
+
+reg [5:0]insn_opcode           insn[4:0]
+reg [5:0]insn_number           insn[9:5]
+reg [4:0]insn_kind             insn[13:10]
+reg [11:0]psum_width           insn[24:14]
+reg [11:0]psum_height          insn[35:25]
+reg [7:0]oc_group              insn[42:36]
+reg [7:0]kernel_width          insn[49:43]
+reg [7:0]kernel_height         insn[56:50]
+reg [2:0]psum_read_highaddr    insn[58:57]
+reg [2:0]psum_write_highaddr   insn[60:59]
+reg [11:0]pool_width           insn[71:61]
+reg [11:0]pool_height          insn[82:72]
+reg [5:0]stride_width          insn[87:83]
+reg [5:0]stride_height         insn[92:88]
+reg [5:0]dilation_width        insn[97:93]
+reg [5:0]dilation_height       insn[102:98]
+reg [5:0]pad_left              insn[107:103]
+reg [5:0]pad_top               insn[112:108]
+
+
+====  vcu_avgpool_insn ====
+
+reg [5:0]insn_opcode           insn[4:0]
+reg [5:0]insn_number           insn[9:5]
+reg [4:0]insn_kind             insn[13:10]
+reg [11:0]psum_width           insn[24:14]
+reg [11:0]psum_height          insn[35:25]
+reg [7:0]oc_group              insn[42:36]
+reg [7:0]kernel_width          insn[49:43]
+reg [7:0]kernel_height         insn[56:50]
+reg [2:0]psum_read_highaddr    insn[58:57]
+reg [2:0]psum_write_highaddr   insn[60:59]
+reg [11:0]pool_width           insn[71:61]
+reg [11:0]pool_height          insn[82:72]
+reg [5:0]stride_width          insn[87:83]
+reg [5:0]stride_height         insn[92:88]
+reg [5:0]dilation_width        insn[97:93]
+reg [5:0]dilation_height       insn[102:98]
+reg [5:0]pad_left              insn[107:103]
+reg [5:0]pad_top               insn[112:108]
+
+
+====  vcu_nearest_upsample_insn ====
+
+reg [5:0]insn_opcode           insn[4:0]
+reg [5:0]insn_number           insn[9:5]
+reg [4:0]insn_kind             insn[13:10]
+reg [11:0]psum_width           insn[24:14]
+reg [11:0]psum_height          insn[35:25]
+reg [7:0]oc_group              insn[42:36]
+reg [2:0]psum_read_highaddr    insn[44:43]
+reg [2:0]psum_write_highaddr   insn[46:45]
+reg [5:0]scale_width           insn[51:47]
+reg [5:0]scale_height          insn[56:52]
+reg [11:0]upsample_width       insn[67:57]
+reg [11:0]upsample_height      insn[78:68]
+
+
+====  vcu_bilinear_upsample_insn ====
+
+reg [5:0]insn_opcode           insn[4:0]
+reg [5:0]insn_number           insn[9:5]
+reg [4:0]insn_kind             insn[13:10]
+reg [11:0]psum_width           insn[24:14]
+reg [11:0]psum_height          insn[35:25]
+reg [7:0]oc_group              insn[42:36]
+reg [2:0]psum_read_highaddr    insn[44:43]
+reg [2:0]psum_write_highaddr   insn[46:45]
+reg [5:0]scale_width           insn[51:47]
+reg [5:0]scale_height          insn[56:52]
+reg [11:0]upsample_width       insn[67:57]
+reg [11:0]upsample_height      insn[78:68]
+
+
+====  vcu_pixelshuffle_insn ====
+
+reg [5:0]insn_opcode           insn[4:0]
+reg [5:0]insn_number           insn[9:5]
+reg [4:0]insn_kind             insn[13:10]
+reg [11:0]psum_width           insn[24:14]
+reg [11:0]psum_height          insn[35:25]
+reg [7:0]oc_group              insn[42:36]
+reg [2:0]psum_read_highaddr    insn[44:43]
+reg [2:0]psum_write_highaddr   insn[46:45]
+reg [5:0]scale_width           insn[51:47]
+reg [5:0]scale_height          insn[56:52]
+reg [11:0]upsample_width       insn[67:57]
+
+
+====  vcu_transpose_insn ====
+
+reg [5:0]insn_opcode             insn[4:0]
+reg [5:0]insn_number             insn[9:5]
+reg [4:0]insn_kind               insn[13:10]
+reg [2:0]psum_datawidth          insn[15:14]
+reg [13:0]psum_read_base_addr    insn[28:16]
+reg [13:0]psum_write_base_addr   insn[41:29]
+
+

@@ -1,0 +1,38 @@
+{
+  "gemm": {
+    "description": "General Matrix Multiplication",
+    "required_params": ["m", "n", "k", "tile_m", "block_n_group", "block_k_group"],
+    "optional_params": ["all_done"],
+    "output_files": ["instructions"],
+    "supports_vcucode": false,
+    "test_cases": ["small", "medium", "large"],
+    "function_name": "Gemm"
+  },
+  "rmsnorm": {
+    "description": "Root Mean Square Normalization",
+    "required_params": ["seq_len", "d_model", "tile_m", "block_oc_group", "epsilon", "dtype"],
+    "optional_params": ["all_done"],
+    "output_files": ["instructions", "vcucode"],
+    "supports_vcucode": true,
+    "test_cases": ["standard", "large"],
+    "function_name": "RMSNorm"
+  },
+  "softmax": {
+    "description": "Softmax Activation",
+    "required_params": ["seq_len", "d_model", "tile_m", "block_oc_group"],
+    "optional_params": ["all_done"],
+    "output_files": ["instructions", "vcucode"],
+    "supports_vcucode": true,
+    "test_cases": ["attention", "large_attention"],
+    "function_name": "Softmax"
+  },
+  "llama_block": {
+    "description": "Complete Llama Transformer Block",
+    "required_params": ["seq_len", "hidden_size", "intermediate_size", "num_attention_heads", "rmsnorm_epsilon", "hidden_dtype", "weight_dtype"],
+    "optional_params": ["all_done"],
+    "output_files": ["instructions", "vcucode"],
+    "supports_vcucode": true,
+    "test_cases": ["mini", "standard"],
+    "function_name": "LlamaBlock"
+  }
+}

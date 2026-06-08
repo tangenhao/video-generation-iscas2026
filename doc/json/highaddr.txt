@@ -1,0 +1,10 @@
+{
+  reg: [
+    {name: "Low Addr", bits: 35, type: 4},
+    {name: "Free", bits: 5, type: 3},
+    {name: "Destination Crossbar Addr", bits: 4, type: 2},
+    {name: "Network Addr", bits: 16, type: 1},
+    {name: "Local Crossbar Addr", bits: 4, type: 0}
+  ],config: {lanes: 4, hscale: 2}
+
+}

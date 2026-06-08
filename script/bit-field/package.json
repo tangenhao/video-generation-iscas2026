@@ -1,0 +1,84 @@
+{
+  "_from": "bit-field",
+  "_id": "bit-field@1.9.0",
+  "_inBundle": false,
+  "_integrity": "sha512-/rVbn/yK2UBwfrlwUnNFM/MtYC5zsX+5fq8kC4J9uAPPVFWJW332TFjFlD9qMeWxwtHR014Rg5JyrLbSI9Vrlw==",
+  "_location": "/bit-field",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "bit-field",
+    "name": "bit-field",
+    "escapedName": "bit-field",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/bit-field/-/bit-field-1.9.0.tgz",
+  "_shasum": "b7f66e0d4842048845e76ad7169592a99663712c",
+  "_spec": "bit-field",
+  "_where": "/data/maweize/work",
+  "author": {
+    "name": "Aliaksei Chapyzhenka"
+  },
+  "bin": {
+    "bitfield": "bin/bitfield.js"
+  },
+  "bugs": {
+    "url": "https://github.com/wavedrom/bitfield/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "onml": "^2.1.0",
+    "tspan": "^0.4.0",
+    "yargs": "^17.7.2"
+  },
+  "deprecated": false,
+  "description": "rendering bit field diagram from the description",
+  "devDependencies": {
+    "@drom/eslint-config": "^0.12.0",
+    "browserify": "^17.0.0",
+    "chai": "^4.4.1",
+    "eslint": "^8.56.0",
+    "jsof": "^0.5.0",
+    "mocha": "^10.3.0",
+    "nyc": "^15.1.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "eslintConfig": {
+    "extends": "@drom/eslint-config/eslint4/node8"
+  },
+  "files": [
+    "build/bitfield.js",
+    "bin/*",
+    "lib/*"
+  ],
+  "homepage": "https://github.com/wavedrom/bitfield#readme",
+  "keywords": [
+    "svg",
+    "bitfield"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "name": "bit-field",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wavedrom/bitfield.git"
+  },
+  "scripts": {
+    "alpha": "node bin/bitfield.js --input test/alpha.json --hspace 800 > test/alpha.svg",
+    "browserify": "browserify --standalone bitfield lib/index.js > build/bitfield.js",
+    "prepublish": "npm run test && mkdir -p build && npm run browserify",
+    "test": "eslint lib/*.js && nyc -r=lcov -r=text mocha test"
+  },
+  "unpkg": "build/bitfield.js",
+  "version": "1.9.0"
+}

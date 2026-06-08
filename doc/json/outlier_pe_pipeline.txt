@@ -1,0 +1,38 @@
+{signal: [
+  {name:'clk',         wave: 'p......................' },
+  {},
+  {name:'outlier_idx_rvalid', wave: '01.........0......'},
+  {name:'outlier_idx_rready', wave: '01.........0......'},
+  {name:'outlier_idx_rdata', wave: 'xx==========......', data: ['idx0', 'idx1', 'idx2', 'idx3', 'idx4', 'idx5', 'idx6', 'idx7', 'idx8', 'idx9']},
+  {name:'outlier_idx_local_rdata_reg', wave: 'xxx==========.....', data: ['idx0', 'idx1', 'idx2', 'idx3', 'idx4', 'idx5', 'idx6', 'idx7', 'idx8']},
+  {name:'idx_L_0', wave: 'xxx==========.....', data: ['idx0_L0', 'idx1_L0', 'idx2_L0', 'idx3_L0', 'idx4_L0', 'idx5_L0', 'idx6_L0', 'idx7_L0', 'idx8_L0', 'idx9_L0']},
+  {name:'N_idx_L_0', wave: 'xxx==========.....', data: ['N_idx0_L0', 'N_idx1_L0', 'N_idx2_L0', 'N_idx3_L0', 'N_idx4_L0', 'N_idx5_L0', 'N_idx6_L0', 'N_idx7_L0', 'N_idx8_L0', 'N_idx9_L0']},
+  {name:'idx_L_1', wave: 'xxxx==========....', data: ['N_idx0_L0', 'N_idx1_L0', 'N_idx2_L0', 'N_idx3_L0', 'N_idx4_L0', 'N_idx5_L0', 'N_idx6_L0', 'N_idx7_L0', 'N_idx8_L0', 'N_idx9_L0']},
+  {name:'N_idx_L_1', wave: 'xxxx==========....', data: ['N_idx0_L1', 'N_idx1_L1', 'N_idx2_L1', 'N_idx3_L1', 'N_idx4_L1', 'N_idx5_L1', 'N_idx6_L1', 'N_idx7_L1', 'N_idx8_L1', 'N_idx9_L1']},
+  {name:'idx_L_2', wave: 'xxxxx==========...', data: ['N_idx0_L1', 'N_idx1_L1', 'N_idx2_L1', 'N_idx3_L1', 'N_idx4_L1', 'N_idx5_L1', 'N_idx6_L1', 'N_idx7_L1', 'N_idx8_L1', 'N_idx9_L1']},
+  {name:'N_idx_L_2', wave: 'xxxxx==x', data: ['N_idx0_L2', 'N_idx1_L2', 'idx2']},
+  {name:'idx_L_3', wave: 'xxxxxx==x', data: ['N_idx0_L2', 'N_idx1_L2', 'idx2']},
+  {name:'N_idx_L_3', wave: 'xxxxxx==x', data: ['N_idx0_L3', 'N_idx1_L3', 'idx2']},
+  {name:'idx_L_4', wave: 'xxxxxxx==x', data: ['N_idx0_L3', 'N_idx1_L3', 'idx2']},
+  {name:'N_idx_L_4', wave: 'xxxxxxx==x', data: ['N_idx0_L4', 'N_idx1_L4', 'idx2']},
+  {name:'idx_L_5', wave: 'xxxxxxxx==x', data: ['N_idx0_L4', 'N_idx1_L4', 'idx2']},
+  {name:'N_idx_L_5', wave: 'xxxxxxxx==x', data: ['N_idx0_L5', 'N_idx1_L5', 'idx2']},
+  {name:'idx_L_6', wave: 'xxxxxxxxx==x', data: ['N_idx0_L5', 'N_idx1_L6', 'idx2']},
+  {name:'N_idx_L_6', wave: 'xxxxxxxxx==x', data: ['N_idx0_L6', 'N_idx1_L6', 'idx2']},
+  {name:'idx_L_7', wave: 'xxxxxxxxxx=============', data: ['N_idx0_L6', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7']},
+  {name:'N_idx_L_7', wave: 'xxxxxxxxxx=============', data: ['N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7', 'N_idx0_L7']},
+  {name:'halt', wave:'0.........1..'}
+],
+ head:{
+   text:'outlier_pe_pipeline_stage',
+   tick:0,
+  //  every:1
+ },
+ foot:{
+  //  text:'Figure 100',
+  //  tock:0
+ },
+ config:{
+    hscale:2
+ }
+}

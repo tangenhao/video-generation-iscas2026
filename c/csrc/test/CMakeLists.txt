@@ -1,0 +1,10 @@
+# add_subdirectory(dma_test)
+add_subdirectory(vcu_test)
+add_subdirectory(pea_test)
+add_subdirectory(fused_mode_test)
+add_subdirectory(transformer)
+add_subdirectory(llama_test)
+add_subdirectory(python_test)
+# add_subdirectory(load_config_test)
+
+# add_subdirectory(irq_test)

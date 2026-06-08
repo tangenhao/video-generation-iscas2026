@@ -1,0 +1,1381 @@
+module shifter_left_71_7(
+  data, shift,
+  o
+);
+
+input       [70:0] data;
+input       [6:0]  shift;
+output wire [70:0] o;
+
+wire layer_0_bit_0;
+wire layer_0_bit_1;
+wire layer_0_bit_2;
+wire layer_0_bit_3;
+wire layer_0_bit_4;
+wire layer_0_bit_5;
+wire layer_0_bit_6;
+wire layer_0_bit_7;
+wire layer_0_bit_8;
+wire layer_0_bit_9;
+wire layer_0_bit_10;
+wire layer_0_bit_11;
+wire layer_0_bit_12;
+wire layer_0_bit_13;
+wire layer_0_bit_14;
+wire layer_0_bit_15;
+wire layer_0_bit_16;
+wire layer_0_bit_17;
+wire layer_0_bit_18;
+wire layer_0_bit_19;
+wire layer_0_bit_20;
+wire layer_0_bit_21;
+wire layer_0_bit_22;
+wire layer_0_bit_23;
+wire layer_0_bit_24;
+wire layer_0_bit_25;
+wire layer_0_bit_26;
+wire layer_0_bit_27;
+wire layer_0_bit_28;
+wire layer_0_bit_29;
+wire layer_0_bit_30;
+wire layer_0_bit_31;
+wire layer_0_bit_32;
+wire layer_0_bit_33;
+wire layer_0_bit_34;
+wire layer_0_bit_35;
+wire layer_0_bit_36;
+wire layer_0_bit_37;
+wire layer_0_bit_38;
+wire layer_0_bit_39;
+wire layer_0_bit_40;
+wire layer_0_bit_41;
+wire layer_0_bit_42;
+wire layer_0_bit_43;
+wire layer_0_bit_44;
+wire layer_0_bit_45;
+wire layer_0_bit_46;
+wire layer_0_bit_47;
+wire layer_0_bit_48;
+wire layer_0_bit_49;
+wire layer_0_bit_50;
+wire layer_0_bit_51;
+wire layer_0_bit_52;
+wire layer_0_bit_53;
+wire layer_0_bit_54;
+wire layer_0_bit_55;
+wire layer_0_bit_56;
+wire layer_0_bit_57;
+wire layer_0_bit_58;
+wire layer_0_bit_59;
+wire layer_0_bit_60;
+wire layer_0_bit_61;
+wire layer_0_bit_62;
+wire layer_0_bit_63;
+wire layer_0_bit_64;
+wire layer_0_bit_65;
+wire layer_0_bit_66;
+wire layer_0_bit_67;
+wire layer_0_bit_68;
+wire layer_0_bit_69;
+wire layer_0_bit_70;
+
+wire layer_1_bit_0;
+wire layer_1_bit_1;
+wire layer_1_bit_2;
+wire layer_1_bit_3;
+wire layer_1_bit_4;
+wire layer_1_bit_5;
+wire layer_1_bit_6;
+wire layer_1_bit_7;
+wire layer_1_bit_8;
+wire layer_1_bit_9;
+wire layer_1_bit_10;
+wire layer_1_bit_11;
+wire layer_1_bit_12;
+wire layer_1_bit_13;
+wire layer_1_bit_14;
+wire layer_1_bit_15;
+wire layer_1_bit_16;
+wire layer_1_bit_17;
+wire layer_1_bit_18;
+wire layer_1_bit_19;
+wire layer_1_bit_20;
+wire layer_1_bit_21;
+wire layer_1_bit_22;
+wire layer_1_bit_23;
+wire layer_1_bit_24;
+wire layer_1_bit_25;
+wire layer_1_bit_26;
+wire layer_1_bit_27;
+wire layer_1_bit_28;
+wire layer_1_bit_29;
+wire layer_1_bit_30;
+wire layer_1_bit_31;
+wire layer_1_bit_32;
+wire layer_1_bit_33;
+wire layer_1_bit_34;
+wire layer_1_bit_35;
+wire layer_1_bit_36;
+wire layer_1_bit_37;
+wire layer_1_bit_38;
+wire layer_1_bit_39;
+wire layer_1_bit_40;
+wire layer_1_bit_41;
+wire layer_1_bit_42;
+wire layer_1_bit_43;
+wire layer_1_bit_44;
+wire layer_1_bit_45;
+wire layer_1_bit_46;
+wire layer_1_bit_47;
+wire layer_1_bit_48;
+wire layer_1_bit_49;
+wire layer_1_bit_50;
+wire layer_1_bit_51;
+wire layer_1_bit_52;
+wire layer_1_bit_53;
+wire layer_1_bit_54;
+wire layer_1_bit_55;
+wire layer_1_bit_56;
+wire layer_1_bit_57;
+wire layer_1_bit_58;
+wire layer_1_bit_59;
+wire layer_1_bit_60;
+wire layer_1_bit_61;
+wire layer_1_bit_62;
+wire layer_1_bit_63;
+wire layer_1_bit_64;
+wire layer_1_bit_65;
+wire layer_1_bit_66;
+wire layer_1_bit_67;
+wire layer_1_bit_68;
+wire layer_1_bit_69;
+wire layer_1_bit_70;
+
+wire layer_2_bit_0;
+wire layer_2_bit_1;
+wire layer_2_bit_2;
+wire layer_2_bit_3;
+wire layer_2_bit_4;
+wire layer_2_bit_5;
+wire layer_2_bit_6;
+wire layer_2_bit_7;
+wire layer_2_bit_8;
+wire layer_2_bit_9;
+wire layer_2_bit_10;
+wire layer_2_bit_11;
+wire layer_2_bit_12;
+wire layer_2_bit_13;
+wire layer_2_bit_14;
+wire layer_2_bit_15;
+wire layer_2_bit_16;
+wire layer_2_bit_17;
+wire layer_2_bit_18;
+wire layer_2_bit_19;
+wire layer_2_bit_20;
+wire layer_2_bit_21;
+wire layer_2_bit_22;
+wire layer_2_bit_23;
+wire layer_2_bit_24;
+wire layer_2_bit_25;
+wire layer_2_bit_26;
+wire layer_2_bit_27;
+wire layer_2_bit_28;
+wire layer_2_bit_29;
+wire layer_2_bit_30;
+wire layer_2_bit_31;
+wire layer_2_bit_32;
+wire layer_2_bit_33;
+wire layer_2_bit_34;
+wire layer_2_bit_35;
+wire layer_2_bit_36;
+wire layer_2_bit_37;
+wire layer_2_bit_38;
+wire layer_2_bit_39;
+wire layer_2_bit_40;
+wire layer_2_bit_41;
+wire layer_2_bit_42;
+wire layer_2_bit_43;
+wire layer_2_bit_44;
+wire layer_2_bit_45;
+wire layer_2_bit_46;
+wire layer_2_bit_47;
+wire layer_2_bit_48;
+wire layer_2_bit_49;
+wire layer_2_bit_50;
+wire layer_2_bit_51;
+wire layer_2_bit_52;
+wire layer_2_bit_53;
+wire layer_2_bit_54;
+wire layer_2_bit_55;
+wire layer_2_bit_56;
+wire layer_2_bit_57;
+wire layer_2_bit_58;
+wire layer_2_bit_59;
+wire layer_2_bit_60;
+wire layer_2_bit_61;
+wire layer_2_bit_62;
+wire layer_2_bit_63;
+wire layer_2_bit_64;
+wire layer_2_bit_65;
+wire layer_2_bit_66;
+wire layer_2_bit_67;
+wire layer_2_bit_68;
+wire layer_2_bit_69;
+wire layer_2_bit_70;
+
+wire layer_3_bit_0;
+wire layer_3_bit_1;
+wire layer_3_bit_2;
+wire layer_3_bit_3;
+wire layer_3_bit_4;
+wire layer_3_bit_5;
+wire layer_3_bit_6;
+wire layer_3_bit_7;
+wire layer_3_bit_8;
+wire layer_3_bit_9;
+wire layer_3_bit_10;
+wire layer_3_bit_11;
+wire layer_3_bit_12;
+wire layer_3_bit_13;
+wire layer_3_bit_14;
+wire layer_3_bit_15;
+wire layer_3_bit_16;
+wire layer_3_bit_17;
+wire layer_3_bit_18;
+wire layer_3_bit_19;
+wire layer_3_bit_20;
+wire layer_3_bit_21;
+wire layer_3_bit_22;
+wire layer_3_bit_23;
+wire layer_3_bit_24;
+wire layer_3_bit_25;
+wire layer_3_bit_26;
+wire layer_3_bit_27;
+wire layer_3_bit_28;
+wire layer_3_bit_29;
+wire layer_3_bit_30;
+wire layer_3_bit_31;
+wire layer_3_bit_32;
+wire layer_3_bit_33;
+wire layer_3_bit_34;
+wire layer_3_bit_35;
+wire layer_3_bit_36;
+wire layer_3_bit_37;
+wire layer_3_bit_38;
+wire layer_3_bit_39;
+wire layer_3_bit_40;
+wire layer_3_bit_41;
+wire layer_3_bit_42;
+wire layer_3_bit_43;
+wire layer_3_bit_44;
+wire layer_3_bit_45;
+wire layer_3_bit_46;
+wire layer_3_bit_47;
+wire layer_3_bit_48;
+wire layer_3_bit_49;
+wire layer_3_bit_50;
+wire layer_3_bit_51;
+wire layer_3_bit_52;
+wire layer_3_bit_53;
+wire layer_3_bit_54;
+wire layer_3_bit_55;
+wire layer_3_bit_56;
+wire layer_3_bit_57;
+wire layer_3_bit_58;
+wire layer_3_bit_59;
+wire layer_3_bit_60;
+wire layer_3_bit_61;
+wire layer_3_bit_62;
+wire layer_3_bit_63;
+wire layer_3_bit_64;
+wire layer_3_bit_65;
+wire layer_3_bit_66;
+wire layer_3_bit_67;
+wire layer_3_bit_68;
+wire layer_3_bit_69;
+wire layer_3_bit_70;
+
+assign layer_0_bit_0 = shift[1:0] == 2'd0 ? data[0] : 'd0;
+
+assign layer_0_bit_1 = shift[1:0] == 2'd0 ? data[1] : 
+                       shift[1:0] == 2'd1 ? data[0] : 'd0;
+
+assign layer_0_bit_2 = shift[1:0] == 2'd0 ? data[2] :
+                       shift[1:0] == 2'd1 ? data[1] :
+                       shift[1:0] == 2'd2 ? data[0] : 'd0;
+
+assign layer_0_bit_3 = shift[1:0] == 2'd0 ? data[3] :
+                       shift[1:0] == 2'd1 ? data[2] :
+                       shift[1:0] == 2'd2 ? data[1] :
+                       shift[1:0] == 2'd3 ? data[0] : 'd0;
+
+assign layer_0_bit_4 = shift[1:0] == 2'd0 ? data[4] :
+                       shift[1:0] == 2'd1 ? data[3] :
+                       shift[1:0] == 2'd2 ? data[2] :
+                       shift[1:0] == 2'd3 ? data[1] : 'd0;
+
+assign layer_0_bit_5 = shift[1:0] == 2'd0 ? data[5] :
+                       shift[1:0] == 2'd1 ? data[4] :
+                       shift[1:0] == 2'd2 ? data[3] :
+                       shift[1:0] == 2'd3 ? data[2] : 'd0;
+
+assign layer_0_bit_6 = shift[1:0] == 2'd0 ? data[6] :
+                       shift[1:0] == 2'd1 ? data[5] :
+                       shift[1:0] == 2'd2 ? data[4] :
+                       shift[1:0] == 2'd3 ? data[3] : 'd0;
+
+assign layer_0_bit_7 = shift[1:0] == 2'd0 ? data[7] :
+                       shift[1:0] == 2'd1 ? data[6] :
+                       shift[1:0] == 2'd2 ? data[5] :
+                       shift[1:0] == 2'd3 ? data[4] : 'd0;
+
+assign layer_0_bit_8 = shift[1:0] == 2'd0 ? data[8] :
+                       shift[1:0] == 2'd1 ? data[7] :
+                       shift[1:0] == 2'd2 ? data[6] :
+                       shift[1:0] == 2'd3 ? data[5] : 'd0;
+
+assign layer_0_bit_9 = shift[1:0] == 2'd0 ? data[9] :
+                       shift[1:0] == 2'd1 ? data[8] :
+                       shift[1:0] == 2'd2 ? data[7] :
+                       shift[1:0] == 2'd3 ? data[6] : 'd0;
+
+assign layer_0_bit_10 = shift[1:0] == 2'd0 ? data[10] :
+                        shift[1:0] == 2'd1 ? data[9] :
+                        shift[1:0] == 2'd2 ? data[8] :
+                        shift[1:0] == 2'd3 ? data[7] : 'd0;
+
+assign layer_0_bit_11 = shift[1:0] == 2'd0 ? data[11] :
+                        shift[1:0] == 2'd1 ? data[10] :
+                        shift[1:0] == 2'd2 ? data[9] :
+                        shift[1:0] == 2'd3 ? data[8] : 'd0;
+
+assign layer_0_bit_12 = shift[1:0] == 2'd0 ? data[12] :
+                        shift[1:0] == 2'd1 ? data[11] :
+                        shift[1:0] == 2'd2 ? data[10] :
+                        shift[1:0] == 2'd3 ? data[9] : 'd0;
+
+assign layer_0_bit_13 = shift[1:0] == 2'd0 ? data[13] :
+                        shift[1:0] == 2'd1 ? data[12] :
+                        shift[1:0] == 2'd2 ? data[11] :
+                        shift[1:0] == 2'd3 ? data[10] : 'd0;
+
+assign layer_0_bit_14 = shift[1:0] == 2'd0 ? data[14] :
+                        shift[1:0] == 2'd1 ? data[13] :
+                        shift[1:0] == 2'd2 ? data[12] :
+                        shift[1:0] == 2'd3 ? data[11] : 'd0;
+
+assign layer_0_bit_15 = shift[1:0] == 2'd0 ? data[15] :
+                        shift[1:0] == 2'd1 ? data[14] :
+                        shift[1:0] == 2'd2 ? data[13] :
+                        shift[1:0] == 2'd3 ? data[12] : 'd0;
+
+assign layer_0_bit_16 = shift[1:0] == 2'd0 ? data[16] :
+                        shift[1:0] == 2'd1 ? data[15] :
+                        shift[1:0] == 2'd2 ? data[14] :
+                        shift[1:0] == 2'd3 ? data[13] : 'd0;
+
+assign layer_0_bit_17 = shift[1:0] == 2'd0 ? data[17] :
+                        shift[1:0] == 2'd1 ? data[16] :
+                        shift[1:0] == 2'd2 ? data[15] :
+                        shift[1:0] == 2'd3 ? data[14] : 'd0;
+
+assign layer_0_bit_18 = shift[1:0] == 2'd0 ? data[18] :
+                        shift[1:0] == 2'd1 ? data[17] :
+                        shift[1:0] == 2'd2 ? data[16] :
+                        shift[1:0] == 2'd3 ? data[15] : 'd0;
+
+assign layer_0_bit_19 = shift[1:0] == 2'd0 ? data[19] :
+                        shift[1:0] == 2'd1 ? data[18] :
+                        shift[1:0] == 2'd2 ? data[17] :
+                        shift[1:0] == 2'd3 ? data[16] : 'd0;
+
+assign layer_0_bit_20 = shift[1:0] == 2'd0 ? data[20] :
+                        shift[1:0] == 2'd1 ? data[19] :
+                        shift[1:0] == 2'd2 ? data[18] :
+                        shift[1:0] == 2'd3 ? data[17] : 'd0;
+
+assign layer_0_bit_21 = shift[1:0] == 2'd0 ? data[21] :
+                        shift[1:0] == 2'd1 ? data[20] :
+                        shift[1:0] == 2'd2 ? data[19] :
+                        shift[1:0] == 2'd3 ? data[18] : 'd0;
+
+assign layer_0_bit_22 = shift[1:0] == 2'd0 ? data[22] :
+                        shift[1:0] == 2'd1 ? data[21] :
+                        shift[1:0] == 2'd2 ? data[20] :
+                        shift[1:0] == 2'd3 ? data[19] : 'd0;
+
+assign layer_0_bit_23 = shift[1:0] == 2'd0 ? data[23] :
+                        shift[1:0] == 2'd1 ? data[22] :
+                        shift[1:0] == 2'd2 ? data[21] :
+                        shift[1:0] == 2'd3 ? data[20] : 'd0;
+
+assign layer_0_bit_24 = shift[1:0] == 2'd0 ? data[24] :
+                        shift[1:0] == 2'd1 ? data[23] :
+                        shift[1:0] == 2'd2 ? data[22] :
+                        shift[1:0] == 2'd3 ? data[21] : 'd0;
+
+assign layer_0_bit_25 = shift[1:0] == 2'd0 ? data[25] :
+                        shift[1:0] == 2'd1 ? data[24] :
+                        shift[1:0] == 2'd2 ? data[23] :
+                        shift[1:0] == 2'd3 ? data[22] : 'd0;
+
+assign layer_0_bit_26 = shift[1:0] == 2'd0 ? data[26] :
+                        shift[1:0] == 2'd1 ? data[25] :
+                        shift[1:0] == 2'd2 ? data[24] :
+                        shift[1:0] == 2'd3 ? data[23] : 'd0;
+
+assign layer_0_bit_27 = shift[1:0] == 2'd0 ? data[27] :
+                        shift[1:0] == 2'd1 ? data[26] :
+                        shift[1:0] == 2'd2 ? data[25] :
+                        shift[1:0] == 2'd3 ? data[24] : 'd0;
+
+assign layer_0_bit_28 = shift[1:0] == 2'd0 ? data[28] :
+                        shift[1:0] == 2'd1 ? data[27] :
+                        shift[1:0] == 2'd2 ? data[26] :
+                        shift[1:0] == 2'd3 ? data[25] : 'd0;
+
+assign layer_0_bit_29 = shift[1:0] == 2'd0 ? data[29] :
+                        shift[1:0] == 2'd1 ? data[28] :
+                        shift[1:0] == 2'd2 ? data[27] :
+                        shift[1:0] == 2'd3 ? data[26] : 'd0;
+
+assign layer_0_bit_30 = shift[1:0] == 2'd0 ? data[30] :
+                        shift[1:0] == 2'd1 ? data[29] :
+                        shift[1:0] == 2'd2 ? data[28] :
+                        shift[1:0] == 2'd3 ? data[27] : 'd0;
+
+assign layer_0_bit_31 = shift[1:0] == 2'd0 ? data[31] :
+                        shift[1:0] == 2'd1 ? data[30] :
+                        shift[1:0] == 2'd2 ? data[29] :
+                        shift[1:0] == 2'd3 ? data[28] : 'd0;
+
+assign layer_0_bit_32 = shift[1:0] == 2'd0 ? data[32] :
+                        shift[1:0] == 2'd1 ? data[31] :
+                        shift[1:0] == 2'd2 ? data[30] :
+                        shift[1:0] == 2'd3 ? data[29] : 'd0;
+
+assign layer_0_bit_33 = shift[1:0] == 2'd0 ? data[33] :
+                        shift[1:0] == 2'd1 ? data[32] :
+                        shift[1:0] == 2'd2 ? data[31] :
+                        shift[1:0] == 2'd3 ? data[30] : 'd0;
+
+assign layer_0_bit_34 = shift[1:0] == 2'd0 ? data[34] :
+                        shift[1:0] == 2'd1 ? data[33] :
+                        shift[1:0] == 2'd2 ? data[32] :
+                        shift[1:0] == 2'd3 ? data[31] : 'd0;
+
+assign layer_0_bit_35 = shift[1:0] == 2'd0 ? data[35] :
+                        shift[1:0] == 2'd1 ? data[34] :
+                        shift[1:0] == 2'd2 ? data[33] :
+                        shift[1:0] == 2'd3 ? data[32] : 'd0;
+
+assign layer_0_bit_36 = shift[1:0] == 2'd0 ? data[36] :
+                        shift[1:0] == 2'd1 ? data[35] :
+                        shift[1:0] == 2'd2 ? data[34] :
+                        shift[1:0] == 2'd3 ? data[33] : 'd0;
+
+assign layer_0_bit_37 = shift[1:0] == 2'd0 ? data[37] :
+                        shift[1:0] == 2'd1 ? data[36] :
+                        shift[1:0] == 2'd2 ? data[35] :
+                        shift[1:0] == 2'd3 ? data[34] : 'd0;
+
+assign layer_0_bit_38 = shift[1:0] == 2'd0 ? data[38] :
+                        shift[1:0] == 2'd1 ? data[37] :
+                        shift[1:0] == 2'd2 ? data[36] :
+                        shift[1:0] == 2'd3 ? data[35] : 'd0;
+
+assign layer_0_bit_39 = shift[1:0] == 2'd0 ? data[39] :
+                        shift[1:0] == 2'd1 ? data[38] :
+                        shift[1:0] == 2'd2 ? data[37] :
+                        shift[1:0] == 2'd3 ? data[36] : 'd0;
+
+assign layer_0_bit_40 = shift[1:0] == 2'd0 ? data[40] :
+                        shift[1:0] == 2'd1 ? data[39] :
+                        shift[1:0] == 2'd2 ? data[38] :
+                        shift[1:0] == 2'd3 ? data[37] : 'd0;
+
+assign layer_0_bit_41 = shift[1:0] == 2'd0 ? data[41] :
+                        shift[1:0] == 2'd1 ? data[40] :
+                        shift[1:0] == 2'd2 ? data[39] :
+                        shift[1:0] == 2'd3 ? data[38] : 'd0;
+
+assign layer_0_bit_42 = shift[1:0] == 2'd0 ? data[42] :
+                        shift[1:0] == 2'd1 ? data[41] :
+                        shift[1:0] == 2'd2 ? data[40] :
+                        shift[1:0] == 2'd3 ? data[39] : 'd0;
+
+assign layer_0_bit_43 = shift[1:0] == 2'd0 ? data[43] :
+                        shift[1:0] == 2'd1 ? data[42] :
+                        shift[1:0] == 2'd2 ? data[41] :
+                        shift[1:0] == 2'd3 ? data[40] : 'd0;
+
+assign layer_0_bit_44 = shift[1:0] == 2'd0 ? data[44] :
+                        shift[1:0] == 2'd1 ? data[43] :
+                        shift[1:0] == 2'd2 ? data[42] :
+                        shift[1:0] == 2'd3 ? data[41] : 'd0;
+
+assign layer_0_bit_45 = shift[1:0] == 2'd0 ? data[45] :
+                        shift[1:0] == 2'd1 ? data[44] :
+                        shift[1:0] == 2'd2 ? data[43] :
+                        shift[1:0] == 2'd3 ? data[42] : 'd0;
+
+assign layer_0_bit_46 = shift[1:0] == 2'd0 ? data[46] :
+                        shift[1:0] == 2'd1 ? data[45] :
+                        shift[1:0] == 2'd2 ? data[44] :
+                        shift[1:0] == 2'd3 ? data[43] : 'd0;
+
+assign layer_0_bit_47 = shift[1:0] == 2'd0 ? data[47] :
+                        shift[1:0] == 2'd1 ? data[46] :
+                        shift[1:0] == 2'd2 ? data[45] :
+                        shift[1:0] == 2'd3 ? data[44] : 'd0;
+
+assign layer_0_bit_48 = shift[1:0] == 2'd0 ? data[48] :
+                        shift[1:0] == 2'd1 ? data[47] :
+                        shift[1:0] == 2'd2 ? data[46] :
+                        shift[1:0] == 2'd3 ? data[45] : 'd0;
+
+assign layer_0_bit_49 = shift[1:0] == 2'd0 ? data[49] :
+                        shift[1:0] == 2'd1 ? data[48] :
+                        shift[1:0] == 2'd2 ? data[47] :
+                        shift[1:0] == 2'd3 ? data[46] : 'd0;
+
+assign layer_0_bit_50 = shift[1:0] == 2'd0 ? data[50] :
+                        shift[1:0] == 2'd1 ? data[49] :
+                        shift[1:0] == 2'd2 ? data[48] :
+                        shift[1:0] == 2'd3 ? data[47] : 'd0;
+
+assign layer_0_bit_51 = shift[1:0] == 2'd0 ? data[51] :
+                        shift[1:0] == 2'd1 ? data[50] :
+                        shift[1:0] == 2'd2 ? data[49] :
+                        shift[1:0] == 2'd3 ? data[48] : 'd0;
+
+assign layer_0_bit_52 = shift[1:0] == 2'd0 ? data[52] :
+                        shift[1:0] == 2'd1 ? data[51] :
+                        shift[1:0] == 2'd2 ? data[50] :
+                        shift[1:0] == 2'd3 ? data[49] : 'd0;
+
+assign layer_0_bit_53 = shift[1:0] == 2'd0 ? data[53] :
+                        shift[1:0] == 2'd1 ? data[52] :
+                        shift[1:0] == 2'd2 ? data[51] :
+                        shift[1:0] == 2'd3 ? data[50] : 'd0;
+
+assign layer_0_bit_54 = shift[1:0] == 2'd0 ? data[54] :
+                        shift[1:0] == 2'd1 ? data[53] :
+                        shift[1:0] == 2'd2 ? data[52] :
+                        shift[1:0] == 2'd3 ? data[51] : 'd0;
+
+assign layer_0_bit_55 = shift[1:0] == 2'd0 ? data[55] :
+                        shift[1:0] == 2'd1 ? data[54] :
+                        shift[1:0] == 2'd2 ? data[53] :
+                        shift[1:0] == 2'd3 ? data[52] : 'd0;
+
+assign layer_0_bit_56 = shift[1:0] == 2'd0 ? data[56] :
+                        shift[1:0] == 2'd1 ? data[55] :
+                        shift[1:0] == 2'd2 ? data[54] :
+                        shift[1:0] == 2'd3 ? data[53] : 'd0;
+
+assign layer_0_bit_57 = shift[1:0] == 2'd0 ? data[57] :
+                        shift[1:0] == 2'd1 ? data[56] :
+                        shift[1:0] == 2'd2 ? data[55] :
+                        shift[1:0] == 2'd3 ? data[54] : 'd0;
+
+assign layer_0_bit_58 = shift[1:0] == 2'd0 ? data[58] :
+                        shift[1:0] == 2'd1 ? data[57] :
+                        shift[1:0] == 2'd2 ? data[56] :
+                        shift[1:0] == 2'd3 ? data[55] : 'd0;
+
+assign layer_0_bit_59 = shift[1:0] == 2'd0 ? data[59] :
+                        shift[1:0] == 2'd1 ? data[58] :
+                        shift[1:0] == 2'd2 ? data[57] :
+                        shift[1:0] == 2'd3 ? data[56] : 'd0;
+
+assign layer_0_bit_60 = shift[1:0] == 2'd0 ? data[60] :
+                        shift[1:0] == 2'd1 ? data[59] :
+                        shift[1:0] == 2'd2 ? data[58] :
+                        shift[1:0] == 2'd3 ? data[57] : 'd0;
+
+assign layer_0_bit_61 = shift[1:0] == 2'd0 ? data[61] :
+                        shift[1:0] == 2'd1 ? data[60] :
+                        shift[1:0] == 2'd2 ? data[59] :
+                        shift[1:0] == 2'd3 ? data[58] : 'd0;
+
+assign layer_0_bit_62 = shift[1:0] == 2'd0 ? data[62] :
+                        shift[1:0] == 2'd1 ? data[61] :
+                        shift[1:0] == 2'd2 ? data[60] :
+                        shift[1:0] == 2'd3 ? data[59] : 'd0;
+
+assign layer_0_bit_63 = shift[1:0] == 2'd0 ? data[63] :
+                        shift[1:0] == 2'd1 ? data[62] :
+                        shift[1:0] == 2'd2 ? data[61] :
+                        shift[1:0] == 2'd3 ? data[60] : 'd0;
+
+assign layer_0_bit_64 = shift[1:0] == 2'd0 ? data[64] :
+                        shift[1:0] == 2'd1 ? data[63] :
+                        shift[1:0] == 2'd2 ? data[62] :
+                        shift[1:0] == 2'd3 ? data[61] : 'd0;
+
+assign layer_0_bit_65 = shift[1:0] == 2'd0 ? data[65] :
+                        shift[1:0] == 2'd1 ? data[64] :
+                        shift[1:0] == 2'd2 ? data[63] :
+                        shift[1:0] == 2'd3 ? data[62] : 'd0;
+
+assign layer_0_bit_66 = shift[1:0] == 2'd0 ? data[66] :
+                        shift[1:0] == 2'd1 ? data[65] :
+                        shift[1:0] == 2'd2 ? data[64] :
+                        shift[1:0] == 2'd3 ? data[63] : 'd0;
+
+assign layer_0_bit_67 = shift[1:0] == 2'd0 ? data[67] :
+                        shift[1:0] == 2'd1 ? data[66] :
+                        shift[1:0] == 2'd2 ? data[65] :
+                        shift[1:0] == 2'd3 ? data[64] : 'd0;
+
+assign layer_0_bit_68 = shift[1:0] == 2'd0 ? data[68] :
+                        shift[1:0] == 2'd1 ? data[67] :
+                        shift[1:0] == 2'd2 ? data[66] :
+                        shift[1:0] == 2'd3 ? data[65] : 'd0;
+
+assign layer_0_bit_69 = shift[1:0] == 2'd0 ? data[69] :
+                        shift[1:0] == 2'd1 ? data[68] :
+                        shift[1:0] == 2'd2 ? data[67] :
+                        shift[1:0] == 2'd3 ? data[66] : 'd0;
+
+assign layer_0_bit_70 = shift[1:0] == 2'd0 ? data[70] :
+                        shift[1:0] == 2'd1 ? data[69] :
+                        shift[1:0] == 2'd2 ? data[68] :
+                        shift[1:0] == 2'd3 ? data[67] : 'd0;
+
+assign layer_1_bit_0 = shift[3:2] == 2'd0 ? layer_0_bit_0 : 'd0;
+
+assign layer_1_bit_1 = shift[3:2] == 2'd0 ? layer_0_bit_1 : 'd0;
+
+assign layer_1_bit_2 = shift[3:2] == 2'd0 ? layer_0_bit_2 : 'd0;
+
+assign layer_1_bit_3 = shift[3:2] == 2'd0 ? layer_0_bit_3 : 'd0;
+
+assign layer_1_bit_4 = shift[3:2] == 2'd0 ? layer_0_bit_4 :
+                       shift[3:2] == 2'd1 ? layer_0_bit_0 : 'd0;
+
+assign layer_1_bit_5 = shift[3:2] == 2'd0 ? layer_0_bit_5 :
+                       shift[3:2] == 2'd1 ? layer_0_bit_1 : 'd0;
+
+assign layer_1_bit_6 = shift[3:2] == 2'd0 ? layer_0_bit_6 :
+                       shift[3:2] == 2'd1 ? layer_0_bit_2 : 'd0;
+
+assign layer_1_bit_7 = shift[3:2] == 2'd0 ? layer_0_bit_7 :
+                       shift[3:2] == 2'd1 ? layer_0_bit_3 : 'd0;
+
+assign layer_1_bit_8 = shift[3:2] == 2'd0 ? layer_0_bit_8 :
+                       shift[3:2] == 2'd1 ? layer_0_bit_4 :
+                       shift[3:2] == 2'd2 ? layer_0_bit_0 : 'd0;
+
+assign layer_1_bit_9 = shift[3:2] == 2'd0 ? layer_0_bit_9 :
+                       shift[3:2] == 2'd1 ? layer_0_bit_5 :
+                       shift[3:2] == 2'd2 ? layer_0_bit_1 : 'd0;
+
+assign layer_1_bit_10 = shift[3:2] == 2'd0 ? layer_0_bit_10 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_6 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_2 : 'd0;
+
+assign layer_1_bit_11 = shift[3:2] == 2'd0 ? layer_0_bit_11 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_7 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_3 : 'd0;
+
+assign layer_1_bit_12 = shift[3:2] == 2'd0 ? layer_0_bit_12 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_8 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_4 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_0 : 'd0;
+
+assign layer_1_bit_13 = shift[3:2] == 2'd0 ? layer_0_bit_13 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_9 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_5 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_1 : 'd0;
+
+assign layer_1_bit_14 = shift[3:2] == 2'd0 ? layer_0_bit_14 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_10 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_6 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_2 : 'd0;
+
+assign layer_1_bit_15 = shift[3:2] == 2'd0 ? layer_0_bit_15 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_11 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_7 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_3 : 'd0;
+
+assign layer_1_bit_16 = shift[3:2] == 2'd0 ? layer_0_bit_16 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_12 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_8 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_4 : 'd0;
+
+assign layer_1_bit_17 = shift[3:2] == 2'd0 ? layer_0_bit_17 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_13 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_9 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_5 : 'd0;
+
+assign layer_1_bit_18 = shift[3:2] == 2'd0 ? layer_0_bit_18 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_14 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_10 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_6 : 'd0;
+
+assign layer_1_bit_19 = shift[3:2] == 2'd0 ? layer_0_bit_19 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_15 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_11 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_7 : 'd0;
+
+assign layer_1_bit_20 = shift[3:2] == 2'd0 ? layer_0_bit_20 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_16 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_12 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_8 : 'd0;
+
+assign layer_1_bit_21 = shift[3:2] == 2'd0 ? layer_0_bit_21 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_17 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_13 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_9 : 'd0;
+
+assign layer_1_bit_22 = shift[3:2] == 2'd0 ? layer_0_bit_22 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_18 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_14 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_10 : 'd0;
+
+assign layer_1_bit_23 = shift[3:2] == 2'd0 ? layer_0_bit_23 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_19 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_15 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_11 : 'd0;
+
+assign layer_1_bit_24 = shift[3:2] == 2'd0 ? layer_0_bit_24 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_20 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_16 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_12 : 'd0;
+
+assign layer_1_bit_25 = shift[3:2] == 2'd0 ? layer_0_bit_25 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_21 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_17 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_13 : 'd0;
+
+assign layer_1_bit_26 = shift[3:2] == 2'd0 ? layer_0_bit_26 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_22 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_18 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_14 : 'd0;
+
+assign layer_1_bit_27 = shift[3:2] == 2'd0 ? layer_0_bit_27 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_23 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_19 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_15 : 'd0;
+
+assign layer_1_bit_28 = shift[3:2] == 2'd0 ? layer_0_bit_28 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_24 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_20 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_16 : 'd0;
+
+assign layer_1_bit_29 = shift[3:2] == 2'd0 ? layer_0_bit_29 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_25 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_21 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_17 : 'd0;
+
+assign layer_1_bit_30 = shift[3:2] == 2'd0 ? layer_0_bit_30 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_26 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_22 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_18 : 'd0;
+
+assign layer_1_bit_31 = shift[3:2] == 2'd0 ? layer_0_bit_31 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_27 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_23 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_19 : 'd0;
+
+assign layer_1_bit_32 = shift[3:2] == 2'd0 ? layer_0_bit_32 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_28 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_24 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_20 : 'd0;
+
+assign layer_1_bit_33 = shift[3:2] == 2'd0 ? layer_0_bit_33 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_29 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_25 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_21 : 'd0;
+
+assign layer_1_bit_34 = shift[3:2] == 2'd0 ? layer_0_bit_34 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_30 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_26 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_22 : 'd0;
+
+assign layer_1_bit_35 = shift[3:2] == 2'd0 ? layer_0_bit_35 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_31 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_27 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_23 : 'd0;
+
+assign layer_1_bit_36 = shift[3:2] == 2'd0 ? layer_0_bit_36 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_32 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_28 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_24 : 'd0;
+
+assign layer_1_bit_37 = shift[3:2] == 2'd0 ? layer_0_bit_37 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_33 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_29 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_25 : 'd0;
+
+assign layer_1_bit_38 = shift[3:2] == 2'd0 ? layer_0_bit_38 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_34 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_30 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_26 : 'd0;
+
+assign layer_1_bit_39 = shift[3:2] == 2'd0 ? layer_0_bit_39 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_35 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_31 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_27 : 'd0;
+
+assign layer_1_bit_40 = shift[3:2] == 2'd0 ? layer_0_bit_40 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_36 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_32 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_28 : 'd0;
+
+assign layer_1_bit_41 = shift[3:2] == 2'd0 ? layer_0_bit_41 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_37 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_33 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_29 : 'd0;
+
+assign layer_1_bit_42 = shift[3:2] == 2'd0 ? layer_0_bit_42 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_38 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_34 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_30 : 'd0;
+
+assign layer_1_bit_43 = shift[3:2] == 2'd0 ? layer_0_bit_43 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_39 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_35 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_31 : 'd0;
+
+assign layer_1_bit_44 = shift[3:2] == 2'd0 ? layer_0_bit_44 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_40 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_36 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_32 : 'd0;
+
+assign layer_1_bit_45 = shift[3:2] == 2'd0 ? layer_0_bit_45 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_41 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_37 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_33 : 'd0;
+
+assign layer_1_bit_46 = shift[3:2] == 2'd0 ? layer_0_bit_46 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_42 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_38 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_34 : 'd0;
+
+assign layer_1_bit_47 = shift[3:2] == 2'd0 ? layer_0_bit_47 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_43 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_39 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_35 : 'd0;
+
+assign layer_1_bit_48 = shift[3:2] == 2'd0 ? layer_0_bit_48 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_44 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_40 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_36 : 'd0;
+
+assign layer_1_bit_49 = shift[3:2] == 2'd0 ? layer_0_bit_49 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_45 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_41 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_37 : 'd0;
+
+assign layer_1_bit_50 = shift[3:2] == 2'd0 ? layer_0_bit_50 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_46 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_42 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_38 : 'd0;
+
+assign layer_1_bit_51 = shift[3:2] == 2'd0 ? layer_0_bit_51 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_47 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_43 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_39 : 'd0;
+
+assign layer_1_bit_52 = shift[3:2] == 2'd0 ? layer_0_bit_52 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_48 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_44 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_40 : 'd0;
+
+assign layer_1_bit_53 = shift[3:2] == 2'd0 ? layer_0_bit_53 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_49 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_45 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_41 : 'd0;
+
+assign layer_1_bit_54 = shift[3:2] == 2'd0 ? layer_0_bit_54 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_50 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_46 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_42 : 'd0;
+
+assign layer_1_bit_55 = shift[3:2] == 2'd0 ? layer_0_bit_55 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_51 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_47 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_43 : 'd0;
+
+assign layer_1_bit_56 = shift[3:2] == 2'd0 ? layer_0_bit_56 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_52 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_48 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_44 : 'd0;
+
+assign layer_1_bit_57 = shift[3:2] == 2'd0 ? layer_0_bit_57 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_53 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_49 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_45 : 'd0;
+
+assign layer_1_bit_58 = shift[3:2] == 2'd0 ? layer_0_bit_58 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_54 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_50 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_46 : 'd0;
+
+assign layer_1_bit_59 = shift[3:2] == 2'd0 ? layer_0_bit_59 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_55 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_51 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_47 : 'd0;
+
+assign layer_1_bit_60 = shift[3:2] == 2'd0 ? layer_0_bit_60 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_56 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_52 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_48 : 'd0;
+
+assign layer_1_bit_61 = shift[3:2] == 2'd0 ? layer_0_bit_61 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_57 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_53 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_49 : 'd0;
+
+assign layer_1_bit_62 = shift[3:2] == 2'd0 ? layer_0_bit_62 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_58 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_54 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_50 : 'd0;
+
+assign layer_1_bit_63 = shift[3:2] == 2'd0 ? layer_0_bit_63 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_59 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_55 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_51 : 'd0;
+
+assign layer_1_bit_64 = shift[3:2] == 2'd0 ? layer_0_bit_64 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_60 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_56 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_52 : 'd0;
+
+assign layer_1_bit_65 = shift[3:2] == 2'd0 ? layer_0_bit_65 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_61 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_57 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_53 : 'd0;
+
+assign layer_1_bit_66 = shift[3:2] == 2'd0 ? layer_0_bit_66 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_62 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_58 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_54 : 'd0;
+
+assign layer_1_bit_67 = shift[3:2] == 2'd0 ? layer_0_bit_67 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_63 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_59 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_55 : 'd0;
+
+assign layer_1_bit_68 = shift[3:2] == 2'd0 ? layer_0_bit_68 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_64 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_60 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_56 : 'd0;
+
+assign layer_1_bit_69 = shift[3:2] == 2'd0 ? layer_0_bit_69 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_65 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_61 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_57 : 'd0;
+
+assign layer_1_bit_70 = shift[3:2] == 2'd0 ? layer_0_bit_70 :
+                        shift[3:2] == 2'd1 ? layer_0_bit_66 :
+                        shift[3:2] == 2'd2 ? layer_0_bit_62 :
+                        shift[3:2] == 2'd3 ? layer_0_bit_58 : 'd0;
+
+assign layer_2_bit_0 = shift[5:4] == 2'd0 ? layer_1_bit_0 : 'd0;
+
+assign layer_2_bit_1 = shift[5:4] == 2'd0 ? layer_1_bit_1 : 'd0;
+
+assign layer_2_bit_2 = shift[5:4] == 2'd0 ? layer_1_bit_2 : 'd0;
+
+assign layer_2_bit_3 = shift[5:4] == 2'd0 ? layer_1_bit_3 : 'd0;
+
+assign layer_2_bit_4 = shift[5:4] == 2'd0 ? layer_1_bit_4 : 'd0;
+
+assign layer_2_bit_5 = shift[5:4] == 2'd0 ? layer_1_bit_5 : 'd0;
+
+assign layer_2_bit_6 = shift[5:4] == 2'd0 ? layer_1_bit_6 : 'd0;
+
+assign layer_2_bit_7 = shift[5:4] == 2'd0 ? layer_1_bit_7 : 'd0;
+
+assign layer_2_bit_8 = shift[5:4] == 2'd0 ? layer_1_bit_8 : 'd0;
+
+assign layer_2_bit_9 = shift[5:4] == 2'd0 ? layer_1_bit_9 : 'd0;
+
+assign layer_2_bit_10 = shift[5:4] == 2'd0 ? layer_1_bit_10 : 'd0;
+
+assign layer_2_bit_11 = shift[5:4] == 2'd0 ? layer_1_bit_11 : 'd0;
+
+assign layer_2_bit_12 = shift[5:4] == 2'd0 ? layer_1_bit_12 : 'd0;
+
+assign layer_2_bit_13 = shift[5:4] == 2'd0 ? layer_1_bit_13 : 'd0;
+
+assign layer_2_bit_14 = shift[5:4] == 2'd0 ? layer_1_bit_14 : 'd0;
+
+assign layer_2_bit_15 = shift[5:4] == 2'd0 ? layer_1_bit_15 : 'd0;
+
+assign layer_2_bit_16 = shift[5:4] == 2'd0 ? layer_1_bit_16 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_0 : 'd0;
+
+assign layer_2_bit_17 = shift[5:4] == 2'd0 ? layer_1_bit_17 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_1 : 'd0;
+
+assign layer_2_bit_18 = shift[5:4] == 2'd0 ? layer_1_bit_18 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_2 : 'd0;
+
+assign layer_2_bit_19 = shift[5:4] == 2'd0 ? layer_1_bit_19 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_3 : 'd0;
+
+assign layer_2_bit_20 = shift[5:4] == 2'd0 ? layer_1_bit_20 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_4 : 'd0;
+                        
+assign layer_2_bit_21 = shift[5:4] == 2'd0 ? layer_1_bit_21 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_5 : 'd0;
+
+assign layer_2_bit_22 = shift[5:4] == 2'd0 ? layer_1_bit_22 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_6 : 'd0;
+
+assign layer_2_bit_23 = shift[5:4] == 2'd0 ? layer_1_bit_23 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_7 : 'd0;
+
+assign layer_2_bit_24 = shift[5:4] == 2'd0 ? layer_1_bit_24 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_8 : 'd0;
+
+assign layer_2_bit_25 = shift[5:4] == 2'd0 ? layer_1_bit_25 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_9 : 'd0;
+
+assign layer_2_bit_26 = shift[5:4] == 2'd0 ? layer_1_bit_26 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_10 : 'd0;
+
+assign layer_2_bit_27 = shift[5:4] == 2'd0 ? layer_1_bit_27 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_11 : 'd0;
+
+assign layer_2_bit_28 = shift[5:4] == 2'd0 ? layer_1_bit_28 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_12 : 'd0;
+
+assign layer_2_bit_29 = shift[5:4] == 2'd0 ? layer_1_bit_29 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_13 : 'd0;
+
+assign layer_2_bit_30 = shift[5:4] == 2'd0 ? layer_1_bit_30 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_14 : 'd0;
+
+assign layer_2_bit_31 = shift[5:4] == 2'd0 ? layer_1_bit_31 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_15 : 'd0;
+
+assign layer_2_bit_32 = shift[5:4] == 2'd0 ? layer_1_bit_32 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_16 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_0 : 'd0;
+
+assign layer_2_bit_33 = shift[5:4] == 2'd0 ? layer_1_bit_33 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_17 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_1 : 'd0;
+
+assign layer_2_bit_34 = shift[5:4] == 2'd0 ? layer_1_bit_34 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_18 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_2 : 'd0;
+
+assign layer_2_bit_35 = shift[5:4] == 2'd0 ? layer_1_bit_35 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_19 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_3 : 'd0;
+
+assign layer_2_bit_36 = shift[5:4] == 2'd0 ? layer_1_bit_36 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_20 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_4 : 'd0;
+
+assign layer_2_bit_37 = shift[5:4] == 2'd0 ? layer_1_bit_37 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_21 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_5 : 'd0;
+
+assign layer_2_bit_38 = shift[5:4] == 2'd0 ? layer_1_bit_38 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_22 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_6 : 'd0;
+
+assign layer_2_bit_39 = shift[5:4] == 2'd0 ? layer_1_bit_39 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_23 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_7 : 'd0;
+
+assign layer_2_bit_40 = shift[5:4] == 2'd0 ? layer_1_bit_40 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_24 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_8 : 'd0;
+
+assign layer_2_bit_41 = shift[5:4] == 2'd0 ? layer_1_bit_41 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_25 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_9 : 'd0;
+
+assign layer_2_bit_42 = shift[5:4] == 2'd0 ? layer_1_bit_42 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_26 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_10 : 'd0;
+
+assign layer_2_bit_43 = shift[5:4] == 2'd0 ? layer_1_bit_43 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_27 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_11 : 'd0;
+
+assign layer_2_bit_44 = shift[5:4] == 2'd0 ? layer_1_bit_44 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_28 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_12 : 'd0;
+
+assign layer_2_bit_45 = shift[5:4] == 2'd0 ? layer_1_bit_45 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_29 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_13 : 'd0;
+
+assign layer_2_bit_46 = shift[5:4] == 2'd0 ? layer_1_bit_46 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_30 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_14 : 'd0;
+
+assign layer_2_bit_47 = shift[5:4] == 2'd0 ? layer_1_bit_47 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_31 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_15 : 'd0;
+
+assign layer_2_bit_48 = shift[5:4] == 2'd0 ? layer_1_bit_48 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_32 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_16 :
+                        shift[5:4] == 2'd3 ? layer_1_bit_0 : 'd0;
+
+assign layer_2_bit_49 = shift[5:4] == 2'd0 ? layer_1_bit_49 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_33 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_17 :
+                        shift[5:4] == 2'd3 ? layer_1_bit_1 : 'd0;
+
+assign layer_2_bit_50 = shift[5:4] == 2'd0 ? layer_1_bit_50 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_34 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_18 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_2 : 'd0;
+
+assign layer_2_bit_51 = shift[5:4] == 2'd0 ? layer_1_bit_51 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_35 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_19 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_3 : 'd0;
+
+assign layer_2_bit_52 = shift[5:4] == 2'd0 ? layer_1_bit_52 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_36 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_20 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_4 : 'd0;
+
+assign layer_2_bit_53 = shift[5:4] == 2'd0 ? layer_1_bit_53 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_37 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_21 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_5 : 'd0;
+
+assign layer_2_bit_54 = shift[5:4] == 2'd0 ? layer_1_bit_54 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_38 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_22 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_6 : 'd0;
+
+assign layer_2_bit_55 = shift[5:4] == 2'd0 ? layer_1_bit_55 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_39 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_23 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_7 : 'd0;
+
+assign layer_2_bit_56 = shift[5:4] == 2'd0 ? layer_1_bit_56 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_40 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_24 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_8 : 'd0;
+
+assign layer_2_bit_57 = shift[5:4] == 2'd0 ? layer_1_bit_57 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_41 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_25 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_9 : 'd0;
+
+assign layer_2_bit_58 = shift[5:4] == 2'd0 ? layer_1_bit_58 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_42 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_26 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_10 : 'd0;
+
+assign layer_2_bit_59 = shift[5:4] == 2'd0 ? layer_1_bit_59 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_43 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_27 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_11 : 'd0;
+
+assign layer_2_bit_60 = shift[5:4] == 2'd0 ? layer_1_bit_60 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_44 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_28 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_12 : 'd0;
+
+assign layer_2_bit_61 = shift[5:4] == 2'd0 ? layer_1_bit_61 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_45 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_29 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_13 : 'd0;
+
+assign layer_2_bit_62 = shift[5:4] == 2'd0 ? layer_1_bit_62 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_46 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_30 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_14 : 'd0;
+
+assign layer_2_bit_63 = shift[5:4] == 2'd0 ? layer_1_bit_63 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_47 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_31 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_15 : 'd0;
+
+assign layer_2_bit_64 = shift[5:4] == 2'd0 ? layer_1_bit_64 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_48 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_32 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_16 : 'd0;
+
+assign layer_2_bit_65 = shift[5:4] == 2'd0 ? layer_1_bit_65 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_49 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_33 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_17 : 'd0;
+
+assign layer_2_bit_66 = shift[5:4] == 2'd0 ? layer_1_bit_66 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_50 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_34 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_18 : 'd0;
+
+assign layer_2_bit_67 = shift[5:4] == 2'd0 ? layer_1_bit_67 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_51 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_35 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_19 : 'd0;
+
+assign layer_2_bit_68 = shift[5:4] == 2'd0 ? layer_1_bit_68 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_52 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_36 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_20 : 'd0;
+
+assign layer_2_bit_69 = shift[5:4] == 2'd0 ? layer_1_bit_69 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_53 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_37 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_21 : 'd0;
+
+assign layer_2_bit_70 = shift[5:4] == 2'd0 ? layer_1_bit_70 :
+                        shift[5:4] == 2'd1 ? layer_1_bit_54 :
+                        shift[5:4] == 2'd2 ? layer_1_bit_38 : 
+                        shift[5:4] == 2'd3 ? layer_1_bit_22 : 'd0;
+
+assign layer_3_bit_0 = !shift[6] ? layer_2_bit_0 : 'd0;
+
+assign layer_3_bit_1 = !shift[6] ? layer_2_bit_1 : 'd0;
+
+assign layer_3_bit_2 = !shift[6] ? layer_2_bit_2 : 'd0;
+
+assign layer_3_bit_3 = !shift[6] ? layer_2_bit_3 : 'd0;
+
+assign layer_3_bit_4 = !shift[6] ? layer_2_bit_4 : 'd0;
+
+assign layer_3_bit_5 = !shift[6] ? layer_2_bit_5 : 'd0;
+
+assign layer_3_bit_6 = !shift[6] ? layer_2_bit_6 : 'd0;
+
+assign layer_3_bit_7 = !shift[6] ? layer_2_bit_7 : 'd0;
+
+assign layer_3_bit_8 = !shift[6] ? layer_2_bit_8 : 'd0;
+
+assign layer_3_bit_9 = !shift[6] ? layer_2_bit_9 : 'd0;
+
+assign layer_3_bit_10 = !shift[6] ? layer_2_bit_10 : 'd0;
+
+assign layer_3_bit_11 = !shift[6] ? layer_2_bit_11 : 'd0;
+
+assign layer_3_bit_12 = !shift[6] ? layer_2_bit_12 : 'd0;
+
+assign layer_3_bit_13 = !shift[6] ? layer_2_bit_13 : 'd0;
+
+assign layer_3_bit_14 = !shift[6] ? layer_2_bit_14 : 'd0;
+
+assign layer_3_bit_15 = !shift[6] ? layer_2_bit_15 : 'd0;
+
+assign layer_3_bit_16 = !shift[6] ? layer_2_bit_16 : 'd0;
+
+assign layer_3_bit_17 = !shift[6] ? layer_2_bit_17 : 'd0;
+
+assign layer_3_bit_18 = !shift[6] ? layer_2_bit_18 : 'd0;
+
+assign layer_3_bit_19 = !shift[6] ? layer_2_bit_19 : 'd0;
+
+assign layer_3_bit_20 = !shift[6] ? layer_2_bit_20 : 'd0;
+
+assign layer_3_bit_21 = !shift[6] ? layer_2_bit_21 : 'd0;
+
+assign layer_3_bit_22 = !shift[6] ? layer_2_bit_22 : 'd0;
+
+assign layer_3_bit_23 = !shift[6] ? layer_2_bit_23 : 'd0;
+
+assign layer_3_bit_24 = !shift[6] ? layer_2_bit_24 : 'd0;
+
+assign layer_3_bit_25 = !shift[6] ? layer_2_bit_25 : 'd0;
+
+assign layer_3_bit_26 = !shift[6] ? layer_2_bit_26 : 'd0;
+
+assign layer_3_bit_27 = !shift[6] ? layer_2_bit_27 : 'd0;
+
+assign layer_3_bit_28 = !shift[6] ? layer_2_bit_28 : 'd0;
+
+assign layer_3_bit_29 = !shift[6] ? layer_2_bit_29 : 'd0;
+
+assign layer_3_bit_30 = !shift[6] ? layer_2_bit_30 : 'd0;
+
+assign layer_3_bit_31 = !shift[6] ? layer_2_bit_31 : 'd0;
+
+assign layer_3_bit_32 = !shift[6] ? layer_2_bit_32 : 'd0;
+
+assign layer_3_bit_33 = !shift[6] ? layer_2_bit_33 : 'd0;
+
+assign layer_3_bit_34 = !shift[6] ? layer_2_bit_34 : 'd0;
+
+assign layer_3_bit_35 = !shift[6] ? layer_2_bit_35 : 'd0;
+
+assign layer_3_bit_36 = !shift[6] ? layer_2_bit_36 : 'd0;
+
+assign layer_3_bit_37 = !shift[6] ? layer_2_bit_37 : 'd0;
+
+assign layer_3_bit_38 = !shift[6] ? layer_2_bit_38 : 'd0;
+
+assign layer_3_bit_39 = !shift[6] ? layer_2_bit_39 : 'd0;
+
+assign layer_3_bit_40 = !shift[6] ? layer_2_bit_40 : 'd0;
+
+assign layer_3_bit_41 = !shift[6] ? layer_2_bit_41 : 'd0;
+
+assign layer_3_bit_42 = !shift[6] ? layer_2_bit_42 : 'd0;
+
+assign layer_3_bit_43 = !shift[6] ? layer_2_bit_43 : 'd0;
+
+assign layer_3_bit_44 = !shift[6] ? layer_2_bit_44 : 'd0;
+
+assign layer_3_bit_45 = !shift[6] ? layer_2_bit_45 : 'd0;
+
+assign layer_3_bit_46 = !shift[6] ? layer_2_bit_46 : 'd0;
+
+assign layer_3_bit_47 = !shift[6] ? layer_2_bit_47 : 'd0;
+
+assign layer_3_bit_48 = !shift[6] ? layer_2_bit_48 : 'd0;
+
+assign layer_3_bit_49 = !shift[6] ? layer_2_bit_49 : 'd0;
+
+assign layer_3_bit_50 = !shift[6] ? layer_2_bit_50 : 'd0;
+
+assign layer_3_bit_51 = !shift[6] ? layer_2_bit_51 : 'd0;
+
+assign layer_3_bit_52 = !shift[6] ? layer_2_bit_52 : 'd0;
+
+assign layer_3_bit_53 = !shift[6] ? layer_2_bit_53 : 'd0;
+
+assign layer_3_bit_54 = !shift[6] ? layer_2_bit_54 : 'd0;
+
+assign layer_3_bit_55 = !shift[6] ? layer_2_bit_55 : 'd0;
+
+assign layer_3_bit_56 = !shift[6] ? layer_2_bit_56 : 'd0;
+
+assign layer_3_bit_57 = !shift[6] ? layer_2_bit_57 : 'd0;
+
+assign layer_3_bit_58 = !shift[6] ? layer_2_bit_58 : 'd0;
+
+assign layer_3_bit_59 = !shift[6] ? layer_2_bit_59 : 'd0;
+
+assign layer_3_bit_60 = !shift[6] ? layer_2_bit_60 : 'd0;
+
+assign layer_3_bit_61 = !shift[6] ? layer_2_bit_61 : 'd0;
+
+assign layer_3_bit_62 = !shift[6] ? layer_2_bit_62 : 'd0;
+
+assign layer_3_bit_63 = !shift[6] ? layer_2_bit_63 : 'd0;
+
+assign layer_3_bit_64 = !shift[6] ? layer_2_bit_64 : layer_2_bit_0;
+
+assign layer_3_bit_65 = !shift[6] ? layer_2_bit_65 : layer_2_bit_1;
+
+assign layer_3_bit_66 = !shift[6] ? layer_2_bit_66 : layer_2_bit_2;
+
+assign layer_3_bit_67 = !shift[6] ? layer_2_bit_67 : layer_2_bit_3;
+
+assign layer_3_bit_68 = !shift[6] ? layer_2_bit_68 : layer_2_bit_4;
+
+assign layer_3_bit_69 = !shift[6] ? layer_2_bit_69 : layer_2_bit_5;
+
+assign layer_3_bit_70 = !shift[6] ? layer_2_bit_70 : layer_2_bit_6;
+
+assign o = shift > 'd70 ? 'd0 : {layer_3_bit_70, layer_3_bit_69, layer_3_bit_68, layer_3_bit_67, layer_3_bit_66, layer_3_bit_65, layer_3_bit_64, layer_3_bit_63, layer_3_bit_62, layer_3_bit_61, layer_3_bit_60, layer_3_bit_59, layer_3_bit_58, layer_3_bit_57, layer_3_bit_56, layer_3_bit_55, layer_3_bit_54, layer_3_bit_53, layer_3_bit_52, layer_3_bit_51, layer_3_bit_50, layer_3_bit_49, layer_3_bit_48, layer_3_bit_47, layer_3_bit_46, layer_3_bit_45, layer_3_bit_44, layer_3_bit_43, layer_3_bit_42, layer_3_bit_41, layer_3_bit_40, layer_3_bit_39, layer_3_bit_38, layer_3_bit_37, layer_3_bit_36, layer_3_bit_35, layer_3_bit_34, layer_3_bit_33, layer_3_bit_32, layer_3_bit_31, layer_3_bit_30, layer_3_bit_29, layer_3_bit_28, layer_3_bit_27, layer_3_bit_26, layer_3_bit_25, layer_3_bit_24, layer_3_bit_23, layer_3_bit_22, layer_3_bit_21, layer_3_bit_20, layer_3_bit_19, layer_3_bit_18, layer_3_bit_17, layer_3_bit_16, layer_3_bit_15, layer_3_bit_14, layer_3_bit_13, layer_3_bit_12, layer_3_bit_11, layer_3_bit_10, layer_3_bit_9, layer_3_bit_8, layer_3_bit_7, layer_3_bit_6, layer_3_bit_5, layer_3_bit_4, layer_3_bit_3, layer_3_bit_2, layer_3_bit_1, layer_3_bit_0};
+
+endmodule

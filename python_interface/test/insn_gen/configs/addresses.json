@@ -1,0 +1,66 @@
+{
+  "base_addresses": {
+    "ddr_base": "0x10000000",
+    "sram_base": "0x20000000",
+    "lut_base": "0x40000000"
+  },
+  "address_allocation": {
+    "gemm": {
+      "ifmap_addr": "0x10000000",
+      "weight_addr": "0x11000000", 
+      "output_addr": "0x12000000"
+    },
+    "rmsnorm": {
+      "input_ddr_base_address": "0x10000000",
+      "gamma_ddr_base_address": "0x11000000",
+      "output_ddr_base_address": "0x12000000",
+      "vcucode_ddr_base_address": "0x13000000",
+      "rec_lut_ddr_base_address": "0x40000000",
+      "log_lut_ddr_base_address": "0x40100000",
+      "exp_lut_ddr_base_address": "0x40200000",
+      "rsqrt_lut_ddr_base_address": "0x40300000"
+    },
+    "softmax": {
+      "input_addr": "0x10000000",
+      "output_addr": "0x11000000",
+      "vcu_code_addr": "0x12000000",
+      "exp_lut_addr": "0x40000000",
+      "rec_lut_addr": "0x40100000"
+    },
+    "llama_block": { 
+      "input_hidden_state_addr":        "0x040000000",
+      "final_output_hidden_state_addr": "0x040000000",
+      "freq_cls_base_addr":             "0x100000000",
+      "mask_base_addr":                 "0x100080000",
+      "attn_norm_gamma_addr":           "0x1000a0000",
+      "attn_query_weight_addr":         "0x1000a4000",
+      "attn_key_weight_addr":           "0x1020a4000",
+      "attn_value_weight_addr":         "0x1040a4000",
+      "attn_output_weight_addr":        "0x1060a4000",
+      "ffn_norm_gamma_addr":            "0x1080a4000",
+      "mlp_gate_weight_addr":           "0x1080a8000",
+      "mlp_up_weight_addr":             "0x10d6a8000",
+      "mlp_down_weight_addr":           "0x112ca8000",
+      "attn_norm_output_addr":          "0x080000000",
+      "attn_query_temp_addr":           "0x080080000",
+      "attn_key_temp_addr":             "0x080100000",
+      "attn_value_temp_addr":           "0x080180000",
+      "attn_score_temp_addr":           "0x080200000",
+      "attn_probe_temp_addr":           "0x080220000",
+      "attn_output_temp_addr":          "0x080240000",
+      "attn_output_proj_addr":          "0x0802c0000",
+      "residual_after_attn_addr":       "0x080340000",
+      "ffn_norm_output_addr":           "0x0803c0000",
+      "mlp_gate_output_addr":           "0x080440000",
+      "mlp_up_output_addr":             "0x080598000",
+      "mlp_mul_output_addr":            "0x0806f0000",
+      "mlp_final_proj_output_addr":     "0x080848000",
+      "vcu_code_llama_block_addr":      "0x4c0000000",
+      "rec_lut_addr":                   "0x500000000",
+      "log_lut_addr":                   "0x500000400",
+      "exp_lut_addr":                   "0x500000800",
+      "rsqrt_lut_addr":                 "0x500000c00",
+      "swish_lut_addr":                 "0x500001000"
+    }
+  }
+}
