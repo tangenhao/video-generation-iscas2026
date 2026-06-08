@@ -296,7 +296,7 @@ struct instruction_parser {
         std::cout << "Para sram valid: " << vcu_insn.get_para_sram_valid() << std::endl;
         std::cout << "Psum address hop: " << vcu_insn.get_psum_addr_hop() << std::endl;
         std::cout << "Acc clear: " << vcu_insn.get_acc_clear() << std::endl;
-        std::cout << "Stream reduce enable: " << vcu_insn.get_stream_reduce_en() << std::endl;
+        std::cout << "Stream enable: " << vcu_insn.get_stream_en() << std::endl;
         std::cout << "Ifmap sram valid: " << vcu_insn.get_ifmap_sram_valid() << std::endl;
         std::cout << "Ifmap in address: " << vcu_insn.get_ifmap_in_addr() << std::endl;
       }

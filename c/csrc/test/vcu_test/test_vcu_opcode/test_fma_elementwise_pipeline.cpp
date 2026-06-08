@@ -7,6 +7,8 @@
 #include "vcu/vcu_insn.h"
 #include "vcu/vcu_opcode.h"
 #include "write_reg.h"
+#include <iomanip>
+#include <sstream>
 #include <vector>
 
 std::pair<int, int> split_exp_fra(int64_t x)
@@ -35,34 +37,76 @@ int main(int argc, const char** argv)
   int oc_group      = d_model / oc_group_size;
   int bytes_input   = 2;
 
-  uint64_t data_in_ddr_base_addr    = PSUM_ADDR;
+  uint64_t data_in_ddr_base_addr    = IFMAP_ADDR;
   uint64_t data_add_ddr_base_addr   = VCURES_ADDR;
   uint64_t data_mul_ddr_base_addr   = VCUPARA_ADDR;
   uint64_t data_out_ddr_base_addr   = OFMAP_ADDR;
   uint64_t opcode_ddr_base_addr     = VCUCODE_ADDR;
 
-  // 生成两个随机输入数据
-  auto data_in1 = randn<float>({oc_group, seq_len, oc_group_size}, kHalf, -1.0f, 1.0f, 0);
-  auto data_in2 = randn<float>({oc_group, seq_len, oc_group_size}, kHalf, -1.0f, 1.0f, 1);
-  auto data_in3 = randn<float>({oc_group, seq_len, oc_group_size}, kHalf, -1.0f, 1.0f, 1);
+  // 生成三个随机输入数据
+  auto data_in1 = randn<half>({oc_group, seq_len, oc_group_size}, kHalf, half(-1.0f), half(1.0f), 0);
+  auto data_in2 = randn<half>({oc_group, seq_len, oc_group_size}, kHalf, half(-1.0f), half(1.0f), 1);
+  auto data_in3 = randn<half>({oc_group, seq_len, oc_group_size}, kHalf, half(-1.0f), half(1.0f), 2);
 
-  common::file_utils::saveCharArrayToFormattedTextFile(
-    ifmap_file.c_str(), reinterpret_cast<char*>(data_in1.data_ptr()), data_in1.numel() * sizeof(float), 32, true);
-  
-  common::file_utils::saveCharArrayToFormattedTextFile(
-    res_file.c_str(), reinterpret_cast<char*>(data_in2.data_ptr()), data_in2.numel() * sizeof(float), 32, true);
-
-  common::file_utils::saveCharArrayToFormattedTextFile(
-    para_file.c_str(), reinterpret_cast<char*>(data_in3.data_ptr()), data_in3.numel() * sizeof(float), 32, true);
-
-  // 执行element-wise加法运算
-  Tensor<float> data_out({oc_group, seq_len, oc_group_size}, kHalf);
+  // 执行element-wise FMA运算
+  Tensor<half> data_out({oc_group, seq_len, oc_group_size}, kHalf);
   for (int i = 0; i < data_out.numel(); ++i) {
-    data_out[i] = data_in1[i] * data_in3[i] + data_in2[i];
+    data_out[i] = half(static_cast<float>(data_in1[i]) * static_cast<float>(data_in3[i]) + static_cast<float>(data_in2[i]));
   }
 
+  auto fp16_hex = [](half value) {
+    std::ostringstream oss;
+    oss << "0x" << std::hex << std::setw(4) << std::setfill('0') << value.storage;
+    return oss.str();
+  };
+
+  std::cout << "\n================ fma elementwise pipeline golden ================\n";
+  std::cout << "shape: oc_group=" << oc_group << ", seq_len=" << seq_len << ", lane=" << oc_group_size << "\n";
+  std::cout << "dtype: input1 fp16 * input3 fp16 + input2 fp16 -> output fp16\n";
+  for (int row = 0; row < oc_group * seq_len; ++row) {
+    int group = row / seq_len;
+    int seq   = row % seq_len;
+    std::cout << "  row[" << std::setw(2) << row << "] oc=" << std::setw(2) << group << " seq=" << std::setw(2) << seq
+              << " input1:";
+    for (int lane = 0; lane < oc_group_size; ++lane) {
+      std::cout << " " << fp16_hex(data_in1[row * oc_group_size + lane]);
+    }
+    std::cout << "\n";
+
+    std::cout << "  row[" << std::setw(2) << row << "] oc=" << std::setw(2) << group << " seq=" << std::setw(2) << seq
+              << " input2:";
+    for (int lane = 0; lane < oc_group_size; ++lane) {
+      std::cout << " " << fp16_hex(data_in2[row * oc_group_size + lane]);
+    }
+    std::cout << "\n";
+
+    std::cout << "  row[" << std::setw(2) << row << "] oc=" << std::setw(2) << group << " seq=" << std::setw(2) << seq
+              << " input3:";
+    for (int lane = 0; lane < oc_group_size; ++lane) {
+      std::cout << " " << fp16_hex(data_in3[row * oc_group_size + lane]);
+    }
+    std::cout << "\n";
+
+    std::cout << "  row[" << std::setw(2) << row << "] oc=" << std::setw(2) << group << " seq=" << std::setw(2) << seq
+              << " output:";
+    for (int lane = 0; lane < oc_group_size; ++lane) {
+      std::cout << " " << fp16_hex(data_out[row * oc_group_size + lane]);
+    }
+    std::cout << "\n";
+  }
+  std::cout << "=================================================================\n\n";
+
   common::file_utils::saveCharArrayToFormattedTextFile(
-    ofmap_file.c_str(), (char*)data_out.data_ptr(), data_out.numel() * sizeof(float), 32, true);
+    ifmap_file.c_str(), reinterpret_cast<char*>(data_in1.data_ptr()), data_in1.numel() * sizeof(half), 32, true);
+
+  common::file_utils::saveCharArrayToFormattedTextFile(
+    res_file.c_str(), reinterpret_cast<char*>(data_in2.data_ptr()), data_in2.numel() * sizeof(half), 32, true);
+
+  common::file_utils::saveCharArrayToFormattedTextFile(
+    para_file.c_str(), reinterpret_cast<char*>(data_in3.data_ptr()), data_in3.numel() * sizeof(half), 32, true);
+
+  common::file_utils::saveCharArrayToFormattedTextFile(
+    ofmap_file.c_str(), (char*)data_out.data_ptr(), data_out.numel() * sizeof(half), 32, true);
 
   /* -------------------------------------------------------------------------------------------------------- */
   /*                                                opcode gen                                                */
@@ -88,11 +132,11 @@ int main(int argc, const char** argv)
 
   insn_series.push_back(insn::load_iteration_2<0>(opcode_ddr_base_addr, vcucode_ddr_lines - 1, 0, 0, 0, MASTER_VCUCODE_ADDR, 0));
 
-  auto seq_1_offset = split_exp_fra(seq_len * oc_group_size * 4);
+  auto seq_1_offset = split_exp_fra(seq_len * oc_group_size * bytes_input);
 
   // 加载第一个输入数据
   insn_series.push_back(insn::load_iteration_2<0>(
-    data_in_ddr_base_addr, seq_len * bytes_input * oc_group_size / 32 - 1, seq_1_offset.first, seq_1_offset.second, oc_group - 1, MASTER_PSUM_ADDR, 0));
+    data_in_ddr_base_addr, seq_len * bytes_input * oc_group_size / 32 - 1, seq_1_offset.first, seq_1_offset.second, oc_group - 1, MASTER_IFMAP_ADDR, 0));
 
   // 加载第二个输入数据
   insn_series.push_back(insn::load_iteration_2<0>(
@@ -122,8 +166,8 @@ int main(int argc, const char** argv)
                               1,                       // opcode_numberr
                               0b0000000,               // opcode_addr
                               0b0000000000000,         // psum_in_addr
-                              0b000000,                // para_in_addr
-                              0b000000000000,          // resadd_in_addrdr
+                              (uint64_t)(i*seq_len),   // para_in_addr
+                              (uint64_t)(i*seq_len),   // resadd_in_addrdr
                               0b0000000000000,         // ram_out_addr
                               (uint64_t)seq_len - 1,   // seq_len
                               (uint64_t)oc_group - 1,  // oc_group
@@ -133,7 +177,7 @@ int main(int argc, const char** argv)
                               1,                       // para_sram_valid
                               0,                       // psum_addr_hop
                               0,                       // acc_clear
-                              1,                       // stream_reduce_en
+                              1,                       // stream_en
                               1,                       // ifmap_sram_valid
                               (uint64_t)(i*seq_len)    // ifmap_in_addr   
                             };

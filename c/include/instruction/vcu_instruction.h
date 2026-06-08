@@ -30,7 +30,7 @@ namespace insn {
     uint64_t para_sram_valid : 1;      // 119 + 1 = 120
     uint64_t psum_addr_hop : 1;        // 120 + 1 = 121
     uint64_t acc_clear : 1;            // 121 + 1 = 122
-    uint64_t stream_reduce_en : 1;     // 122 + 1 = 123
+    uint64_t stream_en : 1;     // 122 + 1 = 123
     uint64_t ifmap_sram_valid : 1;     // 123 + 1 = 124
     uint64_t ifmap_in_addr : 4;        // 124 + 4 = 128
   } vcu_execute_bits;
@@ -59,7 +59,7 @@ namespace insn {
     uint64_t para_sram_valid : 1;      // 112 + 1 = 113
     uint64_t psum_addr_hop : 1;        // 113 + 1 = 114
     uint64_t acc_clear : 1;            // 114 + 1 = 115
-    uint64_t stream_reduce_en : 1;     // 115 + 1 = 116
+    uint64_t stream_en : 1;     // 115 + 1 = 116
     uint64_t ifmap_sram_valid : 1;     // 116 + 1 = 117
     uint64_t ifmap_in_addr : 9;        // 117 + 9 = 126
     uint64_t reversed : 2;             // 126 + 2 = 128
@@ -253,7 +253,7 @@ struct vcu_execute: public instruction {
               uint64_t para_sram_valid   = 1,
               uint64_t psum_addr_hop     = 0,
               uint64_t acc_clear         = 0,
-              uint64_t stream_reduce_en  = 0,
+              uint64_t stream_en  = 0,
               uint64_t ifmap_sram_valid  = 0,
               uint64_t ifmap_in_addr     = 0)
   {
@@ -279,7 +279,7 @@ struct vcu_execute: public instruction {
     this->storage_t.para_sram_valid     = para_sram_valid;
     this->storage_t.psum_addr_hop       = psum_addr_hop;
     this->storage_t.acc_clear           = acc_clear;
-    this->storage_t.stream_reduce_en    = stream_reduce_en;
+    this->storage_t.stream_en    = stream_en;
     this->storage_t.ifmap_sram_valid    = ifmap_sram_valid;
     this->storage_t.ifmap_in_addr       = ifmap_in_addr;
     this->set_insn();
@@ -406,9 +406,9 @@ struct vcu_execute: public instruction {
     this->set_insn();
   }
 
-  void set_stream_reduce_en(uint64_t stream_reduce_en)
+  void set_stream_en(uint64_t stream_en)
   {
-    this->storage_t.stream_reduce_en = stream_reduce_en;
+    this->storage_t.stream_en = stream_en;
     this->set_insn();
   }
 
@@ -536,9 +536,9 @@ struct vcu_execute: public instruction {
     return this->storage_t.acc_clear;
   }
 
-  int64_t get_stream_reduce_en()
+  int64_t get_stream_en()
   {
-    return this->storage_t.stream_reduce_en;
+    return this->storage_t.stream_en;
   }
 
   int64_t get_ifmap_sram_valid()

@@ -340,7 +340,7 @@ int main(int argc, const char** argv)
                               0,                      // para_sram_valid
                               0,                      // psum_addr_hop
                               1,                      // acc_clear
-                              1                       // stream_reduce_en
+                              1                       // stream_en
                             };
     auto step_1_mean_insns = vcu_op(step_1_mean_args);
     insn_series.insert(insn_series.end(), step_1_mean_insns.begin(), step_1_mean_insns.end());

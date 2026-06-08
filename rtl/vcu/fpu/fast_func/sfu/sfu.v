@@ -321,20 +321,22 @@ always @(posedge clk or negedge rst_n) begin
         r_act_func_s2       <= 'd0 ;
         r_special_large_sig_s2 <= 'd0 ;
     end 
-    else if (valid) begin
-        // r_poly1_s1         <= poly1     ; 
-        r_c1_s1            <= c1       ;
-        r_c2_s1            <= c2       ;
-        r_x_int_s1         <= x_int     ; 
-        r_c_0_s1           <= (act_func&& special_large_sig) ? {1'b0,special_large}:  c0; 
-        r_exp_shift_s1     <= exp_shift ; 
-        r_func_s1          <= func      ; 
-        r_special_state_s1 <= {o_pinf, o_ninf, o_nan_n, o_nan_p, o_zero_n, o_zero_p, o_one_p, o_one_n}; 
-        r_out_sign_s1      <= out_sign_s0 ;
-        r_log2_sign_s1     <= log2_sign  ;
+    else begin
+        if (valid) begin
+            // r_poly1_s1         <= poly1     ;
+            r_c1_s1            <= c1       ;
+            r_c2_s1            <= c2       ;
+            r_x_int_s1         <= x_int     ;
+            r_c_0_s1           <= (act_func&& special_large_sig) ? {1'b0,special_large}:  c0;
+            r_exp_shift_s1     <= exp_shift ;
+            r_func_s1          <= func      ;
+            r_special_state_s1 <= {o_pinf, o_ninf, o_nan_n, o_nan_p, o_zero_n, o_zero_p, o_one_p, o_one_n};
+            r_out_sign_s1      <= out_sign_s0 ;
+            r_log2_sign_s1     <= log2_sign  ;
+            r_act_func_s1        <= act_func   ;
+            r_special_large_sig_s1 <= special_large_sig ;
+        end
         r_done_s1          <= valid      ;
-        r_act_func_s1        <= act_func   ;
-        r_special_large_sig_s1 <= special_large_sig ;
 
         r_mul_out_s2      <= (r_act_func_s1 && r_special_large_sig_s1) ? r_c_0_s1[26:0] : poly2[43:17];
         r_exp_shift_s2    <= (r_act_func_s1 && r_special_large_sig_s1) ? {4'b0, r_c_0_s1[31:27]} :r_exp_shift_s1 ;

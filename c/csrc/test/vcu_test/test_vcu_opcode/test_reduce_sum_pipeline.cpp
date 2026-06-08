@@ -166,7 +166,7 @@ int main(int argc, const char** argv)
                            0,                      // para_sram_valid
                            0,                      // psum_addr_hop
                            0,                      // acc_clear
-                           1,                      // stream_reduce_en
+                           1,                      // stream_en
                            1,                      // ifmap_sram_valid
                            0                       // ifmap_in_addr  
                           };

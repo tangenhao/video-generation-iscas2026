@@ -357,7 +357,7 @@ struct Conv2dOp {
                                  args.vcu_exe_args.para_sram_valid,
                                  args.vcu_exe_args.psum_addr_hop,
                                  args.vcu_exe_args.acc_clear,
-                                 args.vcu_exe_args.stream_reduce_en,
+                                 args.vcu_exe_args.stream_en,
                                  args.vcu_exe_args.ifmap_sram_valid,
                                  args.vcu_exe_args.ifmap_in_addr};
 
@@ -1429,7 +1429,7 @@ struct GemmOp {
                                  args.vcu_exe_args.para_sram_valid,
                                  args.vcu_exe_args.psum_addr_hop,
                                  args.vcu_exe_args.acc_clear,
-                                 args.vcu_exe_args.stream_reduce_en,
+                                 args.vcu_exe_args.stream_en,
                                  args.vcu_exe_args.ifmap_sram_valid,
                                  args.vcu_exe_args.ifmap_in_addr};
 
