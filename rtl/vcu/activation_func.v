@@ -7,7 +7,8 @@ module activation_func(
 
   out, fpu_done,
 
-  normal_valid, stream_select, stream_valid, stream_operation,
+  normal_valid, stream_select, stream_valid, stream_operation, stream_ewise_select,
+  stream_reduce_write_valid, stream_reduce_store_sign, stream_reduce_result,
   stream_op1, stream_op2, stream_op3, stream_op4,
 
   operation_fpu, valid_fpu, operation,
@@ -94,6 +95,10 @@ input                     normal_valid;
 input                     stream_select;
 input                     stream_valid;
 input       [5:0]         stream_operation;
+input                     stream_ewise_select;
+input                     stream_reduce_write_valid;
+input       [REG_NUM-1:0] stream_reduce_store_sign;
+input       [DATA_WIDTH-1:0] stream_reduce_result;
 input       [DATA_WIDTH-1:0] stream_op1;
 input       [DATA_WIDTH-1:0] stream_op2;
 input       [DATA_WIDTH-1:0] stream_op3;
@@ -329,6 +334,10 @@ wire [DATA_WIDTH-1:0] op1;
 wire [DATA_WIDTH-1:0] op2;
 wire [DATA_WIDTH-1:0] op3;
 wire [DATA_WIDTH-1:0] op4;
+wire [DATA_WIDTH-1:0] stream_op1_select;
+wire [DATA_WIDTH-1:0] stream_op2_select;
+wire [DATA_WIDTH-1:0] stream_op3_select;
+wire [DATA_WIDTH-1:0] stream_op4_select;
 
 assign operation_fpu = stream_select ? stream_operation : operation;
 assign valid_fpu = stream_select ? stream_valid : normal_valid;
@@ -338,22 +347,27 @@ assign op2 = op2_init;
 assign op3 = op3_init;
 assign op4 = op4_init;
 
-assign add_op1       = stream_select ? stream_op1 : add_op1_reg;
-assign add_op2       = stream_select ? stream_op2 : add_op2_reg;
-assign mul_op1       = stream_select ? stream_op1 : mul_op1_reg;
-assign mul_op2       = stream_select ? stream_op2 : mul_op2_reg;
-assign fma_op1       = stream_select ? stream_op1 : fma_op1_reg;
-assign fma_op2       = stream_select ? stream_op2 : fma_op2_reg;
-assign fma_op3       = stream_select ? stream_op3 : fma_op3_reg;
-assign fast_func_op1 = stream_select ? stream_op1 : fast_func_op1_reg;
-assign fast_func_op2 = stream_select ? stream_op2 : fast_func_op2_reg;
-assign srt16_op1     = stream_select ? stream_op1 : srt16_op1_reg;
-assign srt16_op2     = stream_select ? stream_op2 : srt16_op2_reg;
-assign comp_op1      = stream_select ? stream_op1 : comp_op1_reg;
-assign comp_op2      = stream_select ? stream_op2 : comp_op2_reg;
-assign comp_op3      = stream_select ? stream_op3 : comp_op3_reg;
-assign comp_op4      = stream_select ? stream_op4 : comp_op4_reg;
-assign bit_op1       = stream_select ? stream_op1 : bit_op1_reg;
+assign stream_op1_select = stream_ewise_select ? op1 : stream_op1;
+assign stream_op2_select = stream_ewise_select ? op2 : stream_op2;
+assign stream_op3_select = stream_ewise_select ? op3 : stream_op3;
+assign stream_op4_select = stream_ewise_select ? op4 : stream_op4;
+
+assign add_op1       = stream_select ? stream_op1_select : add_op1_reg;
+assign add_op2       = stream_select ? stream_op2_select : add_op2_reg;
+assign mul_op1       = stream_select ? stream_op1_select : mul_op1_reg;
+assign mul_op2       = stream_select ? stream_op2_select : mul_op2_reg;
+assign fma_op1       = stream_select ? stream_op1_select : fma_op1_reg;
+assign fma_op2       = stream_select ? stream_op2_select : fma_op2_reg;
+assign fma_op3       = stream_select ? stream_op3_select : fma_op3_reg;
+assign fast_func_op1 = stream_select ? stream_op1_select : fast_func_op1_reg;
+assign fast_func_op2 = stream_select ? stream_op2_select : fast_func_op2_reg;
+assign srt16_op1     = stream_select ? stream_op1_select : srt16_op1_reg;
+assign srt16_op2     = stream_select ? stream_op2_select : srt16_op2_reg;
+assign comp_op1      = stream_select ? stream_op1_select : comp_op1_reg;
+assign comp_op2      = stream_select ? stream_op2_select : comp_op2_reg;
+assign comp_op3      = stream_select ? stream_op3_select : comp_op3_reg;
+assign comp_op4      = stream_select ? stream_op4_select : comp_op4_reg;
+assign bit_op1       = stream_select ? stream_op1_select : bit_op1_reg;
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
@@ -493,7 +507,14 @@ always @(posedge clk or negedge rst_n) begin
     end
   end
   else begin
-    if (!stream_select && ((next_state == DONE) | compute_done | register_change_sign)) begin
+    if (stream_reduce_write_valid) begin
+      for (iteration_reg_i = 0; iteration_reg_i < REG_NUM; iteration_reg_i = iteration_reg_i+1) begin
+        if (stream_reduce_store_sign[iteration_reg_i]) begin
+          iteration_reg[iteration_reg_i] <= stream_reduce_result;
+        end
+      end
+    end
+    else if (!stream_select && ((next_state == DONE) | compute_done | register_change_sign)) begin
       for (iteration_reg_i = 0; iteration_reg_i < REG_NUM; iteration_reg_i = iteration_reg_i+1) begin
         if (store_sign[iteration_reg_i]) begin
           if (config_sign) begin

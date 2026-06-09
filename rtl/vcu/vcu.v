@@ -13,6 +13,8 @@ module vcu(
   vculut_wvalid, vculut_waddr, vculut_wdata,
   ofmap_wvalid, ofmap_waddr, ofmap_wdata,
   vcures_wvalid, vcures_waddr, vcures_wdata,
+  qact_wvalid, qact_waddr, qact_wdata,
+  scale_wvalid, scale_waddr, scale_wdata,
 
   enable_prof_counter, execute_time
 );
@@ -25,12 +27,16 @@ parameter VCUPARA_WIDTH     = 512;
 parameter VCULUT_WIDTH      = 64;
 parameter VCURES_WIDTH      = 512;
 parameter OFMAP_WIDTH       = 256;
+parameter QACT_WIDTH        = 256;
+parameter SCALE_WIDTH       = 512;
 
 parameter PSUM_ADDR_BITS    = 9;
 parameter IFMAP_ADDR_BITS   = 9;
 parameter VCUPARA_ADDR_BITS = 9;
 parameter VCURES_ADDR_BITS  = 9; 
 parameter OFMAP_ADDR_BITS   = 12;
+parameter QACT_ADDR_BITS    = OFMAP_ADDR_BITS;
+parameter SCALE_ADDR_BITS   = 14;
 parameter VCUCODE_ADDR_BITS = 7;
 parameter VCULUT_ADDR_BITS  = 9;
 
@@ -122,6 +128,14 @@ output reg                           vcures_wvalid;
 output reg  [VCURES_ADDR_BITS-1:0]   vcures_waddr;
 output reg  [VCURES_WIDTH-1:0]       vcures_wdata;
 
+output reg                           qact_wvalid;
+output reg  [QACT_ADDR_BITS-1:0]     qact_waddr;
+output reg  [QACT_WIDTH-1:0]         qact_wdata;
+
+output reg                           scale_wvalid;
+output reg  [SCALE_ADDR_BITS-1:0]    scale_waddr;
+output reg  [SCALE_WIDTH-1:0]        scale_wdata;
+
 input                                enable_prof_counter;
 output reg  [31:0]                   execute_time;
 
@@ -190,11 +204,8 @@ reg   [DATA_WIDTH*PARALLELISM-1:0] para_compute_in_d;
 
 wire  [DATA_WIDTH*PARALLELISM-1:0] fpu_out;
 wire  [DATA_WIDTH*PARALLELISM-1:0] data_out_source;
-wire  [DATA_WIDTH*PARALLELISM-1:0] fpu_out_int;
-wire  [16*PARALLELISM-1:0]         fpu_out_fp16_bf16;
-wire  [16*PARALLELISM-1:0]         result_16b_int;
+wire  [16*PARALLELISM-1:0]         result_fp16;
 wire  [8*PARALLELISM-1:0]          result_8b_int;
-wire  [4*PARALLELISM-1:0]          result_4b_int;
 wire  [DATA_WIDTH*PARALLELISM-1:0] vcu_out;
 reg  [DATA_WIDTH*PARALLELISM-1:0]  vcu_out_reg;
 
@@ -211,12 +222,10 @@ wire      stream_fpu_opcode;
 wire      stream_execute_done;
 wire      stream_ewise_execute_done;
 wire      prefetch_all;
-wire      stream_source1_psum;
-wire      stream_source1_resadd;
-wire      stream_source1_para;
-wire      stream_source1_ifmap;
-wire      stream_source1_valid_d;
 wire      stream_reduce_data_valid_d;
+wire      stream_ewise_has_sram_source;
+wire      stream_ewise_data_valid_d;
+wire      stream_ewise_input_rvalid_delay;
 wire      stream_input_rvalid_delay;
 
 wire ram_read_en;
@@ -293,6 +302,14 @@ wire                       vcu_execute_ofmap_sram_wvalid;
 wire [OFMAP_ADDR_BITS-1:0] vcu_execute_ofmap_sram_waddr;
 wire [OFMAP_WIDTH-1:0]     vcu_execute_ofmap_sram_wdata;
 
+wire                       vcu_execute_qact_sram_wvalid;
+wire [QACT_ADDR_BITS-1:0]  vcu_execute_qact_sram_waddr;
+wire [QACT_WIDTH-1:0]      vcu_execute_qact_sram_wdata;
+
+wire                       vcu_execute_scale_sram_wvalid;
+wire [SCALE_ADDR_BITS-1:0] vcu_execute_scale_sram_waddr;
+wire [SCALE_WIDTH-1:0]     vcu_execute_scale_sram_wdata;
+
 reg  out_w_en;
 
 reg loop_sign_reg;
@@ -366,10 +383,10 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (vcu_execute_start && (!fake_done)) begin
-      if (stream_read_fire) begin
+      if (stream_read_fire && vcu_execute_psum_sram_valid) begin
         psum_rvalid <= 1'b1;
       end
-      else if (ram_read_en && vcu_execute_psum_sram_valid && !(stream_en && (stream_compute_done || stream_result_valid || stream_reduce_opcode))) begin
+      else if (ram_read_en && vcu_execute_psum_sram_valid && !stream_en) begin
         psum_rvalid <= 1'b1;
       end
       else if (psum_rvalid) begin
@@ -438,7 +455,7 @@ always @(posedge clk or negedge rst_n) begin
       if (idle_insn_read_done) begin
         psum_raddr <= psum_in_addr;
       end
-      else if (stream_read_fire) begin
+      else if (stream_read_fire && vcu_execute_psum_sram_valid) begin
         psum_raddr <= psum_in_addr + stream_read_cnt;
       end
       else if (next_state == CHANGE_PARA) begin
@@ -499,7 +516,7 @@ always @(posedge clk or negedge rst_n) begin
     if (stream_read_fire && vcu_execute_ifmap_sram_valid) begin
       ifmap_rvalid <= 1'b1;
     end
-    else if (ram_read_en && vcu_execute_ifmap_sram_valid) begin
+    else if (ram_read_en && vcu_execute_ifmap_sram_valid && !stream_en) begin
       ifmap_rvalid <= 1'b1;
     end
     else if (ifmap_rvalid) begin
@@ -557,7 +574,7 @@ always @(posedge clk or negedge rst_n) begin
     if (stream_read_fire && vcu_execute_vcures_sram_valid) begin
       vcures_rvalid <= 1'b1;
     end
-    else if (ram_read_en && vcu_execute_vcures_sram_valid) begin
+    else if (ram_read_en && vcu_execute_vcures_sram_valid && !stream_en) begin
       vcures_rvalid <= 1'b1;
     end
     else if (vcures_rvalid) begin
@@ -615,7 +632,7 @@ always @(posedge clk or negedge rst_n) begin
     if (stream_read_fire && vcu_execute_vcupara_sram_valid) begin
       vcupara_rvalid <= 1'b1;
     end
-    else if (ram_read_en && vcu_execute_vcupara_sram_valid) begin
+    else if (ram_read_en && vcu_execute_vcupara_sram_valid && !stream_en) begin
       vcupara_rvalid <= 1'b1;
     end
     else if (vcupara_rvalid) begin
@@ -684,6 +701,46 @@ always @(posedge clk or negedge rst_n) begin
       ofmap_wvalid <= 1'b0;
       ofmap_waddr  <= 0;
       ofmap_wdata  <= 0;
+    end
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    qact_wvalid <= 1'b0;
+    qact_waddr      <= 0;
+    qact_wdata  <= 0;
+  end
+  else begin
+    if (vcu_execute_start) begin
+      qact_wvalid <= vcu_execute_qact_sram_wvalid;
+      qact_waddr      <= vcu_execute_qact_sram_waddr;
+      qact_wdata  <= vcu_execute_qact_sram_wdata;
+    end
+    else begin
+      qact_wvalid <= 1'b0;
+      qact_waddr      <= 0;
+      qact_wdata  <= 0;
+    end
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    scale_wvalid <= 1'b0;
+    scale_waddr  <= 0;
+    scale_wdata  <= 0;
+  end
+  else begin
+    if (vcu_execute_start) begin
+      scale_wvalid <= vcu_execute_scale_sram_wvalid;
+      scale_waddr  <= vcu_execute_scale_sram_waddr;
+      scale_wdata  <= vcu_execute_scale_sram_wdata;
+    end
+    else begin
+      scale_wvalid <= 1'b0;
+      scale_waddr  <= 0;
+      scale_wdata  <= 0;
     end
   end
 end
@@ -1227,7 +1284,6 @@ assign stream_reduce_data = (vcu_execute_psum_sram_valid   ) ? psum_compute_in  
 
 // result unification---------------------------------------------------------------------------------------------
 wire [DATA_WIDTH*PARALLELISM-1:0] data_out_convert_source;
-wire [32*PARALLELISM-1:0]         data_out_convert_in;
 assign data_out_source = stream_execute_done ? stream_reduce_out : (stream_ewise_write_fire ? stream_ewise_out : fpu_out);
 assign data_out_convert_source = vcu_execute_start ? data_out_source : 'd0;
 
@@ -1237,34 +1293,20 @@ assign real_data_out_type = write_cross_ocgroup ? write_cross_ocgroup_dtype : da
 genvar j ;
 generate 
 for(j=0;j<PARALLELISM;j=j+1) begin: result_data_format_trans
-    wire [31:0] fpu_out_int_lane;
-
-    fp16_to_fp32 u_data_out_fp16_to_fp32(
-      .fp16 ( data_out_convert_source[16*(j+1)-1:16*j] ),
-      .fp32 ( data_out_convert_in[32*(j+1)-1:32*j]     )
-    );
-
     data_out_convert u_data_out_convert(
-      .fpu_out           ( data_out_convert_in[32*(j+1)-1:32*j] ), 
-      .dtype_sel         ( real_data_out_type[0]                ), 
-      .result_16b_int    ( result_16b_int[16*(j+1)-1:16*j]      ), 
-      .result_8b_int     ( result_8b_int[8*(j+1)-1:8*j]         ), 
-      .result_4b_int     ( result_4b_int[4*(j+1)-1:4*j]         ), 
-      .fpu_out_fp16_bf16 ( fpu_out_fp16_bf16[16*(j+1)-1:16*j]   ), 
-      .fpu_out_int       ( fpu_out_int_lane                     )
+      .fpu_out_fp16        ( data_out_convert_source[16*(j+1)-1:16*j] ),
+      .result_8b_int       ( result_8b_int[8*(j+1)-1:8*j]             ),
+      .fpu_out_fp16_direct ( result_fp16[16*(j+1)-1:16*j]             )
     );
-
-    assign fpu_out_int[16*(j+1)-1:16*j] = fpu_out_int_lane[15:0];
   end
 endgenerate
 
-assign vcu_out = (((next_state == WRITE) || (next_state == DONE)) || stream_ewise_write_fire) ? &real_data_out_type[2:0] ? data_out_source : 
-                  // (real_data_out_type[2] ? fpu_out_fp16_bf16 : 
-                  (real_data_out_type[2] ? data_out_convert_source : 
-                  (&real_data_out_type[1:0] ? fpu_out_int :
-                  (real_data_out_type[1] ? result_16b_int :
-                  (real_data_out_type[0] ? {{(DATA_WIDTH*PARALLELISM - 8*PARALLELISM){1'b0}}, result_8b_int} :
-                  {{(DATA_WIDTH*PARALLELISM - 4*PARALLELISM){1'b0}}, result_4b_int})))) : 'd0;
+wire real_data_out_int8;
+assign real_data_out_int8 = real_data_out_type == 3'd1;
+
+assign vcu_out = (((next_state == WRITE) || (next_state == DONE)) || stream_ewise_write_fire) ?
+                 (real_data_out_int8 ? {{(DATA_WIDTH*PARALLELISM - 8*PARALLELISM){1'b0}}, result_8b_int} : result_fp16) :
+                 'd0;
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
@@ -1393,31 +1435,28 @@ end
 assign ram_read_en = (current_state !=DATA_PREPARE) & (next_state==DATA_PREPARE); 
 assign stream_read_fire = (current_state == STREAM_READ) && (stream_read_cnt <= num_data);
 assign stream_read_done = (current_state == STREAM_READ) && (stream_read_cnt == num_data + 1'b1);
-assign stream_source1_psum = vcucode_rdata_reg[12:6] == 7'b1000000;
-assign stream_source1_resadd = vcucode_rdata_reg[12:6] == 7'b1000001;
-assign stream_source1_para = vcucode_rdata_reg[12:6] == 7'b1000010;
-assign stream_source1_ifmap = vcucode_rdata_reg[12:6] == 7'b1000011;
-assign stream_source1_valid_d = (stream_source1_psum && stream_psum_rdata_valid_d) ||
-                                (stream_source1_resadd && stream_vcures_rdata_valid_d) ||
-                                (stream_source1_para && stream_vcupara_rdata_valid_d) ||
-                                (stream_source1_ifmap && stream_ifmap_rdata_valid_d);
 assign stream_reduce_data_valid_d = (vcu_execute_psum_sram_valid && stream_psum_rdata_valid_d) ||
                                     (!vcu_execute_psum_sram_valid && vcu_execute_vcures_sram_valid && stream_vcures_rdata_valid_d) ||
                                     (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && vcu_execute_vcupara_sram_valid && stream_vcupara_rdata_valid_d) ||
                                     (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && !vcu_execute_vcupara_sram_valid && vcu_execute_ifmap_sram_valid && stream_ifmap_rdata_valid_d);
+assign stream_ewise_has_sram_source = vcu_execute_psum_sram_valid || vcu_execute_ifmap_sram_valid ||
+                                      vcu_execute_vcures_sram_valid || vcu_execute_vcupara_sram_valid;
+assign stream_ewise_data_valid_d = stream_ewise_has_sram_source &&
+                                   (!vcu_execute_psum_sram_valid || stream_psum_rdata_valid_d) &&
+                                   (!vcu_execute_ifmap_sram_valid || stream_ifmap_rdata_valid_d) &&
+                                   (!vcu_execute_vcures_sram_valid || stream_vcures_rdata_valid_d) &&
+                                   (!vcu_execute_vcupara_sram_valid || stream_vcupara_rdata_valid_d);
+assign stream_ewise_input_rvalid_delay = (vcu_execute_psum_sram_valid && psum_sram_rvalid_delay) ||
+                                         (vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay) ||
+                                         (vcu_execute_vcures_sram_valid && vcures_sram_rvalid_delay) ||
+                                         (vcu_execute_vcupara_sram_valid && vcupara_sram_rvalid_delay);
 assign stream_input_rvalid_delay = stream_reduce_opcode ? ((vcu_execute_psum_sram_valid && psum_sram_rvalid_delay) ||
                                                            (!vcu_execute_psum_sram_valid && vcu_execute_vcures_sram_valid && vcures_sram_rvalid_delay) ||
                                                            (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && vcu_execute_vcupara_sram_valid && vcupara_sram_rvalid_delay) ||
                                                            (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && !vcu_execute_vcupara_sram_valid && vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay)) :
-                                  ((stream_source1_psum && psum_sram_rvalid_delay) ||
-                                   (stream_source1_resadd && vcures_sram_rvalid_delay) ||
-                                   (stream_source1_para && vcupara_sram_rvalid_delay) ||
-                                   (stream_source1_ifmap && ifmap_sram_rvalid_delay));
+                                  stream_ewise_input_rvalid_delay;
 assign stream_recv_done = stream_reduce_opcode && (stream_recv_cnt == num_data + 1'b1);
-assign stream_ewise_valid = stream_ewise_opcode && stream_source1_valid_d &&
-                            (!vcu_execute_ifmap_sram_valid || stream_ifmap_rdata_valid_d || stream_source1_ifmap) &&
-                            (!vcu_execute_vcures_sram_valid || stream_vcures_rdata_valid_d || stream_source1_resadd) &&
-                            (!vcu_execute_vcupara_sram_valid || stream_vcupara_rdata_valid_d || stream_source1_para);
+assign stream_ewise_valid = stream_ewise_opcode && stream_ewise_data_valid_d;
 assign stream_ewise_write_fire = stream_ewise_opcode && stream_ewise_done;
 assign stream_ewise_write_addr = ram_out_addr + stream_write_cnt;
 assign stream_ewise_execute_done = stream_ewise_opcode && stream_ewise_write_fire && (stream_write_cnt == num_data);
@@ -2034,9 +2073,10 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-assign vcu_execute_ofmap_sram_wvalid = stream_ewise_write_fire ? data_out_ram == 1 :
+assign vcu_execute_ofmap_sram_wvalid = stream_ewise_write_fire ? (data_out_ram == 1) && (!real_data_out_int8) :
                                        stream_ewise_opcode ? 1'b0 :
-                                       write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 1 && out_w_en : data_out_ram == 1 && out_w_en;
+                                       write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 1 && out_w_en && (!real_data_out_int8) :
+                                       data_out_ram == 1 && out_w_en && (!real_data_out_int8);
 assign vcu_execute_ofmap_sram_waddr = stream_ewise_write_fire ? stream_ewise_write_addr[OFMAP_ADDR_BITS-1:0] :
                                                                 stream_ewise_opcode ? {OFMAP_ADDR_BITS{1'b0}} :
                                                                 write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 1 ? ram_out_addr_reg[OFMAP_ADDR_BITS-1:0] : {OFMAP_ADDR_BITS{1'b0}} :
@@ -2046,9 +2086,36 @@ assign vcu_execute_ofmap_sram_wdata = stream_ewise_write_fire ? vcu_out[OFMAP_WI
                                                                 write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 1 ? vcu_out_reg[OFMAP_WIDTH-1:0] : {OFMAP_WIDTH{1'b0}} :
                                                                 data_out_ram == 1 ? vcu_out_reg[OFMAP_WIDTH-1:0] : {OFMAP_WIDTH{1'b0}};
 
-assign vcu_execute_psum_sram_wvalid = stream_ewise_write_fire ? data_out_ram == 0 :
+assign vcu_execute_qact_sram_wvalid = stream_ewise_write_fire ? (data_out_ram == 3) && real_data_out_int8 :
+                                      stream_ewise_opcode ? 1'b0 :
+                                      write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 3 && out_w_en && real_data_out_int8 :
+                                      data_out_ram == 3 && out_w_en && real_data_out_int8;
+assign vcu_execute_qact_sram_waddr  = stream_ewise_write_fire ? stream_ewise_write_addr[QACT_ADDR_BITS-1:0] :
+                                      stream_ewise_opcode ? {QACT_ADDR_BITS{1'b0}} :
+                                      write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 3 ? ram_out_addr_reg[QACT_ADDR_BITS-1:0] : {QACT_ADDR_BITS{1'b0}} :
+                                      data_out_ram == 3 ? ram_out_addr_reg[QACT_ADDR_BITS-1:0] : {QACT_ADDR_BITS{1'b0}};
+assign vcu_execute_qact_sram_wdata  = stream_ewise_write_fire ? vcu_out[QACT_WIDTH-1:0] :
+                                      stream_ewise_opcode ? {QACT_WIDTH{1'b0}} :
+                                      write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 3 ? vcu_out_reg[QACT_WIDTH-1:0] : {QACT_WIDTH{1'b0}} :
+                                      data_out_ram == 3 ? vcu_out_reg[QACT_WIDTH-1:0] : {QACT_WIDTH{1'b0}};
+
+assign vcu_execute_scale_sram_wvalid = stream_ewise_write_fire ? (data_out_ram == 3) && (!real_data_out_int8) :
+                                       stream_ewise_opcode ? 1'b0 :
+                                       write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 3 && out_w_en && (!real_data_out_int8) :
+                                       data_out_ram == 3 && out_w_en && (!real_data_out_int8);
+assign vcu_execute_scale_sram_waddr  = stream_ewise_write_fire ? stream_ewise_write_addr[SCALE_ADDR_BITS-1:0] :
+                                       stream_ewise_opcode ? {SCALE_ADDR_BITS{1'b0}} :
+                                       write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 3 ? ram_out_addr_reg[SCALE_ADDR_BITS-1:0] : {SCALE_ADDR_BITS{1'b0}} :
+                                       data_out_ram == 3 ? ram_out_addr_reg[SCALE_ADDR_BITS-1:0] : {SCALE_ADDR_BITS{1'b0}};
+assign vcu_execute_scale_sram_wdata  = stream_ewise_write_fire ? vcu_out[SCALE_WIDTH-1:0] :
+                                       stream_ewise_opcode ? {SCALE_WIDTH{1'b0}} :
+                                       write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 3 ? vcu_out_reg[SCALE_WIDTH-1:0] : {SCALE_WIDTH{1'b0}} :
+                                       data_out_ram == 3 ? vcu_out_reg[SCALE_WIDTH-1:0] : {SCALE_WIDTH{1'b0}};
+
+assign vcu_execute_psum_sram_wvalid = stream_ewise_write_fire ? (data_out_ram == 0) && (!real_data_out_int8) :
                                                                stream_ewise_opcode ? 1'b0 :
-                                                               write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 0 && out_w_en : data_out_ram == 0 && out_w_en;
+                                                               write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 0 && out_w_en && (!real_data_out_int8) :
+                                                               data_out_ram == 0 && out_w_en && (!real_data_out_int8);
 assign vcu_execute_psum_sram_waddr = stream_ewise_write_fire ? stream_ewise_write_addr[PSUM_ADDR_BITS-1:0] :
                                                                stream_ewise_opcode ? {PSUM_ADDR_BITS{1'b0}} :
                                                                write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 0 ? ram_out_addr_reg[PSUM_ADDR_BITS-1:0] : {PSUM_ADDR_BITS{1'b0}} :
@@ -2062,9 +2129,10 @@ wire                        vcures_wvalid_t;
 wire [VCURES_ADDR_BITS-1:0] vcures_waddr_t;
 wire [VCURES_WIDTH-1:0]     vcures_wdata_t;
 
-assign vcures_wvalid_t = stream_ewise_write_fire ? data_out_ram == 2 :
+assign vcures_wvalid_t = stream_ewise_write_fire ? (data_out_ram == 2) && (!real_data_out_int8) :
                          stream_ewise_opcode ? 1'b0 :
-                         write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 && out_w_en : data_out_ram == 2 && out_w_en;
+                         write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 && out_w_en && (!real_data_out_int8) :
+                         data_out_ram == 2 && out_w_en && (!real_data_out_int8);
 assign vcures_waddr_t  = stream_ewise_write_fire ? stream_ewise_write_addr[VCURES_ADDR_BITS-1:0] :
                          stream_ewise_opcode ? {VCURES_ADDR_BITS{1'b0}} :
                          write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 ? ram_out_addr_reg[VCURES_ADDR_BITS-1:0] : {VCURES_ADDR_BITS{1'b0}} :

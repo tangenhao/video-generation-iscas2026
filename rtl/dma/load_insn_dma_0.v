@@ -8,7 +8,6 @@ module load_insn_dma_0(
   ifmap_wvalid, ifmap_waddr, ifmap_wdata,
   vcucode_wvalid, vcucode_waddr, vcucode_wdata,
   vcupara_wvalid, vcupara_waddr, vcupara_wdata,
-  vculut_wvalid, vculut_waddr, vculut_wdata,
   vcures_wvalid, vcures_waddr, vcures_wdata,
 
   regfile_wvalid, regfile_waddr, regfile_wdata
@@ -78,10 +77,6 @@ output reg                                vcucode_wvalid;
 output reg  [VCUPARA_ADDR_BITS-1:0]       vcupara_waddr;
 output reg  [VCUPARA_WIDTH-1:0]           vcupara_wdata;
 output reg                                vcupara_wvalid;
-
-output reg  [VCULUT_ADDR_BITS:0]          vculut_waddr;
-output reg  [VCULUT_WIDTH-1:0]            vculut_wdata;
-output reg                                vculut_wvalid;
 
 output reg  [VCURES_ADDR_BITS-1:0]        vcures_waddr;
 output reg  [VCURES_WIDTH-1:0]            vcures_wdata;
@@ -745,52 +740,6 @@ always @(posedge clk or negedge rst_n) begin
       ifmap_wvalid <= 1'b0;
       ifmap_waddr  <= 'd0;
       ifmap_wdata  <= 'd0;
-    end
-  end
-end
-
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    vculut_wvalid <= 1'b0;
-    vculut_waddr  <= 'd0;
-    vculut_wdata  <= 'd0;
-  end
-  else begin
-    if (write_high_addr == VCULUT_ID) begin
-      if (sram_wvalid || split_block) begin
-        case(one_split_four_cnt) 
-          2'b00: begin
-            vculut_wvalid <= 1'b1;
-            vculut_waddr  <= {sram_addr[VCULUT_ADDR_BITS-2:0], 2'b00};
-            vculut_wdata  <= sram_wdata[VCULUT_WIDTH-1:0];
-          end
-          2'b01: begin
-            vculut_wvalid <= 1'b1;
-            vculut_waddr  <= vculut_waddr + 1;
-            vculut_wdata  <= sram_wdata_reg[2*VCULUT_WIDTH-1:VCULUT_WIDTH];
-          end
-          2'b10: begin
-            vculut_wvalid <= 1'b1;
-            vculut_waddr  <= vculut_waddr + 1;
-            vculut_wdata  <= sram_wdata_reg[3*VCULUT_WIDTH-1:2*VCULUT_WIDTH];
-          end
-          2'b11: begin
-            vculut_wvalid <= 1'b1;
-            vculut_waddr  <= vculut_waddr + 1;
-            vculut_wdata  <= sram_wdata_reg[4*VCULUT_WIDTH-1:3*VCULUT_WIDTH];
-          end
-        endcase
-      end
-      else begin
-        vculut_wvalid <= 1'b0;
-        vculut_waddr  <= vculut_waddr;
-        vculut_wdata  <= vculut_wdata;
-      end
-    end
-    else begin
-      vculut_wvalid <= 1'b0;
-      vculut_waddr  <= 'd0;
-      vculut_wdata  <= 'd0;
     end
   end
 end

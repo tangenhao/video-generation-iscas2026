@@ -17,7 +17,8 @@ enum DType : int32_t {
 enum VcuOutSram : int32_t {
   PSUM   = 0,
   OFMAP  = 1,
-  VCURES = 2
+  VCURES = 2,
+  SCALE  = 3
 };
 
 std::map<int, uint64_t> vcu_psum_dtype = {

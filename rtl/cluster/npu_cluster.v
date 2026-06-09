@@ -82,6 +82,8 @@ parameter VCULUT_WIDTH            = 64;
 parameter VCURES_WIDTH            = 512;
 parameter OFMAP_WIDTH             = 256;
 parameter PSUM_WIDTH              = 512;
+parameter QACT_WIDTH              = 256;
+parameter SCALE_WIDTH             = 512;
 
 parameter IFMAP_ADDR_BITS         = 9;   //bank:1,0bits; addr:8bits, 144 depth, highaddr:1bits
 parameter WEIGHT_ADDR_BITS        = 14;  //bank:32,5bits; addr:8bits, 144 depth, highaddr:1bits
@@ -91,6 +93,8 @@ parameter VCULUT_ADDR_BITS        = 9;
 parameter VCURES_ADDR_BITS        = 9;
 parameter OFMAP_ADDR_BITS         = 8;  //bank:1,0bits; addr:7bits, 72 depth, highaddr:1bits
 parameter PSUM_ADDR_BITS          = 9;  //bank:1,0bits; addr:8bits, 144 depth, highaddr:1bits
+parameter QACT_ADDR_BITS          = 9;
+parameter SCALE_ADDR_BITS         = 9;
 
 parameter SYNCHRONIZE_FIFO_DEPTH = 128;
 parameter HIGHADDR_BITS          = 24;
@@ -351,6 +355,14 @@ wire                               weight_0_rvalid;
 wire [WEIGHT_ADDR_BITS-1:0]        weight_0_raddr;
 wire [WEIGHT_WIDTH-1:0]            weight_0_rdata;
 
+wire                               pea_qact_rvalid;
+wire [QACT_ADDR_BITS-1:0]          pea_qact_raddr;
+wire [QACT_WIDTH-1:0]              pea_qact_rdata;
+
+wire                               pea_scale_rvalid;
+wire [SCALE_ADDR_BITS-1:0]         pea_scale_raddr;
+wire [SCALE_WIDTH-1:0]             pea_scale_rdata;
+
 /* vcu0 to sram */
 wire                               ifmap_0_rvalid;
 wire [IFMAP_ADDR_BITS-1:0]         ifmap_0_raddr;
@@ -379,6 +391,14 @@ wire [63:0]                        vculut_0_wdata;
 wire                               vcucode_0_wvalid;
 wire [6:0]                         vcucode_0_waddr;
 wire [63:0]                        vcucode_0_wdata;
+
+wire                               vcu_qact_wvalid;
+wire [QACT_ADDR_BITS-1:0]          vcu_qact_waddr;
+wire [QACT_WIDTH-1:0]              vcu_qact_wdata;
+ 
+wire                               vcu_scale_wvalid;
+wire [SCALE_ADDR_BITS-1:0]         vcu_scale_waddr;
+wire [SCALE_WIDTH-1:0]             vcu_scale_wdata;
 
 wire                               ofmap_0_wvalid;
 wire [OFMAP_ADDR_BITS-1:0]         ofmap_0_waddr;
@@ -544,10 +564,6 @@ load_master_dma_0 #(
   .vcupara_wvalid             ( dma_0_vcupara_sram_wvalid ),
   .vcupara_waddr              ( dma_0_vcupara_sram_waddr  ),
   .vcupara_wdata              ( dma_0_vcupara_sram_wdata  ),
-
-  .vculut_wvalid              ( dma_0_vculut_sram_wvalid  ),
-  .vculut_waddr               ( dma_0_vculut_sram_waddr   ),
-  .vculut_wdata               ( dma_0_vculut_sram_wdata   ),
 
   .vcures_wvalid              ( dma_0_vcures_sram_wvalid  ),
   .vcures_waddr               ( dma_0_vcures_sram_waddr   ),
@@ -946,6 +962,15 @@ vcu u_vcu_0(
   .vcures_waddr        ( vcures_0_waddr      ),
   .vcures_wdata        ( vcures_0_wdata      ),
 
+  //To Pea
+  .qact_wvalid         ( vcu_qact_wvalid     ),
+  .qact_waddr          (  vcu_qact_waddr      ),
+  .qact_wdata          ( vcu_qact_wdata      ),
+
+  .scale_wvalid        ( vcu_scale_wvalid    ),
+  .scale_waddr         ( vcu_scale_waddr     ),
+  .scale_wdata         ( vcu_scale_wdata     ),
+
   .enable_prof_counter ( enable_prof_counter ),
   .execute_time        ( vcu_0_execute_time  )
 );
@@ -1008,24 +1033,40 @@ weight_ram  u_weight_ram(
   .dma_wdata  ( dma_1_weight_sram_wdata  )
 );
 
-// ifmap_scale_ram  u_ifmap_scale_ram(
-//   .clk        ( clk                           ),
-//   .rst_n      ( rst_n                         ),
+//pea: int8
+qact_ram #(
+  .WIDTH      ( QACT_WIDTH               ),     
+  .ADDR_BITS  ( QACT_ADDR_BITS           )
+) u_qact_ram(
+  .clk        ( clk                     ),
+  .rst_n      ( rst_n                   ),
 
-//   .rvalid_0   ( ifmap_scale_0_rvalid          ),
-//   .raddr_0    ( ifmap_scale_0_raddr           ),
-//   .rdata_0    ( ifmap_scale_0_rdata           ),
+  .rvalid_0   ( pea_qact_rvalid         ),
+  .raddr_0    ( pea_qact_raddr          ),
+  .rdata_0    ( pea_qact_rdata          ),
 
-//   .rvalid_1   ( ifmap_scale_1_rvalid          ),
-//   .raddr_1    ( ifmap_scale_1_raddr           ),
-//   .rdata_1    ( ifmap_scale_1_rdata           ),
+  .wvalid     ( vcu_qact_wvalid         ),
+  .waddr      ( vcu_qact_waddr          ),
+  .wdata      ( vcu_qact_wdata          )
+);
 
-//   .broadcast  ( broadcast                     ),
+//pea: fp16
+scale_ram #(
+  .WIDTH      ( SCALE_WIDTH              ),     
+  .ADDR_BITS  ( SCALE_ADDR_BITS          )
+) u_scale_ram(
+  .clk        ( clk                     ),
+  .rst_n      ( rst_n                   ),
 
-//   .dma_wvalid ( dma_0_ifmap_scale_sram_wvalid ),
-//   .dma_waddr  ( dma_0_ifmap_scale_sram_waddr  ),
-//   .dma_wdata  ( dma_0_ifmap_scale_sram_wdata  )
-// );
+  .rvalid_0   ( pea_scale_rvalid        ),
+  .raddr_0    ( pea_scale_raddr         ),
+  .rdata_0    ( pea_scale_rdata         ),
+
+  .wvalid     ( vcu_scale_wvalid        ),
+  .waddr      ( vcu_scale_waddr         ),
+  .wdata      ( vcu_scale_wdata         )
+);
+
 
 ofmap_ram u_ofmap_ram(
   .clk          ( clk                     ),
@@ -1100,10 +1141,6 @@ psum_vcu_0_ram u_psum_vcu_0_ram(
   .vcu_0_waddr  ( psum_vcu_0_waddr        ),
   .vcu_0_wdata  ( psum_vcu_0_wdata        ),
 
-  .pea_0_rvalid ( psum_pea_0_rvalid       ),
-  .pea_0_raddr  ( psum_pea_0_raddr        ),
-  .pea_0_rdata  ( psum_pea_0_rdata        ),
-
   .vcu_0_rvalid ( psum_vcu_0_rvalid       ),
   .vcu_0_raddr  ( psum_vcu_0_raddr        ),
   .vcu_0_rdata  ( psum_vcu_0_rdata        ),
@@ -1111,20 +1148,6 @@ psum_vcu_0_ram u_psum_vcu_0_ram(
   .dma_rvalid   ( dma_0_psum_sram_rvalid  ),
   .dma_raddr    ( dma_0_psum_sram_raddr   ),
   .dma_rdata    ( dma_0_psum_sram_rdata   )
-);
-
-vculut_ram_dispatch  u_vculut_ram_dispatch(
-  .clk         ( clk                      ),
-  .rst_n       ( rst_n                    ),
-  .dma_wvalid  ( dma_0_vculut_sram_wvalid ),
-  .dma_waddr   ( dma_0_vculut_sram_waddr  ),
-  .dma_wdata   ( dma_0_vculut_sram_wdata  ),
-  .wvalid_0    ( vculut_0_wvalid          ),
-  .waddr_0     ( vculut_0_waddr           ),
-  .wdata_0     ( vculut_0_wdata           ),
-  .wvalid_1    ( vculut_1_wvalid          ),
-  .waddr_1     ( vculut_1_waddr           ),
-  .wdata_1     ( vculut_1_wdata           )
 );
 
 vcucode_ram_dispatch  u_vcucode_ram_dispatch(

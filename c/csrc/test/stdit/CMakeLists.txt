@@ -5,5 +5,4 @@ endfunction()
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/exe)
 
-compile(mha)
-compile(mha_simple)
+compile(test_quant)

@@ -6,7 +6,6 @@ module load_master_dma_0(
   ifmap_wvalid, ifmap_waddr, ifmap_wdata,
   vcucode_wvalid, vcucode_waddr, vcucode_wdata,
   vcupara_wvalid, vcupara_waddr, vcupara_wdata,
-  vculut_wvalid, vculut_waddr, vculut_wdata,
   vcures_wvalid, vcures_waddr, vcures_wdata,
 
   regfile_wvalid, regfile_waddr, regfile_wdata,
@@ -93,10 +92,6 @@ output wire [VCUPARA_ADDR_BITS:0]         vcupara_waddr;
 output wire [VCUPARA_WIDTH-1:0]           vcupara_wdata;
 output wire                               vcupara_wvalid;
 
-output wire [VCULUT_ADDR_BITS:0]          vculut_waddr;
-output wire [VCULUT_WIDTH-1:0]            vculut_wdata;
-output wire                               vculut_wvalid;
-
 output wire [VCURES_ADDR_BITS-1:0]        vcures_waddr;
 output wire [VCURES_WIDTH-1:0]            vcures_wdata;
 output wire                               vcures_wvalid;
@@ -160,9 +155,6 @@ load_insn_dma_0 #(
   .vcupara_waddr            ( vcupara_waddr            ),
   .vcupara_wdata            ( vcupara_wdata            ),
   .vcupara_wvalid           ( vcupara_wvalid           ),
-  .vculut_waddr             ( vculut_waddr             ),
-  .vculut_wdata             ( vculut_wdata             ),
-  .vculut_wvalid            ( vculut_wvalid            ),
   .vcures_waddr             ( vcures_waddr             ),
   .vcures_wdata             ( vcures_wdata             ),
   .vcures_wvalid            ( vcures_wvalid            ),

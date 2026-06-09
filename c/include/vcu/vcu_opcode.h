@@ -5,8 +5,11 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <stdexcept>
 #include <sstream>
+#include <string>
 #include <vector>
+#include "compute_model/common/fp16.h"
 
 namespace vcu {
 
@@ -127,11 +130,34 @@ uint64_t loop_(uint64_t times, uint64_t initial, uint64_t end, uint64_t loop_add
   return ((loop & 0x3f) << 0) | ((times & 0xffffffff) << 6) | ((initial & 0x7f) << 38) | ((end & 0x7f) << 45) | ((loop_addr & 0x7f) << 52);
 }
 
-uint64_t imm(uint64_t constant, uint64_t src, uint64_t dst, float data)
+uint64_t imm(uint64_t constant, uint64_t src, uint64_t dst, uint16_t data_bits)
 {
-  uint64_t data_bits = 0;
-  std::memcpy(&data_bits, &data, sizeof(float));
-  return ((constant & 0x3f) << 0) | ((src & 0x7f) << 6) | ((dst & 0x3f) << 13) | ((data_bits & 0xffffffff) << 19);
+  return ((constant & 0x3f) << 0) | ((src & 0x7f) << 6) | ((dst & 0x3f) << 13) | ((uint64_t(data_bits) & 0xffff) << 19);
+}
+
+std::string trim_copy(const std::string& str)
+{
+  const auto begin = str.find_first_not_of(" \t\n\r");
+  if (begin == std::string::npos) {
+    return "";
+  }
+  const auto end = str.find_last_not_of(" \t\n\r");
+  return str.substr(begin, end - begin + 1);
+}
+
+uint16_t fp16_imm_decode(const std::string& data_s)
+{
+  const std::string data = trim_copy(data_s);
+  if (data.size() > 2 && data[0] == '0' && (data[1] == 'x' || data[1] == 'X')) {
+    const auto raw = std::stoul(data, nullptr, 16);
+    if (raw > 0xffff) {
+      throw std::runtime_error("VCU fp16 immediate hex literal exceeds 16 bits: " + data);
+    }
+    return static_cast<uint16_t>(raw);
+  }
+
+  using half = compute_model::common::fp16::half;
+  return half(std::stof(data)).storage;
 }
 
 uint64_t read_cross_ocgroup_op(int32_t sign)
@@ -419,13 +445,11 @@ std::vector<uint64_t> asm_vcu_op(std::vector<std::string> code, bool debug = fal
       std::string src = line.substr(line.find(" ") + 1, line.find(",") - line.find(" ") - 1);
       std::string dst =
         line.substr(line.find(" ", line.find(",") + 1) + 1, line.find(",", line.find(",") + 1) - line.find(" ", line.find(",") + 1) - 1);
-      std::string       data_s = line.substr(line.find(" ", line.find(",", line.find(",") + 1) + 1) + 1);
-      float             data;
-      std::stringstream ss;
-      ss << data_s;
-      ss >> data;
+      std::string data_s = line.substr(line.find(" ", line.find(",", line.find(",") + 1) + 1) + 1);
+      uint16_t    data   = fp16_imm_decode(data_s);
       if (debug) {
-        std::cout << "op: " << op << " src: " << src << " dst: " << dst << " data: " << data << std::endl;
+        std::cout << "op: " << op << " src: " << src << " dst: " << dst << " data_fp16: 0x" << std::hex << data << std::dec
+                  << std::endl;
       }
       opcodes.push_back(imm(opcode_decode(op), src_decode(src), dst_decode(dst), data));
     }

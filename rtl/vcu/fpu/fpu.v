@@ -243,8 +243,8 @@ fp32_to_half u_fast_func_fp32_to_half(
 fast_func u_fast_func(
   .clk                 ( clk                     ),
   .rst_n               ( rst_n                   ), 
-  .valid               ( valid & fast_func_valid ), 
-  .opcode              ( operation_reg           ), 
+  .valid               ( valid & fast_func_valid ),
+  .opcode              ( operation_reg           ),
   .din                 ( fast_func_fp32_in       ), 
   .dout                ( fast_func_fp32_out      ), 
   .done                ( fast_func_done          )
@@ -258,7 +258,7 @@ compare u_compare(
   .op3       ( comp_op3           ),
   .op4       ( comp_op4           ),   
   .operation ( operation_reg      ),
-  .valid     ( valid & comp_valid ), 
+  .valid     ( valid & comp_valid ),
   .data_out  ( comp_out           ),
   .done      ( comp_done          )   
 );
@@ -267,7 +267,7 @@ reverse u_reverse(
   .clk      ( clk               ),
   .rst_n    ( rst_n             ),
   .op1      ( bit_op1           ),
-  .valid    ( valid & bit_valid ), 
+  .valid    ( valid & bit_valid ),
   .opration ( operation_reg     ),
   .data_out ( bit_out           ),
   .done     ( bit_done          )

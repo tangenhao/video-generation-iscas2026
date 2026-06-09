@@ -145,7 +145,6 @@ wire [5:0]         operation;
 wire               config_sign;
 wire [5:0]         dst;
 wire [REG_NUM-1:0] store_sign;
-reg  [REG_NUM-1:0] store_sign_reg;
 
 wire [6:0] source_1;
 wire [6:0] source_2;
@@ -163,14 +162,6 @@ wire [PARALLELISM-1:0] vculut_rready;
 wire [63:0]            vculut_rdata[0:PARALLELISM-1];
 wire [8:0]             vculut_raddr[0:PARALLELISM-1];
 
-reg [4:0] activation_state;
-reg [4:0] activation_next_state;
-
-wire [5:0]               activation_dst;
-wire [6*PARALLELISM-1:0] activation_operation;
-wire                     activation_tanh;
-wire [PARALLELISM-1:0]   activation_valid;
-
 wire                     register_change_sign;
 wire [31:0]              config_data;
 wire                     copy_sign;
@@ -180,14 +171,7 @@ wire [6*PARALLELISM-1:0] operation_fpu;
 wire [PARALLELISM-1:0]   valid;
 reg  [PARALLELISM-1:0]   valid_delay;
 
-
-wire tanh_sign;
-
-wire [DATA_OUT_WIDTH-1:0] iteration_copy [REG_NUM-1:0];
 wire [5:0]                dst_init;
-
-
-reg valid_d1;
 
 wire reduce_sum_sign;
 wire reduce_max_sign;
@@ -251,6 +235,7 @@ wire                     stream_reduce_max_op;
 wire                     stream_reduce_min_op;
 wire                     stream_reduce_max_active;
 wire [5:0]               stream_reduce_operation;
+wire [REG_NUM-1:0]       stream_reduce_store_sign;
 wire [5:0]               stream_operation_fpu;
 wire [DATA_IN_WIDTH-1:0] stream_activation_op1;
 wire [DATA_IN_WIDTH-1:0] stream_activation_op2;
@@ -275,14 +260,10 @@ reg [5:0]                stream_ewise_opcode_reg;
 reg                      stream_ewise_valid_d;
 reg [2:0]                stream_ewise_busy_pipe;
 reg [2:0]                stream_ewise_fma_busy_pipe;
-reg [DATA_IN_WIDTH-1:0]  stream_ewise_op1_data;
-reg [DATA_IN_WIDTH-1:0]  stream_ewise_op2_data;
-reg [DATA_IN_WIDTH-1:0]  stream_ewise_op3_data;
-reg [DATA_IN_WIDTH-1:0]  stream_ewise_op4_data;
-reg [DATA_IN_WIDTH-1:0]  stream_ewise_op1_data_d;
-reg [DATA_IN_WIDTH-1:0]  stream_ewise_op2_data_d;
-reg [DATA_IN_WIDTH-1:0]  stream_ewise_op3_data_d;
-reg [DATA_IN_WIDTH-1:0]  stream_ewise_op4_data_d;
+reg [DATA_IN_WIDTH-1:0]  stream_ewise_psum_data_d;
+reg [DATA_IN_WIDTH-1:0]  stream_ewise_ifmap_data_d;
+reg [DATA_IN_WIDTH-1:0]  stream_ewise_resadd_data_d;
+reg [DATA_IN_WIDTH-1:0]  stream_ewise_para_data_d;
 
 assign stream_reduce_done = stream_done_reg;
 assign stream_reduce_out = {PARALLELISM{stream_acc_reg}};
@@ -310,50 +291,6 @@ assign stream_acc_value = (stream_acc_done_fire && stream_acc_busy) ? out[31*DAT
 assign stream_ewise_active = stream_ewise_valid || stream_ewise_valid_d || stream_ewise_busy || (|stream_ewise_busy_pipe);
 assign stream_select = stream_active || stream_reduce_valid || stream_ewise_active;
 
-always @(*) begin
-  case (source_1)
-    7'b1000000: stream_ewise_op1_data = stream_ewise_psum_data;
-    7'b1000001: stream_ewise_op1_data = stream_ewise_resadd_data;
-    7'b1000010: stream_ewise_op1_data = stream_ewise_para_data;
-    7'b1000011: stream_ewise_op1_data = stream_ewise_ifmap_data;
-    default:    stream_ewise_op1_data = stream_ewise_psum_data;
-  endcase
-end
-
-always @(*) begin
-  if (imm_use_sign) begin
-    stream_ewise_op2_data = {PARALLELISM{opcode[DATA_WIDTH+18:19]}};
-  end
-  else begin
-    case (source_2)
-      7'b1000000: stream_ewise_op2_data = stream_ewise_psum_data;
-      7'b1000001: stream_ewise_op2_data = stream_ewise_resadd_data;
-      7'b1000010: stream_ewise_op2_data = stream_ewise_para_data;
-      7'b1000011: stream_ewise_op2_data = stream_ewise_ifmap_data;
-      default:    stream_ewise_op2_data = stream_ewise_resadd_data;
-    endcase
-  end
-end
-
-always @(*) begin
-  case (source_3)
-    7'b1000000: stream_ewise_op3_data = stream_ewise_psum_data;
-    7'b1000001: stream_ewise_op3_data = stream_ewise_resadd_data;
-    7'b1000010: stream_ewise_op3_data = stream_ewise_para_data;
-    7'b1000011: stream_ewise_op3_data = stream_ewise_ifmap_data;
-    default:    stream_ewise_op3_data = stream_ewise_para_data;
-  endcase
-end
-
-always @(*) begin
-  case (source_4)
-    7'b1000000: stream_ewise_op4_data = stream_ewise_psum_data;
-    7'b1000001: stream_ewise_op4_data = stream_ewise_resadd_data;
-    7'b1000010: stream_ewise_op4_data = stream_ewise_para_data;
-    7'b1000011: stream_ewise_op4_data = stream_ewise_ifmap_data;
-    default:    stream_ewise_op4_data = stream_ewise_resadd_data;
-  endcase
-end
 //FSM----------------------------------------------------------------
 
 always @(posedge clk or negedge rst_n) begin
@@ -444,6 +381,10 @@ generate
       .stream_select         ( stream_select                                     ),
       .stream_valid          ( stream_fpu_valid[activation_i]                    ),
       .stream_operation      ( stream_operation_fpu                              ),
+      .stream_ewise_select   ( stream_ewise_valid_d                              ),
+      .stream_reduce_write_valid ( stream_done_reg                               ),
+      .stream_reduce_store_sign  ( stream_reduce_store_sign                      ),
+      .stream_reduce_result  ( stream_acc_reg                                    ),
       .stream_op1            ( stream_activation_op1[activation_i*DATA_WIDTH+:DATA_WIDTH] ),
       .stream_op2            ( stream_activation_op2[activation_i*DATA_WIDTH+:DATA_WIDTH] ),
       .stream_op3            ( stream_activation_op3[activation_i*DATA_WIDTH+:DATA_WIDTH] ),
@@ -478,10 +419,10 @@ generate
       .source_4              ( source_4                                          ),
       .imm_use_sign          ( imm_use_sign                                      ),
       .imm                   ( opcode[DATA_WIDTH+18:19]                          ),
-      .psum_data             ( psum_data[activation_i*DATA_WIDTH+:DATA_WIDTH]    ),
-      .ifmap_data            ( ifmap_data[activation_i*DATA_WIDTH+:DATA_WIDTH]   ),
-      .para_data             ( para_data[activation_i*DATA_WIDTH+:DATA_WIDTH]    ),
-      .resadd_data           ( resadd_data[activation_i*DATA_WIDTH+:DATA_WIDTH]  ),
+      .psum_data             ( stream_ewise_valid_d ? stream_ewise_psum_data_d[activation_i*DATA_WIDTH+:DATA_WIDTH] : psum_data[activation_i*DATA_WIDTH+:DATA_WIDTH] ),
+      .ifmap_data            ( stream_ewise_valid_d ? stream_ewise_ifmap_data_d[activation_i*DATA_WIDTH+:DATA_WIDTH] : ifmap_data[activation_i*DATA_WIDTH+:DATA_WIDTH] ),
+      .para_data             ( stream_ewise_valid_d ? stream_ewise_para_data_d[activation_i*DATA_WIDTH+:DATA_WIDTH] : para_data[activation_i*DATA_WIDTH+:DATA_WIDTH] ),
+      .resadd_data           ( stream_ewise_valid_d ? stream_ewise_resadd_data_d[activation_i*DATA_WIDTH+:DATA_WIDTH] : resadd_data[activation_i*DATA_WIDTH+:DATA_WIDTH] ),
       .operator_out          ( operator_out[activation_i*DATA_WIDTH+:DATA_WIDTH] ),
       .register_change_sign  ( register_change_sign                              )
     );
@@ -546,6 +487,7 @@ genvar store_sign_i;
 generate
   for(store_sign_i = 0; store_sign_i < REG_NUM; store_sign_i = store_sign_i+1) begin:store_sign_assign
     assign store_sign[store_sign_i] = (dst == store_sign_i) && (!read_cross_ocgroup) && (!reduce_sign);
+    assign stream_reduce_store_sign[store_sign_i] = (dst == store_sign_i) && reduce_sign;
   end
 endgenerate
 
@@ -594,9 +536,9 @@ generate
       .fast_func_op2      ( fast_func_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
       .bit_op1            ( bit_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]       ),
       .stream_fuse_valid_wire  ( stream_fuse_valid[fpu_i]                               ),
-      .stream_fuse_mul_op1( stream_ewise_op1_data_d[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
-      .stream_fuse_mul_op2( stream_ewise_op2_data_d[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
-      .stream_fuse_add_op_wire ( stream_ewise_op3_data_d[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
+      .stream_fuse_mul_op1( fma_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]     ),
+      .stream_fuse_mul_op2( fma_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]     ),
+      .stream_fuse_add_op_wire ( fma_op3[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
       .stream_fuse_done   ( stream_fuse_done[fpu_i]                                ),
       .stream_fuse_out    ( stream_fuse_out[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
       .operation          ( operation_fpu[6*(fpu_i+1)-1 : 6*fpu_i]                ),
@@ -620,10 +562,6 @@ always @(*) begin
 
   if (stream_ewise_valid_d && !stream_ewise_fma) begin
     stream_fpu_valid   = {PARALLELISM{1'b1}};
-    stream_fpu_op1 = stream_ewise_op1_data_d;
-    stream_fpu_op2 = stream_ewise_op2_data_d;
-    stream_fpu_op3 = stream_ewise_op3_data_d;
-    stream_fpu_op4 = stream_ewise_op4_data_d;
   end
 
   if (stream_l1_fire) begin
@@ -711,10 +649,10 @@ always @(posedge clk or negedge rst_n) begin
     stream_ewise_opcode_reg<= ADD;
     stream_ewise_valid_d   <= 1'b0;
     stream_ewise_busy_pipe <= 3'd0;
-    stream_ewise_op1_data_d <= 'd0;
-    stream_ewise_op2_data_d <= 'd0;
-    stream_ewise_op3_data_d <= 'd0;
-    stream_ewise_op4_data_d <= 'd0;
+    stream_ewise_psum_data_d <= 'd0;
+    stream_ewise_ifmap_data_d <= 'd0;
+    stream_ewise_resadd_data_d <= 'd0;
+    stream_ewise_para_data_d <= 'd0;
     stream_ewise_fma_busy_pipe <= 3'd0;
     stream_fpu_op1_d  <= 'd0;
     stream_fpu_op2_d  <= 'd0;
@@ -763,10 +701,10 @@ always @(posedge clk or negedge rst_n) begin
     stream_ewise_opcode_reg<= ADD;
     stream_ewise_valid_d   <= 1'b0;
     stream_ewise_busy_pipe <= 3'd0;
-    stream_ewise_op1_data_d <= 'd0;
-    stream_ewise_op2_data_d <= 'd0;
-    stream_ewise_op3_data_d <= 'd0;
-    stream_ewise_op4_data_d <= 'd0;
+    stream_ewise_psum_data_d <= 'd0;
+    stream_ewise_ifmap_data_d <= 'd0;
+    stream_ewise_resadd_data_d <= 'd0;
+    stream_ewise_para_data_d <= 'd0;
     stream_ewise_fma_busy_pipe <= 3'd0;
     stream_fpu_op1_d  <= 'd0;
     stream_fpu_op2_d  <= 'd0;
@@ -805,10 +743,10 @@ always @(posedge clk or negedge rst_n) begin
     stream_fpu_op4_d <= stream_fpu_op4;
     if (stream_ewise_valid) begin
       stream_ewise_opcode_reg <= stream_ewise_opcode;
-      stream_ewise_op1_data_d <= stream_ewise_op1_data;
-      stream_ewise_op2_data_d <= stream_ewise_op2_data;
-      stream_ewise_op3_data_d <= stream_ewise_op3_data;
-      stream_ewise_op4_data_d <= stream_ewise_op4_data;
+      stream_ewise_psum_data_d <= stream_ewise_psum_data;
+      stream_ewise_ifmap_data_d <= stream_ewise_ifmap_data;
+      stream_ewise_resadd_data_d <= stream_ewise_resadd_data;
+      stream_ewise_para_data_d <= stream_ewise_para_data;
     end
 
     if (stream_reduce_valid) begin
@@ -895,50 +833,5 @@ always @(posedge clk or negedge rst_n) begin
     stream_ewise_fma_busy_pipe <= {stream_ewise_fma_busy_pipe[1:0], stream_ewise_valid_d && stream_ewise_fma};
   end
 end
-
-// genvar vculut_i;
-// generate
-//   for (vculut_i = 0; vculut_i < 4; vculut_i = vculut_i + 1) begin : vcu_lutram_gen
-//     vculut_ram u_vculut_ram(
-//     .clk             ( clk                             ),
-//     .rst_n           ( rst_n                           ),
-//     .wvalid          ( vculut_wvalid                   ),
-//     .wdata           ( vculut_wdata                    ),
-//     .waddr           ( vculut_waddr                    ),
-//     .vculut_0_rvalid ( vculut_rvalid[vculut_i * 8 + 0] ),
-//     .vculut_0_rready ( vculut_rready[vculut_i * 8 + 0] ),
-//     .vculut_0_raddr  ( vculut_raddr[vculut_i * 8 + 0]  ),
-//     .vculut_0_rdata  ( vculut_rdata[vculut_i * 8 + 0]  ),
-//     .vculut_1_rvalid ( vculut_rvalid[vculut_i * 8 + 1] ),
-//     .vculut_1_rready ( vculut_rready[vculut_i * 8 + 1] ),
-//     .vculut_1_raddr  ( vculut_raddr[vculut_i * 8 + 1]  ),
-//     .vculut_1_rdata  ( vculut_rdata[vculut_i * 8 + 1]  ),
-//     .vculut_2_rvalid ( vculut_rvalid[vculut_i * 8 + 2] ),
-//     .vculut_2_rready ( vculut_rready[vculut_i * 8 + 2] ),
-//     .vculut_2_raddr  ( vculut_raddr[vculut_i * 8 + 2]  ),
-//     .vculut_2_rdata  ( vculut_rdata[vculut_i * 8 + 2]  ),
-//     .vculut_3_rvalid ( vculut_rvalid[vculut_i * 8 + 3] ),
-//     .vculut_3_rready ( vculut_rready[vculut_i * 8 + 3] ),
-//     .vculut_3_raddr  ( vculut_raddr[vculut_i * 8 + 3]  ),
-//     .vculut_3_rdata  ( vculut_rdata[vculut_i * 8 + 3]  ),
-//     .vculut_4_rvalid ( vculut_rvalid[vculut_i * 8 + 4] ),
-//     .vculut_4_rready ( vculut_rready[vculut_i * 8 + 4] ),
-//     .vculut_4_raddr  ( vculut_raddr[vculut_i * 8 + 4]  ),
-//     .vculut_4_rdata  ( vculut_rdata[vculut_i * 8 + 4]  ),
-//     .vculut_5_rvalid ( vculut_rvalid[vculut_i * 8 + 5] ),
-//     .vculut_5_rready ( vculut_rready[vculut_i * 8 + 5] ),
-//     .vculut_5_raddr  ( vculut_raddr[vculut_i * 8 + 5]  ),
-//     .vculut_5_rdata  ( vculut_rdata[vculut_i * 8 + 5]  ),
-//     .vculut_6_rvalid ( vculut_rvalid[vculut_i * 8 + 6] ),
-//     .vculut_6_rready ( vculut_rready[vculut_i * 8 + 6] ),
-//     .vculut_6_raddr  ( vculut_raddr[vculut_i * 8 + 6]  ),
-//     .vculut_6_rdata  ( vculut_rdata[vculut_i * 8 + 6]  ),
-//     .vculut_7_rvalid ( vculut_rvalid[vculut_i * 8 + 7] ),
-//     .vculut_7_rready ( vculut_rready[vculut_i * 8 + 7] ),
-//     .vculut_7_raddr  ( vculut_raddr[vculut_i * 8 + 7]  ),
-//     .vculut_7_rdata  ( vculut_rdata[vculut_i * 8 + 7]  )
-//   );
-//   end
-// endgenerate 
 
 endmodule

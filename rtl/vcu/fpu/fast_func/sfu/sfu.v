@@ -205,11 +205,11 @@ always@(*) begin
         //     c1 = {1'b0, para_sincos[22:9]};
         //     c2 = {1'b1, para_sincos[8:0]};
         // end
-        // 6'b000100: begin //cos
-        //     c0 = {4'b01, para_rec[46:23], 5'b0};
-        //     c1 = {1'b1, para_rec[22:9]};
-        //     c2 = {1'b0, para_rec[8:0]};
-        // end
+        6'b000100: begin //rec
+            c0 = {4'b01, para_rec[46:23], 5'b0};
+            c1 = {1'b1, para_rec[22:9]};
+            c2 = {1'b0, para_rec[8:0]};
+        end
         // 6'b001000: begin //log2
         //     c0 = {4'b0,  para_log2[45:22], 5'b0};
         //     c1 = {1'b0,  para_log2[21:8]};

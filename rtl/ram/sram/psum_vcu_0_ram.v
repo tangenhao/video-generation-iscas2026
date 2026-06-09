@@ -3,8 +3,6 @@ module psum_vcu_0_ram(
 
   vcu_0_wvalid, vcu_0_waddr, vcu_0_wdata,
 
-  pea_0_rvalid, pea_0_raddr, pea_0_rdata,
-
   vcu_0_rvalid, vcu_0_raddr, vcu_0_rdata,
 
   dma_rvalid, dma_raddr, dma_rdata
@@ -26,10 +24,6 @@ input                       rst_n;
 input                       vcu_0_wvalid;
 input       [ADDR_BITS-1:0] vcu_0_waddr;
 input       [WIDTH-1:0]     vcu_0_wdata;
-
-input                       pea_0_rvalid;
-input       [ADDR_BITS-1:0] pea_0_raddr;
-output reg  [WIDTH-1:0]     pea_0_rdata;
 
 input                       vcu_0_rvalid;
 input       [ADDR_BITS-1:0] vcu_0_raddr;
@@ -71,35 +65,31 @@ sram_512x144 u_ram_bank(
   .r_data ( rdata         )
 );
 
-wire [2:0] read_request;
-reg  [2:0] read_grant_reg;
+wire [1:0] read_request;
+reg  [1:0] read_grant_reg;
 
-assign read_request = {vcu_0_rvalid, pea_0_rvalid, dma_rvalid};
+assign read_request = {vcu_0_rvalid, dma_rvalid};
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
-    read_grant_reg <= 3'd0;
+    read_grant_reg <= 2'd0;
   end
   else begin
     if (read_request[0]) begin
-      read_grant_reg <= 3'b001;
+      read_grant_reg <= 2'b01;
     end
     else if (read_request[1]) begin
-      read_grant_reg <= 3'b010;
-    end
-    else if (read_request[2]) begin
-      read_grant_reg <= 3'b100;
+      read_grant_reg <= 2'b10;
     end
     else begin
-      read_grant_reg <= 3'd0;
+      read_grant_reg <= 2'd0;
     end
   end
 end
 
 assign ren = |read_request;
 assign raddr = read_request[0] ? dma_raddr :
-               read_request[1] ? pea_0_raddr :
-               read_request[2] ? vcu_0_raddr : 0;
+               read_request[1] ? vcu_0_raddr : 0;
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
@@ -117,24 +107,10 @@ end
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
-    pea_0_rdata  <= 'd0;
-  end
-  else begin
-    if (read_grant_reg[1]) begin
-      pea_0_rdata  <= rdata;
-    end
-    else begin
-      pea_0_rdata  <= 'd0;
-    end
-  end
-end
-
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
     vcu_0_rdata  <= 'd0;
   end
   else begin
-    if (read_grant_reg[2]) begin
+    if (read_grant_reg[1]) begin
       vcu_0_rdata  <= rdata;
     end
     else begin

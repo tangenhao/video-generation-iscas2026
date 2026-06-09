@@ -5,6 +5,7 @@ add_subdirectory(fused_mode_test)
 add_subdirectory(transformer)
 add_subdirectory(llama_test)
 add_subdirectory(python_test)
+add_subdirectory(stdit)
 # add_subdirectory(load_config_test)
 
 # add_subdirectory(irq_test)
