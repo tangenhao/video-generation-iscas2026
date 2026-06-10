@@ -220,10 +220,14 @@ wire      stream_reduce_opcode;
 wire      stream_ewise_opcode;
 wire      stream_fpu_opcode;
 wire      stream_pair_fuse_opcode;
+wire      stream_pair_reduce_fuse_opcode;
+wire      stream_pair_stream_fuse_opcode;
 wire      stream_reduce_opcode_0;
 wire      stream_reduce_opcode_1;
 wire      stream_fpu_opcode_0;
+wire      stream_fast_func_opcode_1;
 wire      stream_pair_ewise_opcode_0;
+wire      stream_pair_stream_fuse_opcode_0;
 wire      stream_execute_done;
 wire      stream_ewise_execute_done;
 wire      prefetch_all;
@@ -1471,9 +1475,10 @@ assign stream_input_rvalid_delay = stream_reduce_opcode ? ((vcu_execute_psum_sra
                                   stream_ewise_input_rvalid_delay;
 assign stream_recv_done = (stream_reduce_opcode || stream_pair_fuse_opcode) && (stream_recv_cnt == num_data + 1'b1);
 assign stream_ewise_valid = (stream_ewise_opcode || stream_pair_fuse_opcode) && stream_ewise_data_valid_d;
-assign stream_ewise_write_fire = stream_ewise_opcode && stream_ewise_done;
+// stream_ewise_done can return after the current decoded opcode gate changes.
+assign stream_ewise_write_fire = stream_ewise_done;
 assign stream_ewise_write_addr = ram_out_addr + stream_write_cnt;
-assign stream_ewise_execute_done = stream_ewise_opcode && stream_ewise_write_fire && (stream_write_cnt == num_data);
+assign stream_ewise_execute_done = stream_ewise_write_fire && (stream_write_cnt == num_data);
 assign stream_opcode_need_second = stream_en && (opcode_number == 2);
 assign stream_opcode_first_done = (current_state == STREAM_OPCODE_PREPARE) && vcucode_rvalid_done && !stream_opcode_second_pending;
 assign stream_opcode_second_done = (current_state == STREAM_OPCODE_PREPARE) && vcucode_rvalid_done && stream_opcode_second_pending;
@@ -1571,7 +1576,7 @@ always @(posedge clk or negedge rst_n) begin
       stream_recv_cnt     <= stream_recv_cnt + 1'b1;
     end
 
-    if (stream_ewise_done) begin
+    if (stream_ewise_write_fire) begin
       stream_write_cnt             <= stream_write_cnt + 1'b1;
     end
 
@@ -1733,8 +1738,19 @@ assign stream_fpu_opcode_0 = (vcucode_rdata_reg[5:0] == ADD) || (vcucode_rdata_r
 assign stream_pair_ewise_opcode_0 = (vcucode_rdata_reg[5:0] == MUL) ||
                                     (vcucode_rdata_reg[5:0] == INV) ||
                                     (vcucode_rdata_reg[5:0] == ABS);
+assign stream_pair_stream_fuse_opcode_0 = (vcucode_rdata_reg[5:0] == ADD) ||
+                                          (vcucode_rdata_reg[5:0] == MUL) ||
+                                          (vcucode_rdata_reg[5:0] == ADD_CONST) ||
+                                          (vcucode_rdata_reg[5:0] == MUL_CONST);
+assign stream_fast_func_opcode_1 = (stream_reduce_opcode_reg[5:0] == REC) ||
+                                   (stream_reduce_opcode_reg[5:0] == EXP) ||
+                                   (stream_reduce_opcode_reg[5:0] == RSQRT) ||
+                                   (stream_reduce_opcode_reg[5:0] == FSIWSH) ||
+                                   (stream_reduce_opcode_reg[5:0] == FGELU);
 assign stream_fpu_opcode = stream_fpu_opcode_0;
-assign stream_pair_fuse_opcode = stream_en && stream_opcode_second_done_reg && stream_pair_ewise_opcode_0 && stream_reduce_opcode_1;
+assign stream_pair_reduce_fuse_opcode = stream_en && stream_opcode_second_done_reg && stream_pair_ewise_opcode_0 && stream_reduce_opcode_1;
+assign stream_pair_stream_fuse_opcode = stream_en && stream_opcode_second_done_reg && stream_pair_stream_fuse_opcode_0 && stream_fast_func_opcode_1;
+assign stream_pair_fuse_opcode = stream_pair_reduce_fuse_opcode;
 assign stream_reduce_opcode = stream_en && !stream_pair_fuse_opcode && stream_reduce_opcode_0;
 assign stream_ewise_opcode = stream_en && !stream_pair_fuse_opcode && stream_fpu_opcode && !stream_reduce_opcode_0;
 assign stream_compute_done = stream_recv_done && stream_reduce_done;
@@ -2078,6 +2094,8 @@ operator u_operator(
   .stream_ewise_opcode         ( vcucode_rdata_reg[5:0]          ),
   .stream_ewise_reduce         ( stream_pair_fuse_opcode          ),
   .stream_ewise_reduce_opcode  ( stream_reduce_opcode_reg         ),
+  .stream_ewise_fuse           ( stream_pair_stream_fuse_opcode    ),
+  .stream_ewise_fuse_opcode    ( stream_reduce_opcode_reg         ),
   .stream_ewise_first          ( stream_ewise_first_d             ),
   .stream_ewise_last           ( stream_ewise_last_d              ),
   .stream_ewise_psum_data      ( psum_compute_in                 ),

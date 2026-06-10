@@ -14,7 +14,7 @@ module fpu(
   bit_op1,
   stream_reduce_valid_wire, stream_reduce_operation, stream_reduce_op1, stream_reduce_op2, stream_reduce_op3, stream_reduce_op4,
   stream_reduce_done, stream_reduce_out,
-  stream_fuse_valid_wire, stream_fuse_mul_op1, stream_fuse_mul_op2, stream_fuse_add_op_wire,
+  stream_fuse_valid_wire, stream_fuse_opcode, stream_fuse_mul_op1, stream_fuse_mul_op2, stream_fuse_add_op_wire,
   stream_fuse_done, stream_fuse_out
 );
 
@@ -80,6 +80,7 @@ input [15:0] stream_reduce_op2;
 input [15:0] stream_reduce_op3;
 input [15:0] stream_reduce_op4;
 input stream_fuse_valid_wire;
+input [5:0] stream_fuse_opcode;
 input [15:0] stream_fuse_mul_op1;
 input [15:0] stream_fuse_mul_op2;
 input [15:0] stream_fuse_add_op_wire;
@@ -126,24 +127,37 @@ wire bit_valid;
 wire [1:0] srt_16_func;
 wire normal_add_fire;
 wire normal_mul_fire;
+wire stream_fuse_first_add_valid;
+wire stream_fuse_first_mul_valid;
 wire stream_fuse_add_valid;
+wire stream_fuse_fast_func_valid;
 wire stream_reduce_add_valid;
 wire stream_reduce_comp_valid;
 wire add_valid_in;
 wire mul_valid_in;
+wire fast_func_valid_in;
 wire comp_valid_in;
 wire [15:0] add_op1_in;
 wire [15:0] add_op2_in;
 wire [15:0] mul_op1_in;
 wire [15:0] mul_op2_in;
+wire [15:0] fast_func_op1_in;
 wire [15:0] comp_op1_in;
 wire [15:0] comp_op2_in;
 wire [15:0] comp_op3_in;
 wire [15:0] comp_op4_in;
 wire [5:0]  comp_operation_in;
+wire stream_fuse_first_add;
+wire stream_fuse_first_mul;
+wire stream_fuse_second_add;
+wire stream_fuse_second_fast_func;
+wire [15:0] stream_fuse_first_out;
 reg [15:0] stream_fuse_add_op_d;
+reg [5:0]  stream_fuse_opcode_d;
+reg        stream_fuse_add_first_busy;
 reg        stream_fuse_mul_busy;
 reg        stream_fuse_add_busy;
+reg [1:0]  stream_fuse_fast_func_busy_pipe;
 reg        stream_reduce_add_busy;
 reg        stream_reduce_comp_busy;
 reg        normal_add_busy;
@@ -178,23 +192,39 @@ assign out = ( {16{add_valid}} & add_out ) | ( {16{mul_valid}} & mul_out ) | ( {
               | ( {16{srt16_valid}} & srt16_out_reg ) | ( {16{comp_valid}} & comp_out ) | ( {16{bit_valid}} & bit_out ) ;
 
 assign srt_16_func = ({2{(operation_reg == DIV) | (operation_reg == DIV_CONST)}} & 2'b01) | ({2{(operation_reg == SQRT)}} & 2'b10);
-assign normal_add_fire = valid & add_valid & !stream_fuse_add_valid;
+assign stream_fuse_first_add = (operation_reg == ADD) | (operation_reg == ADD_CONST);
+assign stream_fuse_first_mul = (operation_reg == MUL) | (operation_reg == MUL_CONST) | (operation_reg == FMA);
+assign stream_fuse_second_add = (stream_fuse_opcode_d == ADD) | (stream_fuse_opcode_d == ADD_CONST);
+assign stream_fuse_second_fast_func = (stream_fuse_opcode_d == REC) |
+                                      (stream_fuse_opcode_d == EXP) |
+                                      (stream_fuse_opcode_d == RSQRT) |
+                                      (stream_fuse_opcode_d == FSIWSH) |
+                                      (stream_fuse_opcode_d == FGELU);
+assign normal_add_fire = valid & add_valid & !stream_fuse_valid_wire & !stream_fuse_add_valid;
 assign normal_mul_fire = valid & mul_valid & !stream_fuse_valid_wire;
-assign stream_fuse_add_valid = stream_fuse_mul_busy & mul_done;
+assign stream_fuse_first_add_valid = stream_fuse_valid_wire & stream_fuse_first_add;
+assign stream_fuse_first_mul_valid = stream_fuse_valid_wire & stream_fuse_first_mul;
+assign stream_fuse_first_out = stream_fuse_add_first_busy ? add_out : mul_out;
+assign stream_fuse_add_valid = ((stream_fuse_add_first_busy & add_done) |
+                                (stream_fuse_mul_busy & mul_done)) & stream_fuse_second_add;
+assign stream_fuse_fast_func_valid = ((stream_fuse_add_first_busy & add_done) |
+                                      (stream_fuse_mul_busy & mul_done)) & stream_fuse_second_fast_func;
 assign stream_reduce_add_valid = stream_reduce_valid_wire && (stream_reduce_operation == ADD);
 assign stream_reduce_comp_valid = stream_reduce_valid_wire && ((stream_reduce_operation == COMP_GEQ) ||
                                   (stream_reduce_operation == COMP_LEQ) ||
                                   (stream_reduce_operation == COMP_LES) ||
                                   (stream_reduce_operation == COMP_GRE));
-assign add_valid_in = normal_add_fire | stream_fuse_add_valid | stream_reduce_add_valid;
+assign add_valid_in = normal_add_fire | stream_fuse_first_add_valid | stream_fuse_add_valid | stream_reduce_add_valid;
 assign comp_valid_in = (valid & comp_valid) | stream_reduce_comp_valid;
-assign mul_valid_in = normal_mul_fire | stream_fuse_valid_wire;
+assign mul_valid_in = normal_mul_fire | stream_fuse_first_mul_valid;
+assign fast_func_valid_in = (valid & fast_func_valid) | stream_fuse_fast_func_valid;
 assign add_op1_in = stream_reduce_add_valid ? stream_reduce_op1 :
-                    stream_fuse_add_valid ? mul_out : add_op1;
+                    stream_fuse_add_valid ? stream_fuse_first_out : add_op1;
 assign add_op2_in = stream_reduce_add_valid ? stream_reduce_op2 :
                     stream_fuse_add_valid ? stream_fuse_add_op_d : add_op2;
 assign mul_op1_in = stream_fuse_valid_wire ? stream_fuse_mul_op1 : mul_op1;
 assign mul_op2_in = stream_fuse_valid_wire ? stream_fuse_mul_op2 : mul_op2;
+assign fast_func_op1_in = stream_fuse_fast_func_valid ? stream_fuse_first_out : fast_func_op1;
 assign comp_op1_in = stream_reduce_comp_valid ? stream_reduce_op1 : comp_op1;
 assign comp_op2_in = stream_reduce_comp_valid ? stream_reduce_op2 : comp_op2;
 assign comp_op3_in = stream_reduce_comp_valid ? stream_reduce_op3 : comp_op3;
@@ -203,8 +233,9 @@ assign comp_operation_in = stream_reduce_comp_valid ? stream_reduce_operation : 
 assign stream_reduce_done = (stream_reduce_add_busy & add_done) | (stream_reduce_comp_busy & comp_done);
 assign stream_reduce_out = ({16{stream_reduce_add_busy}} & add_out) |
                            ({16{stream_reduce_comp_busy}} & comp_out);
-assign stream_fuse_done = stream_fuse_add_busy & add_done;
-assign stream_fuse_out = add_out;
+assign stream_fuse_done = (stream_fuse_add_busy & add_done) | (stream_fuse_fast_func_busy_pipe[1] & fast_func_done);
+assign stream_fuse_out = ({16{stream_fuse_add_busy}} & add_out) |
+                         ({16{stream_fuse_fast_func_busy_pipe[1]}} & fast_func_out);
 assign done = (normal_add_busy & add_done) | (normal_mul_busy & mul_done) |
               fma_done | fast_func_done | (srt16_done_reg & (~valid)) |
               (normal_comp_busy & comp_done) | bit_done;
@@ -215,8 +246,11 @@ always @(posedge clk or negedge rst_n ) begin
     srt16_out_reg <= 'd0;
     srt16_done_reg <= 'd0;
     stream_fuse_add_op_d <= 'd0;
+    stream_fuse_opcode_d <= 'd0;
+    stream_fuse_add_first_busy <= 1'b0;
     stream_fuse_mul_busy <= 1'b0;
     stream_fuse_add_busy <= 1'b0;
+    stream_fuse_fast_func_busy_pipe <= 2'b00;
     stream_reduce_add_busy <= 1'b0;
     stream_reduce_comp_busy <= 1'b0;
     normal_add_busy <= 1'b0;
@@ -224,8 +258,10 @@ always @(posedge clk or negedge rst_n ) begin
     normal_comp_busy <= 1'b0;
   end
   else begin
-    stream_fuse_mul_busy <= stream_fuse_valid_wire;
+    stream_fuse_add_first_busy <= stream_fuse_first_add_valid;
+    stream_fuse_mul_busy <= stream_fuse_first_mul_valid;
     stream_fuse_add_busy <= stream_fuse_add_valid;
+    stream_fuse_fast_func_busy_pipe <= {stream_fuse_fast_func_busy_pipe[0], stream_fuse_fast_func_valid};
     stream_reduce_add_busy <= stream_reduce_add_valid;
     stream_reduce_comp_busy <= stream_reduce_comp_valid;
     normal_add_busy <= normal_add_fire;
@@ -233,6 +269,7 @@ always @(posedge clk or negedge rst_n ) begin
     normal_comp_busy <= valid & comp_valid;
     if (stream_fuse_valid_wire) begin
       stream_fuse_add_op_d <= stream_fuse_add_op_wire;
+      stream_fuse_opcode_d <= stream_fuse_opcode;
     end
     if(srt16_done) begin
       srt16_out_reg  <= srt16_out;
@@ -275,7 +312,7 @@ wire [31:0] fast_func_fp32_in;
 wire [31:0] fast_func_fp32_out;
 
 fp16_to_fp32 u_fast_func_fp16_to_fp32(
-  .fp16 ( fast_func_op1      ),
+  .fp16 ( fast_func_op1_in   ),
   .fp32 ( fast_func_fp32_in  )
 );
 
@@ -287,8 +324,8 @@ fp32_to_half u_fast_func_fp32_to_half(
 fast_func u_fast_func(
   .clk                 ( clk                     ),
   .rst_n               ( rst_n                   ), 
-  .valid               ( valid & fast_func_valid ),
-  .opcode              ( operation_reg           ),
+  .valid               ( fast_func_valid_in      ),
+  .opcode              ( stream_fuse_fast_func_valid ? stream_fuse_opcode_d : operation_reg ),
   .din                 ( fast_func_fp32_in       ), 
   .dout                ( fast_func_fp32_out      ), 
   .done                ( fast_func_done          )

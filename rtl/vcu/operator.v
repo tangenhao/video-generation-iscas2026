@@ -10,7 +10,7 @@ module operator(
   stream_reduce_valid, stream_reduce_first, stream_reduce_last, stream_reduce_data,
   stream_reduce_done, stream_reduce_out,
   stream_ewise_valid, stream_ewise_opcode, stream_ewise_psum_data, stream_ewise_ifmap_data, stream_ewise_resadd_data, stream_ewise_para_data,
-  stream_ewise_reduce, stream_ewise_reduce_opcode, stream_ewise_first, stream_ewise_last,
+  stream_ewise_reduce, stream_ewise_reduce_opcode, stream_ewise_fuse, stream_ewise_fuse_opcode, stream_ewise_first, stream_ewise_last,
   stream_ewise_done, stream_ewise_out,
 
   read_cross_ocgroup, read_cross_ocgroup_flag,
@@ -91,6 +91,8 @@ input                     stream_ewise_valid;
 input [5:0]               stream_ewise_opcode;
 input                     stream_ewise_reduce;
 input [VCUCODE_WIDTH-1:0] stream_ewise_reduce_opcode;
+input                     stream_ewise_fuse;
+input [VCUCODE_WIDTH-1:0] stream_ewise_fuse_opcode;
 input                     stream_ewise_first;
 input                     stream_ewise_last;
 input [DATA_IN_WIDTH-1:0] stream_ewise_psum_data;
@@ -240,6 +242,12 @@ wire [VCUCODE_WIDTH-1:0] stream_active_reduce_opcode;
 wire [5:0]               stream_active_reduce_dst;
 wire                     stream_select;
 wire                     stream_ewise_fma;
+wire                     stream_ewise_fuse_active;
+wire                     stream_ewise_fuse_done_wire;
+wire                     stream_ewise_normal_done_wire;
+wire                     stream_ewise_reduce_done_flag;
+wire                     stream_ewise_reduce_first_done_flag;
+wire                     stream_ewise_reduce_last_done_flag;
 wire                     stream_reduce_max_op;
 wire                     stream_reduce_min_op;
 wire [5:0]               stream_reduce_operation;
@@ -268,12 +276,13 @@ reg                      stream_ewise_busy;
 reg [5:0]                stream_ewise_opcode_reg;
 reg                      stream_ewise_valid_d;
 reg [2:0]                stream_ewise_busy_pipe;
-reg [2:0]                stream_ewise_fma_busy_pipe;
 reg [DATA_IN_WIDTH-1:0]  stream_ewise_psum_data_d;
 reg [DATA_IN_WIDTH-1:0]  stream_ewise_ifmap_data_d;
 reg [DATA_IN_WIDTH-1:0]  stream_ewise_resadd_data_d;
 reg [DATA_IN_WIDTH-1:0]  stream_ewise_para_data_d;
 reg                      stream_ewise_reduce_reg;
+reg                      stream_ewise_fuse_reg;
+reg [5:0]                stream_ewise_fuse_opcode_reg;
 reg                      stream_ewise_reduce_first_reg;
 reg                      stream_ewise_reduce_last_reg;
 reg [2:0]                stream_ewise_reduce_busy_pipe;
@@ -285,6 +294,15 @@ assign stream_reduce_out = {PARALLELISM{stream_acc_reg}};
 assign stream_ewise_done = stream_ewise_done_reg;
 assign stream_ewise_out = stream_ewise_out_reg;
 assign stream_ewise_fma = stream_ewise_opcode_reg == FMA;
+assign stream_ewise_fuse_active = stream_ewise_fma || stream_ewise_fuse_reg;
+assign stream_ewise_fuse_done_wire = &stream_fuse_done;
+assign stream_ewise_normal_done_wire = (|stream_ewise_busy_pipe) && &done;
+assign stream_ewise_reduce_done_flag = stream_ewise_fuse_active ? stream_ewise_reduce_busy_pipe[1] :
+                                       stream_ewise_reduce_busy_pipe[0];
+assign stream_ewise_reduce_first_done_flag = stream_ewise_fuse_active ? stream_ewise_reduce_first_pipe[1] :
+                                             stream_ewise_reduce_first_pipe[0];
+assign stream_ewise_reduce_last_done_flag = stream_ewise_fuse_active ? stream_ewise_reduce_last_pipe[1] :
+                                            stream_ewise_reduce_last_pipe[0];
 assign stream_active_reduce_opcode = stream_ewise_reduce ? stream_ewise_reduce_opcode : opcode;
 assign stream_active_reduce_dst = stream_active_reduce_opcode[18:13];
 assign stream_reduce_max_op = stream_active_reduce_opcode[5:0] == REDUCE_MAX;
@@ -295,7 +313,7 @@ assign stream_activation_op1 = stream_fpu_op1;
 assign stream_activation_op2 = stream_fpu_op2;
 assign stream_activation_op3 = stream_fpu_op3;
 assign stream_activation_op4 = stream_fpu_op4;
-assign stream_fuse_valid = {PARALLELISM{stream_ewise_valid_d && stream_ewise_fma}};
+assign stream_fuse_valid = {PARALLELISM{stream_ewise_valid_d && stream_ewise_fuse_active}};
 assign stream_l1_done_fire = stream_l1_issue_valid && &stream_reduce_fpu_done[15:0];
 assign stream_l2_done_fire = stream_l2_issue_valid && &stream_reduce_fpu_done[23:16];
 assign stream_l3_done_fire = stream_l3_issue_valid && &stream_reduce_fpu_done[27:24];
@@ -560,8 +578,15 @@ generate
       .stream_reduce_done ( stream_reduce_fpu_done[fpu_i]                           ),
       .stream_reduce_out  ( stream_reduce_fpu_out[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
       .stream_fuse_valid_wire  ( stream_fuse_valid[fpu_i]                               ),
-      .stream_fuse_mul_op1( fma_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]     ),
-      .stream_fuse_mul_op2( fma_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]     ),
+      .stream_fuse_opcode ( stream_ewise_fma ? ADD : stream_ewise_fuse_opcode_reg        ),
+      .stream_fuse_mul_op1( stream_ewise_fma ? fma_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] :
+                             ((stream_ewise_opcode_reg == ADD) || (stream_ewise_opcode_reg == ADD_CONST)) ?
+                             add_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] :
+                             mul_op1[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]     ),
+      .stream_fuse_mul_op2( stream_ewise_fma ? fma_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] :
+                             ((stream_ewise_opcode_reg == ADD) || (stream_ewise_opcode_reg == ADD_CONST)) ?
+                             add_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] :
+                             mul_op2[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i]     ),
       .stream_fuse_add_op_wire ( fma_op3[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
       .stream_fuse_done   ( stream_fuse_done[fpu_i]                                ),
       .stream_fuse_out    ( stream_fuse_out[DATA_WIDTH*(fpu_i+1)-1:DATA_WIDTH*fpu_i] ),
@@ -683,12 +708,13 @@ always @(posedge clk or negedge rst_n) begin
     stream_ewise_resadd_data_d <= 'd0;
     stream_ewise_para_data_d <= 'd0;
     stream_ewise_reduce_reg <= 1'b0;
+    stream_ewise_fuse_reg <= 1'b0;
+    stream_ewise_fuse_opcode_reg <= ADD;
     stream_ewise_reduce_first_reg <= 1'b0;
     stream_ewise_reduce_last_reg <= 1'b0;
     stream_ewise_reduce_busy_pipe <= 3'd0;
     stream_ewise_reduce_first_pipe <= 3'd0;
     stream_ewise_reduce_last_pipe <= 3'd0;
-    stream_ewise_fma_busy_pipe <= 3'd0;
     stream_active          <= 1'b0;
     stream_l1_fire         <= 1'b0;
     stream_l1_issue_valid  <= 1'b0;
@@ -737,12 +763,13 @@ always @(posedge clk or negedge rst_n) begin
     stream_ewise_resadd_data_d <= 'd0;
     stream_ewise_para_data_d <= 'd0;
     stream_ewise_reduce_reg <= 1'b0;
+    stream_ewise_fuse_reg <= 1'b0;
+    stream_ewise_fuse_opcode_reg <= ADD;
     stream_ewise_reduce_first_reg <= 1'b0;
     stream_ewise_reduce_last_reg <= 1'b0;
     stream_ewise_reduce_busy_pipe <= 3'd0;
     stream_ewise_reduce_first_pipe <= 3'd0;
     stream_ewise_reduce_last_pipe <= 3'd0;
-    stream_ewise_fma_busy_pipe <= 3'd0;
     stream_active          <= 1'b0;
     stream_l1_fire         <= 1'b0;
     stream_l1_issue_valid  <= 1'b0;
@@ -777,6 +804,8 @@ always @(posedge clk or negedge rst_n) begin
       stream_ewise_resadd_data_d <= stream_ewise_resadd_data;
       stream_ewise_para_data_d <= stream_ewise_para_data;
       stream_ewise_reduce_reg <= stream_ewise_reduce;
+      stream_ewise_fuse_reg <= stream_ewise_fuse;
+      stream_ewise_fuse_opcode_reg <= stream_ewise_fuse_opcode[5:0];
       stream_ewise_reduce_first_reg <= stream_ewise_first;
       stream_ewise_reduce_last_reg <= stream_ewise_last;
     end
@@ -854,24 +883,23 @@ always @(posedge clk or negedge rst_n) begin
       stream_acc_last_pending <= stream_sum_issue_last;
     end
 
-    if ((stream_ewise_fma && stream_ewise_fma_busy_pipe[1] && &stream_fuse_done) ||
-        (!stream_ewise_fma && (|stream_ewise_busy_pipe) && &done)) begin
-      if (stream_ewise_reduce_busy_pipe[0]) begin
-        stream_reduce_data_reg  <= stream_ewise_fma ? stream_fuse_out : out;
-        stream_reduce_first_reg <= stream_ewise_reduce_first_pipe[0];
-        stream_reduce_last_reg  <= stream_ewise_reduce_last_pipe[0];
+    if ((stream_ewise_fuse_active && stream_ewise_fuse_done_wire) ||
+        (!stream_ewise_fuse_active && stream_ewise_normal_done_wire)) begin
+      if (stream_ewise_reduce_done_flag) begin
+        stream_reduce_data_reg  <= stream_ewise_fuse_active ? stream_fuse_out : out;
+        stream_reduce_first_reg <= stream_ewise_reduce_first_done_flag;
+        stream_reduce_last_reg  <= stream_ewise_reduce_last_done_flag;
         stream_l1_fire          <= 1'b1;
         stream_active           <= 1'b1;
       end
       else begin
-        stream_ewise_out_reg  <= stream_ewise_fma ? stream_fuse_out : out;
+        stream_ewise_out_reg  <= stream_ewise_fuse_active ? stream_fuse_out : out;
         stream_ewise_done_reg <= 1'b1;
       end
     end
 
     stream_ewise_busy <= stream_ewise_valid_d;
-    stream_ewise_busy_pipe <= {stream_ewise_busy_pipe[1:0], stream_ewise_valid_d && !stream_ewise_fma};
-    stream_ewise_fma_busy_pipe <= {stream_ewise_fma_busy_pipe[1:0], stream_ewise_valid_d && stream_ewise_fma};
+    stream_ewise_busy_pipe <= {stream_ewise_busy_pipe[1:0], stream_ewise_valid_d && !stream_ewise_fuse_active};
     stream_ewise_reduce_busy_pipe <= {stream_ewise_reduce_busy_pipe[1:0], stream_ewise_valid_d && stream_ewise_reduce_reg};
     stream_ewise_reduce_first_pipe <= {stream_ewise_reduce_first_pipe[1:0],
                                        stream_ewise_valid_d && stream_ewise_reduce_reg && stream_ewise_reduce_first_reg};
