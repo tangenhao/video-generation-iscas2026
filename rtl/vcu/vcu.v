@@ -219,6 +219,11 @@ wire      stream_compute_done;
 wire      stream_reduce_opcode;
 wire      stream_ewise_opcode;
 wire      stream_fpu_opcode;
+wire      stream_pair_fuse_opcode;
+wire      stream_reduce_opcode_0;
+wire      stream_reduce_opcode_1;
+wire      stream_fpu_opcode_0;
+wire      stream_pair_ewise_opcode_0;
 wire      stream_execute_done;
 wire      stream_ewise_execute_done;
 wire      prefetch_all;
@@ -227,6 +232,10 @@ wire      stream_ewise_has_sram_source;
 wire      stream_ewise_data_valid_d;
 wire      stream_ewise_input_rvalid_delay;
 wire      stream_input_rvalid_delay;
+wire      stream_opcode_first_done;
+wire      stream_opcode_second_done;
+wire      stream_opcode_need_second;
+wire      stream_opcode_second_read_en;
 
 wire ram_read_en;
 reg  psum_rvalid_done;
@@ -272,6 +281,9 @@ reg [IFMAP_WIDTH-1:0]    ifmap_rdata_reg;
 reg [VCUPARA_WIDTH-1:0]  vcupara_rdata_reg;
 reg [VCURES_WIDTH-1:0]   vcures_rdata_reg;
 reg [VCUCODE_WIDTH-1:0]  vcucode_rdata_reg;
+reg [VCUCODE_WIDTH-1:0]  stream_reduce_opcode_reg;
+reg                      stream_opcode_second_pending;
+reg                      stream_opcode_second_done_reg;
 wire                     opcode_data_update;
 
 wire [PARALLELISM-1:0]       operator_done;
@@ -319,6 +331,8 @@ reg [14:0] stream_recv_cnt;
 reg        stream_reduce_valid;
 reg        stream_reduce_first;
 reg        stream_reduce_last;
+reg        stream_ewise_first_d;
+reg        stream_ewise_last_d;
 reg [PSUM_WIDTH-1:0] stream_psum_rdata_reg;
 reg        stream_psum_rdata_valid_d;
 reg        stream_psum_first_d;
@@ -1275,7 +1289,7 @@ end
 assign psum_compute_in    = vcu_execute_psum_rdata_reg;
 assign ifmap_compute_in   = ifmap_rdata_reg;
 assign resadd_compute_in  = vcures_rdata_reg;
-assign para_compute_in    = stream_ewise_opcode ? stream_vcupara_rdata_reg : vcupara_rdata_reg;
+assign para_compute_in    = (stream_ewise_opcode || stream_pair_fuse_opcode) ? stream_vcupara_rdata_reg : vcupara_rdata_reg;
 assign stream_reduce_data = (vcu_execute_psum_sram_valid   ) ? psum_compute_in   :
                             (vcu_execute_vcures_sram_valid ) ? resadd_compute_in : 
                             (vcu_execute_vcupara_sram_valid) ? para_compute_in   : 
@@ -1455,19 +1469,25 @@ assign stream_input_rvalid_delay = stream_reduce_opcode ? ((vcu_execute_psum_sra
                                                            (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && vcu_execute_vcupara_sram_valid && vcupara_sram_rvalid_delay) ||
                                                            (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && !vcu_execute_vcupara_sram_valid && vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay)) :
                                   stream_ewise_input_rvalid_delay;
-assign stream_recv_done = stream_reduce_opcode && (stream_recv_cnt == num_data + 1'b1);
-assign stream_ewise_valid = stream_ewise_opcode && stream_ewise_data_valid_d;
+assign stream_recv_done = (stream_reduce_opcode || stream_pair_fuse_opcode) && (stream_recv_cnt == num_data + 1'b1);
+assign stream_ewise_valid = (stream_ewise_opcode || stream_pair_fuse_opcode) && stream_ewise_data_valid_d;
 assign stream_ewise_write_fire = stream_ewise_opcode && stream_ewise_done;
 assign stream_ewise_write_addr = ram_out_addr + stream_write_cnt;
 assign stream_ewise_execute_done = stream_ewise_opcode && stream_ewise_write_fire && (stream_write_cnt == num_data);
-assign stream_opcode_prepare_done = (current_state == STREAM_OPCODE_PREPARE) && vcucode_rvalid_done;
+assign stream_opcode_need_second = stream_en && (opcode_number == 2);
+assign stream_opcode_first_done = (current_state == STREAM_OPCODE_PREPARE) && vcucode_rvalid_done && !stream_opcode_second_pending;
+assign stream_opcode_second_done = (current_state == STREAM_OPCODE_PREPARE) && vcucode_rvalid_done && stream_opcode_second_pending;
+assign stream_opcode_second_read_en = stream_opcode_first_done && stream_opcode_need_second && !stream_opcode_second_done_reg;
+assign stream_opcode_prepare_done = stream_opcode_need_second ? stream_opcode_second_done :
+                                                               ((current_state == STREAM_OPCODE_PREPARE) && vcucode_rvalid_done);
 assign data_prepare_done = (((psum_rvalid_done && vcu_execute_psum_sram_valid) || (!vcu_execute_psum_sram_valid)) || (stream_en && stream_result_valid)) &&
                            ((ifmap_rvalid_done && vcu_execute_ifmap_sram_valid) || !(vcu_execute_ifmap_sram_valid)) &&
                            ((vcures_rvalid_done && vcu_execute_vcures_sram_valid) || !(vcu_execute_vcures_sram_valid)) &&
                            ((vcupara_rvalid_done && vcu_execute_vcupara_sram_valid) || (!vcu_execute_vcupara_sram_valid)) && vcucode_rvalid_done;
 // assign opcode_ram_read_en = ((current_state != DATA_PREPARE) & (next_state == DATA_PREPARE) & (state != CHANGE_PARA) ) | prefetch_all;
 assign opcode_ram_read_en = (((current_state != DATA_PREPARE) & (next_state == DATA_PREPARE)) |
-                             ((current_state != STREAM_OPCODE_PREPARE) & (next_state == STREAM_OPCODE_PREPARE))) |
+                             ((current_state != STREAM_OPCODE_PREPARE) & (next_state == STREAM_OPCODE_PREPARE)) |
+                             stream_opcode_second_read_en) |
                              prefetch_all;
 
 always @(posedge clk or negedge rst_n) begin
@@ -1525,27 +1545,27 @@ always @(posedge clk or negedge rst_n) begin
       stream_read_cnt <= stream_read_cnt + 1'b1;
     end
 
-    if ((stream_reduce_opcode || stream_ewise_opcode) && psum_sram_rvalid_delay) begin
+    if ((stream_reduce_opcode || stream_ewise_opcode || stream_pair_fuse_opcode) && psum_sram_rvalid_delay) begin
       stream_psum_rdata_reg     <= psum_rdata;
       stream_psum_rdata_valid_d <= 1'b1;
     end
 
-    if ((stream_reduce_opcode || stream_ewise_opcode) && vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay) begin
+    if ((stream_reduce_opcode || stream_ewise_opcode || stream_pair_fuse_opcode) && vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay) begin
       stream_ifmap_rdata_reg     <= ifmap_rdata;
       stream_ifmap_rdata_valid_d <= 1'b1;
     end
 
-    if ((stream_reduce_opcode || stream_ewise_opcode) && vcu_execute_vcures_sram_valid && vcures_sram_rvalid_delay) begin
+    if ((stream_reduce_opcode || stream_ewise_opcode || stream_pair_fuse_opcode) && vcu_execute_vcures_sram_valid && vcures_sram_rvalid_delay) begin
       stream_vcures_rdata_reg     <= vcures_rdata;
       stream_vcures_rdata_valid_d <= 1'b1;
     end
 
-    if ((stream_reduce_opcode || stream_ewise_opcode) && vcu_execute_vcupara_sram_valid && vcupara_sram_rvalid_delay) begin
+    if ((stream_reduce_opcode || stream_ewise_opcode || stream_pair_fuse_opcode) && vcu_execute_vcupara_sram_valid && vcupara_sram_rvalid_delay) begin
       stream_vcupara_rdata_reg     <= vcupara_rdata;
       stream_vcupara_rdata_valid_d <= 1'b1;
     end
 
-    if ((stream_reduce_opcode || stream_ewise_opcode) && stream_input_rvalid_delay) begin
+    if ((stream_reduce_opcode || stream_ewise_opcode || stream_pair_fuse_opcode) && stream_input_rvalid_delay) begin
       stream_psum_first_d <= acc_clear && (stream_recv_cnt == 0);
       stream_psum_last_d  <= (stream_recv_cnt == num_data);
       stream_recv_cnt     <= stream_recv_cnt + 1'b1;
@@ -1670,11 +1690,38 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    stream_opcode_second_pending  <= 1'b0;
+    stream_opcode_second_done_reg <= 1'b0;
+  end
+  else if (!vcu_execute_start || vcu_execute_real_done) begin
+    stream_opcode_second_pending  <= 1'b0;
+    stream_opcode_second_done_reg <= 1'b0;
+  end
+  else begin
+    if ((current_state != STREAM_OPCODE_PREPARE) && (next_state == STREAM_OPCODE_PREPARE)) begin
+      stream_opcode_second_pending  <= 1'b0;
+      stream_opcode_second_done_reg <= 1'b0;
+    end
+    else if (stream_opcode_second_read_en) begin
+      stream_opcode_second_pending <= 1'b1;
+    end
+    else if (stream_opcode_second_done) begin
+      stream_opcode_second_pending  <= 1'b0;
+      stream_opcode_second_done_reg <= 1'b1;
+    end
+  end
+end
+
 //address update--------------------------------------------------------------------
-assign stream_reduce_opcode = stream_en && ((vcucode_rdata_reg[5:0] == REDUCE_SUM) ||
-                                                   (vcucode_rdata_reg[5:0] == REDUCE_MAX) ||
-                                                   (vcucode_rdata_reg[5:0] == REDUCE_MIN));
-assign stream_fpu_opcode = (vcucode_rdata_reg[5:0] == ADD) || (vcucode_rdata_reg[5:0] == MUL) || (vcucode_rdata_reg[5:0] == FMA) ||
+assign stream_reduce_opcode_0 = (vcucode_rdata_reg[5:0] == REDUCE_SUM) ||
+                                (vcucode_rdata_reg[5:0] == REDUCE_MAX) ||
+                                (vcucode_rdata_reg[5:0] == REDUCE_MIN);
+assign stream_reduce_opcode_1 = (stream_reduce_opcode_reg[5:0] == REDUCE_SUM) ||
+                                (stream_reduce_opcode_reg[5:0] == REDUCE_MAX) ||
+                                (stream_reduce_opcode_reg[5:0] == REDUCE_MIN);
+assign stream_fpu_opcode_0 = (vcucode_rdata_reg[5:0] == ADD) || (vcucode_rdata_reg[5:0] == MUL) || (vcucode_rdata_reg[5:0] == FMA) ||
                            (vcucode_rdata_reg[5:0] == COMP_GEQ) || (vcucode_rdata_reg[5:0] == COMP_LES) ||
                            (vcucode_rdata_reg[5:0] == COMP_GRE) || (vcucode_rdata_reg[5:0] == COMP_LEQ) ||
                            (vcucode_rdata_reg[5:0] == DIV) || (vcucode_rdata_reg[5:0] == SQRT) ||
@@ -1683,13 +1730,20 @@ assign stream_fpu_opcode = (vcucode_rdata_reg[5:0] == ADD) || (vcucode_rdata_reg
                            (vcucode_rdata_reg[5:0] == MUL_CONST) || (vcucode_rdata_reg[5:0] == DIV_CONST) ||
                            (vcucode_rdata_reg[5:0] == INV) || (vcucode_rdata_reg[5:0] == ABS) ||
                            (vcucode_rdata_reg[5:0] == FSIWSH) || (vcucode_rdata_reg[5:0] == FGELU);
-assign stream_ewise_opcode = stream_en && stream_fpu_opcode && !stream_reduce_opcode;
+assign stream_pair_ewise_opcode_0 = (vcucode_rdata_reg[5:0] == MUL) ||
+                                    (vcucode_rdata_reg[5:0] == INV) ||
+                                    (vcucode_rdata_reg[5:0] == ABS);
+assign stream_fpu_opcode = stream_fpu_opcode_0;
+assign stream_pair_fuse_opcode = stream_en && stream_opcode_second_done_reg && stream_pair_ewise_opcode_0 && stream_reduce_opcode_1;
+assign stream_reduce_opcode = stream_en && !stream_pair_fuse_opcode && stream_reduce_opcode_0;
+assign stream_ewise_opcode = stream_en && !stream_pair_fuse_opcode && stream_fpu_opcode && !stream_reduce_opcode_0;
 assign stream_compute_done = stream_recv_done && stream_reduce_done;
 assign compute_done = stream_reduce_opcode ? stream_compute_done :
+                      stream_pair_fuse_opcode ? stream_compute_done :
                       stream_ewise_opcode ? stream_ewise_execute_done :
                       operator_compute_done;
 assign fpu_done = stream_execute_done || stream_ewise_execute_done || (compute_done & (operator_count == opcode_number - 1));
-assign stream_execute_done = stream_reduce_opcode && stream_compute_done;
+assign stream_execute_done = (stream_reduce_opcode || stream_pair_fuse_opcode) && stream_compute_done;
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     loop_sign_reg <= 'd0;
@@ -1961,9 +2015,20 @@ end
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     vcucode_rdata_reg <= 'd0;
+    stream_reduce_opcode_reg <= 'd0;
   end
   else begin
-    if( ((current_state != COMPUTE) && (next_state == COMPUTE)) || stream_opcode_prepare_done )
+    if (stream_opcode_second_done) begin
+      stream_reduce_opcode_reg <= vcucode_rdata;
+    end
+    else if (done) begin
+      stream_reduce_opcode_reg <= 'd0;
+    end
+    else begin
+      stream_reduce_opcode_reg <= stream_reduce_opcode_reg;
+    end
+
+    if( ((current_state != COMPUTE) && (next_state == COMPUTE)) || stream_opcode_first_done )
       vcucode_rdata_reg <= vcucode_rdata;
     else if ( done )
       vcucode_rdata_reg <= 'd0;
@@ -1978,10 +2043,14 @@ assign compute_valid = (current_state != COMPUTE) & (next_state == COMPUTE);
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     stream_ewise_valid_d <= 'd0;
+    stream_ewise_first_d <= 1'b0;
+    stream_ewise_last_d  <= 1'b0;
     para_compute_in_d    <= 'd0;
   end
   else begin
     stream_ewise_valid_d <= stream_ewise_valid;
+    stream_ewise_first_d <= stream_psum_first_d;
+    stream_ewise_last_d  <= stream_psum_last_d;
     para_compute_in_d    <= para_compute_in;
 
   end
@@ -2007,6 +2076,10 @@ operator u_operator(
   .stream_reduce_out           ( stream_reduce_out               ),
   .stream_ewise_valid          ( stream_ewise_valid_d            ),
   .stream_ewise_opcode         ( vcucode_rdata_reg[5:0]          ),
+  .stream_ewise_reduce         ( stream_pair_fuse_opcode          ),
+  .stream_ewise_reduce_opcode  ( stream_reduce_opcode_reg         ),
+  .stream_ewise_first          ( stream_ewise_first_d             ),
+  .stream_ewise_last           ( stream_ewise_last_d              ),
   .stream_ewise_psum_data      ( psum_compute_in                 ),
   .stream_ewise_ifmap_data     ( ifmap_compute_in                ),
   .stream_ewise_resadd_data    ( resadd_compute_in               ),

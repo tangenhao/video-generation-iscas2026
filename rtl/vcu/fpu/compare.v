@@ -7,7 +7,7 @@ module compare(
   input  [15 : 0] op4,   
   input  [5:0] operation,
   input valid,
-  output [15 : 0] data_out,
+  output reg [15 : 0] data_out,
   output reg done   
 );
 
@@ -82,7 +82,28 @@ assign smaller = a_less_b    ? op3 : op4;
 assign bigger_eq = (a_greater_b | a_equal_b) ? op3 : op4;
 assign smaller_eq = (a_less_b | a_equal_b) ? op3 : op4;
 
-assign data_out = ({16{operation == COMP_GEQ}} & bigger_eq) | ({16{operation == COMP_LES}} & smaller) | 
-                  ({16{operation == COMP_GRE}} & bigger) | ({16{operation == COMP_LEQ}} & smaller_eq);
+// assign data_out = ({16{operation == COMP_GEQ}} & bigger_eq) | ({16{operation == COMP_LES}} & smaller) | 
+//                   ({16{operation == COMP_GRE}} & bigger) | ({16{operation == COMP_LEQ}} & smaller_eq);
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    data_out <= 'd0;
+  end
+  else if(operation == COMP_GEQ)begin 
+    data_out <= bigger_eq;
+  end
+  else if(operation == COMP_LES)begin 
+    data_out <= smaller;
+  end
+  else if(operation == COMP_GRE)begin 
+    data_out <= bigger;
+  end
+  else if(operation == COMP_LEQ)begin 
+    data_out <= smaller_eq;
+  end
+  else begin
+    data_out <= 'd0;
+  end
+end
     
 endmodule

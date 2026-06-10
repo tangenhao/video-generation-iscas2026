@@ -6,3 +6,5 @@ endfunction()
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/exe)
 
 compile(test_quant)
+compile(test_quant_fuse_mode)
+compile(test_mul_reducesum_pipeline_fuse)
