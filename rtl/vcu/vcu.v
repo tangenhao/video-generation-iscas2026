@@ -4,11 +4,13 @@ module vcu(
   work_en, insn, insn_read, done,
 
   psum_rvalid, psum_raddr, psum_rdata,
+  psum_1_rvalid, psum_1_raddr, psum_1_rdata,
   ifmap_rvalid, ifmap_raddr, ifmap_rdata,
   vcures_rvalid, vcures_raddr, vcures_rdata,
   vcupara_rvalid, vcupara_raddr, vcupara_rdata,
 
   psum_wvalid, psum_waddr, psum_wdata,
+  psum_1_wvalid, psum_1_waddr, psum_1_wdata,
   vcucode_wvalid, vcucode_waddr, vcucode_wdata,
   vculut_wvalid, vculut_waddr, vculut_wdata,
   ofmap_wvalid, ofmap_waddr, ofmap_wdata,
@@ -34,9 +36,9 @@ parameter PSUM_ADDR_BITS    = 9;
 parameter IFMAP_ADDR_BITS   = 9;
 parameter VCUPARA_ADDR_BITS = 9;
 parameter VCURES_ADDR_BITS  = 9; 
-parameter OFMAP_ADDR_BITS   = 12;
-parameter QACT_ADDR_BITS    = OFMAP_ADDR_BITS;
-parameter SCALE_ADDR_BITS   = 14;
+parameter OFMAP_ADDR_BITS   = 8;
+parameter QACT_ADDR_BITS    = 9;
+parameter SCALE_ADDR_BITS   = 9;
 parameter VCUCODE_ADDR_BITS = 7;
 parameter VCULUT_ADDR_BITS  = 9;
 
@@ -84,6 +86,12 @@ localparam FGELU = 6'b100110;
 localparam COMP_GRE = 6'b101011;
 localparam COMP_LEQ = 6'b101100;
 
+localparam SRC_PSUM   = 7'b1000000;
+localparam SRC_RESADD = 7'b1000001;
+localparam SRC_PARA   = 7'b1000010;
+localparam SRC_IFMAP  = 7'b1000011;
+localparam SRC_PSUM_1 = 7'b1000100;
+
 input                                clk;
 input                                rst_n;
 
@@ -94,6 +102,10 @@ output reg   [OFMAP_WIDTH-1:0]       ofmap_wdata;
 output reg                           psum_rvalid;
 output reg   [PSUM_ADDR_BITS-1:0]    psum_raddr;
 input        [PSUM_WIDTH-1:0]        psum_rdata;
+
+output reg                           psum_1_rvalid;
+output reg   [PSUM_ADDR_BITS-1:0]    psum_1_raddr;
+input        [PSUM_WIDTH-1:0]        psum_1_rdata;
 
 output reg                           ifmap_rvalid;
 output reg   [IFMAP_ADDR_BITS-1:0]   ifmap_raddr;
@@ -114,6 +126,10 @@ input        [VCUCODE_WIDTH-1:0]     vcucode_wdata;
 output reg                           psum_wvalid;
 output reg   [PSUM_ADDR_BITS-1:0]    psum_waddr;
 output reg   [PSUM_WIDTH-1:0]        psum_wdata;
+
+output reg                           psum_1_wvalid;
+output reg   [PSUM_ADDR_BITS-1:0]    psum_1_waddr;
+output reg   [PSUM_WIDTH-1:0]        psum_1_wdata;
 
 input                                vculut_wvalid;
 input        [VCULUT_ADDR_BITS-1:0]  vculut_waddr;
@@ -157,11 +173,11 @@ reg [2:0]	  data_out_type;
 reg [1:0]   data_out_ram;
 reg [6:0]	  opcode_number;
 reg [6:0]	  opcode_addr;
-reg [13:0]  psum_in_addr;
-reg [8:0]   ifmap_in_addr;
-reg [5:0]   para_in_addr;
-reg [12:0]  resadd_in_addr;
-reg [13:0]  ram_out_addr;
+reg [PSUM_ADDR_BITS-1:0]    psum_in_addr;
+reg [IFMAP_ADDR_BITS-1:0]   ifmap_in_addr;
+reg [VCUPARA_ADDR_BITS-1:0] para_in_addr;
+reg [VCURES_ADDR_BITS-1:0]  resadd_in_addr;
+reg [7:0]                   ram_out_addr;
 reg [14:0]  num_data;
 reg [8:0]   oc_group; // if add 1 is 5bit
 reg [1:0]	  para_func;
@@ -170,13 +186,14 @@ wire [13:0] ram_out_addr_wire;
 reg         psum_addr_hop;
 reg         acc_clear;
 reg         stream_en;
+reg         s2p_32_en;
+reg         vcu_execute_psum_1_sram_valid;
+reg [PSUM_ADDR_BITS-1:0] psum_1_in_addr;
 
 
 wire  [DATA_WIDTH*PARALLELISM-1:0] psum_16b;
 wire  [DATA_WIDTH*PARALLELISM-1:0] ifmap_16b;
 wire  [DATA_WIDTH*PARALLELISM-1:0] resadd_16b;
-wire  [DATA_WIDTH*PARALLELISM-1:0] resadd_8b;
-wire  [DATA_WIDTH*PARALLELISM-1:0] resadd_4b;
 
 wire  [DATA_WIDTH*PARALLELISM-1:0] psum_format_tran_in;
 wire  [DATA_WIDTH*PARALLELISM-1:0] ifmap_format_tran_in;
@@ -186,12 +203,11 @@ wire  [DATA_WIDTH*PARALLELISM-1:0] psum_int2fp32_out;
 wire  [DATA_WIDTH*PARALLELISM-1:0] psum_fp_to_fp32_out;
 wire  [DATA_WIDTH*PARALLELISM-1:0] ifmap_int2fp32_out;
 wire  [DATA_WIDTH*PARALLELISM-1:0] ifmap_fp_to_fp32_out;
-wire  [DATA_WIDTH*PARALLELISM-1:0] ifmap_unused_int2fp32_out;
-wire  [DATA_WIDTH*PARALLELISM-1:0] ifmap_unused_fp_to_fp32_out;
 wire  [DATA_WIDTH*PARALLELISM-1:0] resadd_int2fp32_out;
 wire  [DATA_WIDTH*PARALLELISM-1:0] resadd_fp_to_fp32_out;
 
 wire  [DATA_WIDTH*PARALLELISM-1:0] psum_compute_in;
+wire  [DATA_WIDTH*PARALLELISM-1:0] psum_1_compute_in;
 wire  [DATA_WIDTH*PARALLELISM-1:0] ifmap_compute_in;
 wire  [DATA_WIDTH*PARALLELISM-1:0] resadd_compute_in;
 wire  [DATA_WIDTH*PARALLELISM-1:0] para_compute_in;
@@ -235,6 +251,7 @@ wire      stream_reduce_data_valid_d;
 wire      stream_ewise_has_sram_source;
 wire      stream_ewise_data_valid_d;
 wire      stream_ewise_input_rvalid_delay;
+wire      stream_reduce_input_rvalid_delay;
 wire      stream_input_rvalid_delay;
 wire      stream_opcode_first_done;
 wire      stream_opcode_second_done;
@@ -243,6 +260,7 @@ wire      stream_opcode_second_read_en;
 
 wire ram_read_en;
 reg  psum_rvalid_done;
+reg  psum_1_rvalid_done;
 reg  ifmap_rvalid_done;
 reg  vcures_rvalid_done;
 reg  vcupara_rvalid_done;
@@ -264,12 +282,15 @@ reg vcu_execute_vcures_sram_valid;
 reg vcu_execute_vcupara_sram_valid;
 
 reg vcu_execute_psum_sram_rdata_valid;
+reg vcu_execute_psum_1_sram_rdata_valid;
 reg vcu_execute_ifmap_sram_rdata_valid;
 reg vcu_execute_vcures_sram_rdata_valid;
 reg vcu_execute_vcupara_sram_rdata_valid;
 
 reg psum_sram_rvalid_delay;
 reg psum_sram_rvalid_delay_1;
+reg psum_1_sram_rvalid_delay;
+reg psum_1_sram_rvalid_delay_1;
 reg ifmap_sram_rvalid_delay;
 reg vcures_sram_rvalid_delay;
 reg vcupara_sram_rvalid_delay;
@@ -281,6 +302,7 @@ reg  [VCUCODE_ADDR_BITS-1:0] end_addr_reg;
 reg  [VCUCODE_ADDR_BITS-1:0] loop_address_reg;
 
 reg [PSUM_WIDTH-1:0]     vcu_execute_psum_rdata_reg;
+reg [PSUM_WIDTH-1:0]     vcu_execute_psum_1_rdata_reg;
 reg [IFMAP_WIDTH-1:0]    ifmap_rdata_reg;
 reg [VCUPARA_WIDTH-1:0]  vcupara_rdata_reg;
 reg [VCURES_WIDTH-1:0]   vcures_rdata_reg;
@@ -313,6 +335,9 @@ wire [PSUM_ADDR_BITS-1:0] vcu_execute_psum_sram_raddr_wire;
 wire                      vcu_execute_psum_sram_wvalid;
 wire [PSUM_ADDR_BITS-1:0] vcu_execute_psum_sram_waddr;
 wire [PSUM_WIDTH-1:0]     vcu_execute_psum_sram_wdata;
+wire                      vcu_execute_psum_1_sram_wvalid;
+wire [PSUM_ADDR_BITS-1:0] vcu_execute_psum_1_sram_waddr;
+wire [PSUM_WIDTH-1:0]     vcu_execute_psum_1_sram_wdata;
 
 wire                       vcu_execute_ofmap_sram_wvalid;
 wire [OFMAP_ADDR_BITS-1:0] vcu_execute_ofmap_sram_waddr;
@@ -339,6 +364,8 @@ reg        stream_ewise_first_d;
 reg        stream_ewise_last_d;
 reg [PSUM_WIDTH-1:0] stream_psum_rdata_reg;
 reg        stream_psum_rdata_valid_d;
+reg [PSUM_WIDTH-1:0] stream_psum_1_rdata_reg;
+reg        stream_psum_1_rdata_valid_d;
 reg        stream_psum_first_d;
 reg        stream_psum_last_d;
 reg [IFMAP_WIDTH-1:0] stream_ifmap_rdata_reg;
@@ -360,6 +387,7 @@ wire       stream_ewise_done;
 wire [DATA_WIDTH*PARALLELISM-1:0] stream_ewise_out;
 wire       stream_opcode_prepare_done;
 wire       stream_reduce_done;
+wire [6:0] stream_reduce_source;
 wire [DATA_WIDTH*PARALLELISM-1:0] stream_reduce_data;
 wire [DATA_WIDTH*PARALLELISM-1:0] stream_reduce_out;
 
@@ -503,6 +531,71 @@ end
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
+    psum_1_rvalid <= 1'b0;
+  end
+  else begin
+    if (vcu_execute_start && (!fake_done)) begin
+      if (stream_read_fire && vcu_execute_psum_1_sram_valid) begin
+        psum_1_rvalid <= 1'b1;
+      end
+      else if (ram_read_en && vcu_execute_psum_1_sram_valid && !stream_en) begin
+        psum_1_rvalid <= 1'b1;
+      end
+      else if (psum_1_rvalid) begin
+        psum_1_rvalid <= 'd0;
+      end
+      else if (data_prepare_done) begin
+        psum_1_rvalid <= 'd0;
+      end
+      else begin
+        psum_1_rvalid <= psum_1_rvalid;
+      end
+    end
+    else begin
+      psum_1_rvalid <= 1'b0;
+    end
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    psum_1_raddr <= 0;
+  end
+  else begin
+    if (vcu_execute_start && (!fake_done)) begin
+      if (idle_insn_read_done) begin
+        psum_1_raddr <= psum_1_in_addr;
+      end
+      else if (stream_read_fire && vcu_execute_psum_1_sram_valid) begin
+        psum_1_raddr <= psum_1_in_addr + stream_read_cnt;
+      end
+      else if (next_state == CHANGE_PARA) begin
+        if (change_para) begin
+          psum_1_raddr <= psum_1_raddr + psum_1_in_addr;
+        end
+        else if (read_cross_ocgroup) begin
+          if (vcu_execute_psum_1_sram_valid && read_cross_ocgroup_flag) begin
+            psum_1_raddr <= vcu_execute_psum_sram_raddr_wire + num_data + psum_1_in_addr;
+          end
+          else if (vcu_execute_psum_1_sram_valid) begin
+            psum_1_raddr <= vcu_execute_psum_sram_raddr_wire - 1 + psum_1_in_addr;
+          end
+        end
+      end
+      else begin
+        if (psum_1_rvalid && vcu_execute_psum_1_sram_valid) begin
+          psum_1_raddr <= vcu_execute_psum_sram_raddr_wire + psum_1_in_addr;
+        end
+      end
+    end
+    else begin
+      psum_1_raddr <= 0;
+    end
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
     psum_wvalid <= 1'b0;
     psum_waddr  <= 0;
     psum_wdata  <= 0;
@@ -522,6 +615,26 @@ always @(posedge clk or negedge rst_n) begin
       psum_wvalid <= 1'b0;
       psum_waddr  <= 0;
       psum_wdata  <= 0;
+    end
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    psum_1_wvalid <= 1'b0;
+    psum_1_waddr  <= 0;
+    psum_1_wdata  <= 0;
+  end
+  else begin
+    if (vcu_execute_start) begin
+      psum_1_wvalid <= vcu_execute_psum_1_sram_wvalid;
+      psum_1_waddr  <= vcu_execute_psum_1_sram_waddr;
+      psum_1_wdata  <= vcu_execute_psum_1_sram_wdata;
+    end
+    else begin
+      psum_1_wvalid <= 1'b0;
+      psum_1_waddr  <= 0;
+      psum_1_wdata  <= 0;
     end
   end
 end
@@ -856,7 +969,10 @@ always @(posedge clk or negedge rst_n) begin
     vcu_execute_vcupara_sram_valid <= 1'b0;
     psum_addr_hop                  <= 1'b0;
     acc_clear                      <= 1'b0;
-    stream_en               <= 1'b0;
+    stream_en                      <= 1'b0;
+    s2p_32_en                      <= 1'b0;
+    vcu_execute_psum_1_sram_valid  <= 1'b0;
+    psum_1_in_addr                 <= 'd0;
   end
   else begin
     if (insn_valid_reg && insn_reg[13:10] == VCU_EXECUTE_INSN) begin 
@@ -866,21 +982,24 @@ always @(posedge clk or negedge rst_n) begin
       data_out_ram                   <= insn_reg[24:23];
       opcode_number                  <= insn_reg[31:25];  //real = +1 limit_line= -1 
       opcode_addr                    <= insn_reg[38:32];
-      psum_in_addr                   <= insn_reg[52:39];
-      ifmap_in_addr                  <= insn_reg[125:117];
-      para_in_addr                   <= insn_reg[58:53];
-      resadd_in_addr                 <= insn_reg[71:59];
-      ram_out_addr                   <= insn_reg[85:72];
-      num_data                       <= insn_reg[99:86];  //real = +1 limit_line= -1 
-      oc_group                       <= insn_reg[107:100];  //real = +1 limit_line= -1 
-      para_func                      <= insn_reg[109:108];  //real = +1 limit_line= -1
-      vcu_execute_psum_sram_valid    <= insn_reg[110];
-      vcu_execute_vcures_sram_valid  <= insn_reg[111];
-      vcu_execute_vcupara_sram_valid <= insn_reg[112];
-      psum_addr_hop                  <= insn_reg[113];
-      acc_clear                      <= insn_reg[114];
-      stream_en               <= insn_reg[115];
-      vcu_execute_ifmap_sram_valid   <= insn_reg[116];
+      psum_in_addr                   <= insn_reg[47:39];
+      para_in_addr                   <= insn_reg[56:48];
+      resadd_in_addr                 <= insn_reg[65:57];
+      ram_out_addr                   <= insn_reg[73:66];
+      num_data                       <= insn_reg[87:74];  //real = +1 limit_line= -1
+      oc_group                       <= insn_reg[95:88];  //real = +1 limit_line= -1
+      para_func                      <= insn_reg[97:96];  //real = +1 limit_line= -1
+      vcu_execute_psum_sram_valid    <= insn_reg[98];
+      vcu_execute_vcures_sram_valid  <= insn_reg[99];
+      vcu_execute_vcupara_sram_valid <= insn_reg[100];
+      psum_addr_hop                  <= insn_reg[101];
+      acc_clear                      <= insn_reg[102];
+      stream_en                      <= insn_reg[103];
+      vcu_execute_ifmap_sram_valid   <= insn_reg[104];
+      ifmap_in_addr                  <= insn_reg[113:105];
+      s2p_32_en                      <= insn_reg[114];
+      vcu_execute_psum_1_sram_valid  <= insn_reg[115];
+      psum_1_in_addr                 <= insn_reg[124:116];
       idle_insn_read_done            <= 1'b1;
       vcu_execute_start              <= 1'b1;
     end
@@ -907,7 +1026,10 @@ always @(posedge clk or negedge rst_n) begin
       vcu_execute_vcupara_sram_valid <= 1'b0;
       psum_addr_hop                  <= 1'b0;
       acc_clear                      <= 1'b0;
-      stream_en               <= 1'b0;
+      stream_en                      <= 1'b0;
+      s2p_32_en                      <= 1'b0;
+      vcu_execute_psum_1_sram_valid  <= 1'b0;
+      psum_1_in_addr                 <= 'd0;
     end
     else begin
       psum_data_type                 <= psum_data_type;
@@ -932,7 +1054,10 @@ always @(posedge clk or negedge rst_n) begin
       vcu_execute_vcupara_sram_valid <= vcu_execute_vcupara_sram_valid;
       psum_addr_hop                  <= psum_addr_hop;
       acc_clear                      <= acc_clear;
-      stream_en               <= stream_en;
+      stream_en                      <= stream_en;
+      s2p_32_en                      <= s2p_32_en;
+      vcu_execute_psum_1_sram_valid  <= vcu_execute_psum_1_sram_valid;
+      psum_1_in_addr                 <= psum_1_in_addr;
     end
   end
 end
@@ -1291,13 +1416,16 @@ end
 // data_initialization --------------------------------------------------------------------------
 
 assign psum_compute_in    = vcu_execute_psum_rdata_reg;
+assign psum_1_compute_in  = vcu_execute_psum_1_rdata_reg;
 assign ifmap_compute_in   = ifmap_rdata_reg;
 assign resadd_compute_in  = vcures_rdata_reg;
 assign para_compute_in    = (stream_ewise_opcode || stream_pair_fuse_opcode) ? stream_vcupara_rdata_reg : vcupara_rdata_reg;
-assign stream_reduce_data = (vcu_execute_psum_sram_valid   ) ? psum_compute_in   :
-                            (vcu_execute_vcures_sram_valid ) ? resadd_compute_in : 
-                            (vcu_execute_vcupara_sram_valid) ? para_compute_in   : 
-                            (vcu_execute_ifmap_sram_valid  ) ? ifmap_compute_in   :'d0;
+assign stream_reduce_source = vcucode_rdata_reg[12:6];
+assign stream_reduce_data = (stream_reduce_source == SRC_PSUM  ) ? psum_compute_in   :
+                            (stream_reduce_source == SRC_PSUM_1) ? psum_1_compute_in :
+                            (stream_reduce_source == SRC_RESADD) ? resadd_compute_in :
+                            (stream_reduce_source == SRC_PARA  ) ? para_compute_in   :
+                            (stream_reduce_source == SRC_IFMAP ) ? ifmap_compute_in  : 'd0;
 
 
 // result unification---------------------------------------------------------------------------------------------
@@ -1453,26 +1581,31 @@ end
 assign ram_read_en = (current_state !=DATA_PREPARE) & (next_state==DATA_PREPARE); 
 assign stream_read_fire = (current_state == STREAM_READ) && (stream_read_cnt <= num_data);
 assign stream_read_done = (current_state == STREAM_READ) && (stream_read_cnt == num_data + 1'b1);
-assign stream_reduce_data_valid_d = (vcu_execute_psum_sram_valid && stream_psum_rdata_valid_d) ||
-                                    (!vcu_execute_psum_sram_valid && vcu_execute_vcures_sram_valid && stream_vcures_rdata_valid_d) ||
-                                    (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && vcu_execute_vcupara_sram_valid && stream_vcupara_rdata_valid_d) ||
-                                    (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && !vcu_execute_vcupara_sram_valid && vcu_execute_ifmap_sram_valid && stream_ifmap_rdata_valid_d);
-assign stream_ewise_has_sram_source = vcu_execute_psum_sram_valid || vcu_execute_ifmap_sram_valid ||
+assign stream_reduce_data_valid_d = ((stream_reduce_source == SRC_PSUM)   && vcu_execute_psum_sram_valid    && stream_psum_rdata_valid_d) ||
+                                    ((stream_reduce_source == SRC_PSUM_1) && vcu_execute_psum_1_sram_valid  && stream_psum_1_rdata_valid_d) ||
+                                    ((stream_reduce_source == SRC_RESADD) && vcu_execute_vcures_sram_valid  && stream_vcures_rdata_valid_d) ||
+                                    ((stream_reduce_source == SRC_PARA)   && vcu_execute_vcupara_sram_valid && stream_vcupara_rdata_valid_d) ||
+                                    ((stream_reduce_source == SRC_IFMAP)  && vcu_execute_ifmap_sram_valid   && stream_ifmap_rdata_valid_d);
+assign stream_ewise_has_sram_source = vcu_execute_psum_1_sram_valid || vcu_execute_psum_sram_valid || vcu_execute_ifmap_sram_valid ||
                                       vcu_execute_vcures_sram_valid || vcu_execute_vcupara_sram_valid;
 assign stream_ewise_data_valid_d = stream_ewise_has_sram_source &&
+                                   (!vcu_execute_psum_1_sram_valid || stream_psum_1_rdata_valid_d) &&
                                    (!vcu_execute_psum_sram_valid || stream_psum_rdata_valid_d) &&
                                    (!vcu_execute_ifmap_sram_valid || stream_ifmap_rdata_valid_d) &&
                                    (!vcu_execute_vcures_sram_valid || stream_vcures_rdata_valid_d) &&
                                    (!vcu_execute_vcupara_sram_valid || stream_vcupara_rdata_valid_d);
-assign stream_ewise_input_rvalid_delay = (vcu_execute_psum_sram_valid && psum_sram_rvalid_delay) ||
+assign stream_ewise_input_rvalid_delay = (vcu_execute_psum_1_sram_valid && psum_1_sram_rvalid_delay) ||
+                                         (vcu_execute_psum_sram_valid && psum_sram_rvalid_delay) ||
                                          (vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay) ||
                                          (vcu_execute_vcures_sram_valid && vcures_sram_rvalid_delay) ||
                                          (vcu_execute_vcupara_sram_valid && vcupara_sram_rvalid_delay);
-assign stream_input_rvalid_delay = stream_reduce_opcode ? ((vcu_execute_psum_sram_valid && psum_sram_rvalid_delay) ||
-                                                           (!vcu_execute_psum_sram_valid && vcu_execute_vcures_sram_valid && vcures_sram_rvalid_delay) ||
-                                                           (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && vcu_execute_vcupara_sram_valid && vcupara_sram_rvalid_delay) ||
-                                                           (!vcu_execute_psum_sram_valid && !vcu_execute_vcures_sram_valid && !vcu_execute_vcupara_sram_valid && vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay)) :
-                                  stream_ewise_input_rvalid_delay;
+assign stream_reduce_input_rvalid_delay = ((stream_reduce_source == SRC_PSUM)   && vcu_execute_psum_sram_valid    && psum_sram_rvalid_delay) ||
+                                          ((stream_reduce_source == SRC_PSUM_1) && vcu_execute_psum_1_sram_valid  && psum_1_sram_rvalid_delay) ||
+                                          ((stream_reduce_source == SRC_RESADD) && vcu_execute_vcures_sram_valid  && vcures_sram_rvalid_delay) ||
+                                          ((stream_reduce_source == SRC_PARA)   && vcu_execute_vcupara_sram_valid && vcupara_sram_rvalid_delay) ||
+                                          ((stream_reduce_source == SRC_IFMAP)  && vcu_execute_ifmap_sram_valid   && ifmap_sram_rvalid_delay);
+assign stream_input_rvalid_delay = stream_reduce_opcode ? stream_reduce_input_rvalid_delay :
+                                                          stream_ewise_input_rvalid_delay;
 assign stream_recv_done = (stream_reduce_opcode || stream_pair_fuse_opcode) && (stream_recv_cnt == num_data + 1'b1);
 assign stream_ewise_valid = (stream_ewise_opcode || stream_pair_fuse_opcode) && stream_ewise_data_valid_d;
 // stream_ewise_done can return after the current decoded opcode gate changes.
@@ -1486,6 +1619,7 @@ assign stream_opcode_second_read_en = stream_opcode_first_done && stream_opcode_
 assign stream_opcode_prepare_done = stream_opcode_need_second ? stream_opcode_second_done :
                                                                ((current_state == STREAM_OPCODE_PREPARE) && vcucode_rvalid_done);
 assign data_prepare_done = (((psum_rvalid_done && vcu_execute_psum_sram_valid) || (!vcu_execute_psum_sram_valid)) || (stream_en && stream_result_valid)) &&
+                           (((psum_1_rvalid_done && vcu_execute_psum_1_sram_valid) || (!vcu_execute_psum_1_sram_valid)) || (stream_en && stream_result_valid)) &&
                            ((ifmap_rvalid_done && vcu_execute_ifmap_sram_valid) || !(vcu_execute_ifmap_sram_valid)) &&
                            ((vcures_rvalid_done && vcu_execute_vcures_sram_valid) || !(vcu_execute_vcures_sram_valid)) &&
                            ((vcupara_rvalid_done && vcu_execute_vcupara_sram_valid) || (!vcu_execute_vcupara_sram_valid)) && vcucode_rvalid_done;
@@ -1504,6 +1638,8 @@ always @(posedge clk or negedge rst_n) begin
     stream_reduce_last     <= 1'b0;
     stream_psum_rdata_reg  <= 'd0;
     stream_psum_rdata_valid_d <= 1'b0;
+    stream_psum_1_rdata_reg  <= 'd0;
+    stream_psum_1_rdata_valid_d <= 1'b0;
     stream_psum_first_d    <= 1'b0;
     stream_psum_last_d     <= 1'b0;
     stream_ifmap_rdata_reg <= 'd0;
@@ -1524,6 +1660,8 @@ always @(posedge clk or negedge rst_n) begin
     stream_reduce_last     <= 1'b0;
     stream_psum_rdata_reg  <= 'd0;
     stream_psum_rdata_valid_d <= 1'b0;
+    stream_psum_1_rdata_reg  <= 'd0;
+    stream_psum_1_rdata_valid_d <= 1'b0;
     stream_psum_first_d    <= 1'b0;
     stream_psum_last_d     <= 1'b0;
     stream_ifmap_rdata_reg <= 'd0;
@@ -1541,6 +1679,7 @@ always @(posedge clk or negedge rst_n) begin
     stream_reduce_first <= stream_psum_first_d;
     stream_reduce_last  <= stream_psum_last_d;
     stream_psum_rdata_valid_d <= 1'b0;
+    stream_psum_1_rdata_valid_d <= 1'b0;
     stream_psum_first_d <= 1'b0;
     stream_psum_last_d  <= 1'b0;
     stream_ifmap_rdata_valid_d <= 1'b0;
@@ -1553,6 +1692,11 @@ always @(posedge clk or negedge rst_n) begin
     if ((stream_reduce_opcode || stream_ewise_opcode || stream_pair_fuse_opcode) && psum_sram_rvalid_delay) begin
       stream_psum_rdata_reg     <= psum_rdata;
       stream_psum_rdata_valid_d <= 1'b1;
+    end
+
+    if ((stream_reduce_opcode || stream_ewise_opcode || stream_pair_fuse_opcode) && vcu_execute_psum_1_sram_valid && psum_1_sram_rvalid_delay) begin
+      stream_psum_1_rdata_reg     <= psum_1_rdata;
+      stream_psum_1_rdata_valid_d <= 1'b1;
     end
 
     if ((stream_reduce_opcode || stream_ewise_opcode || stream_pair_fuse_opcode) && vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay) begin
@@ -1606,6 +1750,26 @@ always @(posedge clk or negedge rst_n) begin
     end
     else begin
       psum_rvalid_done <= psum_rvalid_done;
+    end
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    psum_1_rvalid_done <= 'd0;
+  end
+  else begin
+    if( ram_read_en && vcu_execute_psum_1_sram_valid ) begin
+      psum_1_rvalid_done <= 'd0;
+    end
+    else if (psum_1_rvalid) begin
+      psum_1_rvalid_done <= 'd1;
+    end
+    else if (data_prepare_done) begin
+      psum_1_rvalid_done <= 'd0;
+    end
+    else begin
+      psum_1_rvalid_done <= psum_1_rvalid_done;
     end
   end
 end
@@ -1931,6 +2095,8 @@ always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     psum_sram_rvalid_delay   <= 'd0;
     psum_sram_rvalid_delay_1 <= 'd0;
+    psum_1_sram_rvalid_delay   <= 'd0;
+    psum_1_sram_rvalid_delay_1 <= 'd0;
     ifmap_sram_rvalid_delay  <= 'd0;
     vcures_sram_rvalid_delay <= 'd0;
     vcupara_sram_rvalid_delay <= 'd0;
@@ -1938,6 +2104,8 @@ always @(posedge clk or negedge rst_n) begin
   else begin
     psum_sram_rvalid_delay   <= psum_rvalid;
     psum_sram_rvalid_delay_1 <= psum_sram_rvalid_delay;
+    psum_1_sram_rvalid_delay   <= psum_1_rvalid;
+    psum_1_sram_rvalid_delay_1 <= psum_1_sram_rvalid_delay;
     ifmap_sram_rvalid_delay  <= ifmap_rvalid;
     vcures_sram_rvalid_delay <= vcures_rvalid;
     vcupara_sram_rvalid_delay <= vcupara_rvalid;
@@ -1947,10 +2115,12 @@ end
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     vcu_execute_psum_rdata_reg           <= 'd0;
+    vcu_execute_psum_1_rdata_reg         <= 'd0;
     ifmap_rdata_reg                      <= 'd0;
     vcupara_rdata_reg                    <= 'd0;
     vcures_rdata_reg                     <= 'd0;
     vcu_execute_psum_sram_rdata_valid    <= 'd0;
+    vcu_execute_psum_1_sram_rdata_valid  <= 'd0;
     vcu_execute_ifmap_sram_rdata_valid   <= 'd0;
     vcu_execute_vcupara_sram_rdata_valid <= 'd0;
     vcu_execute_vcures_sram_rdata_valid  <= 'd0;
@@ -1962,6 +2132,13 @@ always @(posedge clk or negedge rst_n) begin
       end
       else begin
         vcu_execute_psum_sram_rdata_valid <= 1'd0;
+      end
+
+      if (vcu_execute_psum_1_sram_valid && psum_1_sram_rvalid_delay) begin
+        vcu_execute_psum_1_sram_rdata_valid <= 1'b1;
+      end
+      else begin
+        vcu_execute_psum_1_sram_rdata_valid <= 1'd0;
       end
 
       if (vcu_execute_ifmap_sram_valid && ifmap_sram_rvalid_delay) begin
@@ -1994,6 +2171,16 @@ always @(posedge clk or negedge rst_n) begin
     end
     else begin
       vcu_execute_psum_rdata_reg <= vcu_execute_psum_rdata_reg;
+    end
+
+    if (vcu_execute_psum_1_sram_rdata_valid && vcu_execute_psum_1_sram_valid) begin
+      vcu_execute_psum_1_rdata_reg <= psum_1_rdata;
+    end
+    else if (done) begin
+      vcu_execute_psum_1_rdata_reg <= 'd0;
+    end
+    else begin
+      vcu_execute_psum_1_rdata_reg <= vcu_execute_psum_1_rdata_reg;
     end
 
     if (vcu_execute_ifmap_sram_rdata_valid && vcu_execute_ifmap_sram_valid) begin
@@ -2081,6 +2268,7 @@ operator u_operator(
   .compute_valid               ( compute_valid                   ),
   .opcode                      ( vcucode_rdata_reg               ),
   .psum_data                   ( psum_compute_in                 ),
+  .psum_1_data                 ( psum_1_compute_in               ),
   .ifmap_data                  ( ifmap_compute_in                ),
   .resadd_data                 ( resadd_compute_in               ),
   .para_data                   ( vcupara_rdata_reg               ),
@@ -2099,6 +2287,7 @@ operator u_operator(
   .stream_ewise_first          ( stream_ewise_first_d             ),
   .stream_ewise_last           ( stream_ewise_last_d              ),
   .stream_ewise_psum_data      ( psum_compute_in                 ),
+  .stream_ewise_psum_1_data    ( psum_1_compute_in               ),
   .stream_ewise_ifmap_data     ( ifmap_compute_in                ),
   .stream_ewise_resadd_data    ( resadd_compute_in               ),
   .stream_ewise_para_data      ( para_compute_in_d               ),
@@ -2216,35 +2405,31 @@ assign vcu_execute_psum_sram_wdata = stream_ewise_write_fire ? vcu_out[PSUM_WIDT
                                                                write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 0 ? vcu_out_reg[PSUM_WIDTH-1:0] : {PSUM_WIDTH{1'b0}} :
                                                                data_out_ram == 0 ? vcu_out_reg[PSUM_WIDTH-1:0] : {PSUM_WIDTH{1'b0}};
 
-wire                        vcures_wvalid_t;
-wire [VCURES_ADDR_BITS-1:0] vcures_waddr_t;
-wire [VCURES_WIDTH-1:0]     vcures_wdata_t;
+assign vcu_execute_psum_1_sram_wvalid = stream_ewise_write_fire ? (data_out_ram == 2) && (!real_data_out_int8) :
+                                                                 stream_ewise_opcode ? 1'b0 :
+                                                                 write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 && out_w_en && (!real_data_out_int8) :
+                                                                 data_out_ram == 2 && out_w_en && (!real_data_out_int8);
+assign vcu_execute_psum_1_sram_waddr = stream_ewise_write_fire ? stream_ewise_write_addr[PSUM_ADDR_BITS-1:0] :
+                                                                 stream_ewise_opcode ? {PSUM_ADDR_BITS{1'b0}} :
+                                                                 write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 ? ram_out_addr_reg[PSUM_ADDR_BITS-1:0] : {PSUM_ADDR_BITS{1'b0}} :
+                                                                 data_out_ram == 2 ? ram_out_addr_reg[PSUM_ADDR_BITS-1:0] : {PSUM_ADDR_BITS{1'b0}};
+assign vcu_execute_psum_1_sram_wdata = stream_ewise_write_fire ? vcu_out[PSUM_WIDTH-1:0] :
+                                                                 stream_ewise_opcode ? {PSUM_WIDTH{1'b0}} :
+                                                                 write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 ? vcu_out_reg[PSUM_WIDTH-1:0] : {PSUM_WIDTH{1'b0}} :
+                                                                 data_out_ram == 2 ? vcu_out_reg[PSUM_WIDTH-1:0] : {PSUM_WIDTH{1'b0}};
 
-assign vcures_wvalid_t = stream_ewise_write_fire ? (data_out_ram == 2) && (!real_data_out_int8) :
-                         stream_ewise_opcode ? 1'b0 :
-                         write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 && out_w_en && (!real_data_out_int8) :
-                         data_out_ram == 2 && out_w_en && (!real_data_out_int8);
-assign vcures_waddr_t  = stream_ewise_write_fire ? stream_ewise_write_addr[VCURES_ADDR_BITS-1:0] :
-                         stream_ewise_opcode ? {VCURES_ADDR_BITS{1'b0}} :
-                         write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 ? ram_out_addr_reg[VCURES_ADDR_BITS-1:0] : {VCURES_ADDR_BITS{1'b0}} :
-                         data_out_ram == 2 ? ram_out_addr_reg[VCURES_ADDR_BITS-1:0] : {VCURES_ADDR_BITS{1'b0}};
-assign vcures_wdata_t  = stream_ewise_write_fire ? vcu_out[VCURES_WIDTH-1:0] :
-                         stream_ewise_opcode ? {VCURES_WIDTH{1'b0}} :
-                         write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 ? vcu_out_reg[VCURES_WIDTH-1:0] : {VCURES_WIDTH{1'b0}} :
-                         data_out_ram == 2 ? vcu_out_reg[VCURES_WIDTH-1:0] : {VCURES_WIDTH{1'b0}};
-
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    vcures_wvalid <= 1'b0;
-    vcures_waddr  <= {VCURES_ADDR_BITS{1'b0}};
-    vcures_wdata  <= {VCURES_WIDTH{1'b0}};
-  end
-  else begin
-    vcures_wvalid <= vcures_wvalid_t;
-    vcures_waddr  <= vcures_waddr_t;
-    vcures_wdata  <= vcures_wdata_t;
-  end
-end
+// always @(posedge clk or negedge rst_n) begin
+//   if (!rst_n) begin
+//     vcures_wvalid <= 1'b0;
+//     vcures_waddr  <= {VCURES_ADDR_BITS{1'b0}};
+//     vcures_wdata  <= {VCURES_WIDTH{1'b0}};
+//   end
+//   else begin
+//     vcures_wvalid <= 1'b0;
+//     vcures_waddr  <= {VCURES_ADDR_BITS{1'b0}};
+//     vcures_wdata  <= {VCURES_WIDTH{1'b0}};
+//   end
+// end
 
 reg start_level;
 

@@ -78,7 +78,8 @@ enum SRC_REG
   psum_ram         = 0b1000000,  // psum
   resadd_ram       = 0b1000001,  // resadd
   para_ram         = 0b1000010,  // para
-  ifmap_ram        = 0b1000011   // ifmap
+  ifmap_ram        = 0b1000011,  // ifmap
+  psum_1_ram       = 0b1000100   // psum_1
 };
 
 uint64_t as_op(uint64_t operation, uint64_t src, uint64_t dst)
@@ -292,6 +293,8 @@ uint64_t src_decode(std::string src)
     return iteration_reg_15;
   if (src == "psum")
     return psum_ram;
+  if (src == "psum_1" || src == "psum1" || src == "psum_1_sram")
+    return psum_1_ram;
   if (src == "resadd")
     return resadd_ram;
   if (src == "para")

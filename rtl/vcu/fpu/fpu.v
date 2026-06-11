@@ -8,7 +8,7 @@ module fpu(
   add_op1, add_op2,
   mul_op1, mul_op2,
   fma_op1, fma_op2, fma_op3,
-  fast_func_op1, fast_func_op2,
+  fast_func_op1,
   srt16_op1, srt16_op2,
   comp_op1, comp_op2, comp_op3, comp_op4,
   bit_op1,
@@ -64,7 +64,6 @@ input [15:0] fma_op1;
 input [15:0] fma_op2;
 input [15:0] fma_op3;
 input [15:0] fast_func_op1;
-input [15:0] fast_func_op2;
 input [15:0] srt16_op1;
 input [15:0] srt16_op2;
 input [15:0] comp_op1;
@@ -163,9 +162,6 @@ reg        stream_reduce_comp_busy;
 reg        normal_add_busy;
 reg        normal_mul_busy;
 reg        normal_comp_busy;
-
-reg [15:0] stream_fuse_add_op;
-reg        stream_fuse_valid ;
 
 reg [5:0] operation_reg;
 

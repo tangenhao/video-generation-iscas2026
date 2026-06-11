@@ -37,6 +37,9 @@ struct vcu_exe_args {
   uint64_t stream_en  = 0;
   uint64_t ifmap_sram_valid  = 0;
   uint64_t ifmap_in_addr     = 0;
+  uint64_t s2p_32_en         = 0;
+  uint64_t psum_1_sram_valid = 0;
+  uint64_t psum_1_in_addr    = 0;
 };
 
 struct VcuConfig {
@@ -98,6 +101,9 @@ struct VcuExecute {
     uint64_t stream_en  = 0;
     uint64_t ifmap_sram_valid  = 0;
     uint64_t ifmap_in_addr     = 0;
+    uint64_t s2p_32_en         = 0;
+    uint64_t psum_1_sram_valid = 0;
+    uint64_t psum_1_in_addr    = 0;
   };
 
   VcuExecute() {}
@@ -126,7 +132,10 @@ struct VcuExecute {
                                                    args.acc_clear,
                                                    args.stream_en,
                                                    args.ifmap_sram_valid,
-                                                   args.ifmap_in_addr));
+                                                   args.ifmap_in_addr,
+                                                   args.s2p_32_en,
+                                                   args.psum_1_sram_valid,
+                                                   args.psum_1_in_addr));
     return instruction_series;
   }
 };

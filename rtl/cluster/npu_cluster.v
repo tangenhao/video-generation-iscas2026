@@ -372,6 +372,10 @@ wire                               psum_vcu_0_rvalid;
 wire [PSUM_ADDR_BITS-1:0]          psum_vcu_0_raddr;
 wire [PSUM_WIDTH-1:0]              psum_vcu_0_rdata;
 
+wire                               psum_vcu_1_rvalid;
+wire [PSUM_ADDR_BITS-1:0]          psum_vcu_1_raddr;
+wire [PSUM_WIDTH-1:0]              psum_vcu_1_rdata;
+
 wire                               vcupara_0_rvalid;
 wire [VCUPARA_ADDR_BITS-1:0]       vcupara_0_raddr;
 wire [VCUPARA_WIDTH-1:0]           vcupara_0_rdata;
@@ -407,6 +411,11 @@ wire [OFMAP_WIDTH-1:0]             ofmap_0_wdata;
 wire                               psum_vcu_0_wvalid;
 wire [PSUM_ADDR_BITS-1:0]          psum_vcu_0_waddr;
 wire [PSUM_WIDTH-1:0]              psum_vcu_0_wdata;
+
+wire                               psum_vcu_1_wvalid;
+wire [PSUM_ADDR_BITS-1:0]          psum_vcu_1_waddr;
+wire [PSUM_WIDTH-1:0]              psum_vcu_1_wdata;
+wire [PSUM_WIDTH-1:0]              psum_vcu_1_dma_rdata_unused;
 
 /* regfile wvalid */
 wire                               mst_regfile_rvalid;
@@ -872,51 +881,37 @@ insn_fifo_wrapper #(
 );
 
 /* -------------------------------------------- Compute Modules ------------------------------------------- */
-// pea u_pea_0(
-//   .clk                        ( clk                       ),
-//   .rst_n                      ( pea_0_rst_n               ),
-//   .work_en                    ( pea_0_work_en_reg         ),
-//   .insn                       ( pea_0_insn                ),
-//   .insn_read                  ( pea_0_fifo_ren            ),
-//   .done                       ( pea_0_done_wire           ),
+pea u_pea_0(
+  .clk                        ( clk                       ),
+  .rst_n                      ( pea_0_rst_n               ),
+  .work_en                    ( pea_0_work_en_reg          ),
+  .insn                       ( pea_0_insn                ),
+  .insn_read                  ( pea_0_fifo_ren            ),
+  .done                       ( pea_0_done_wire           ),
 
-//   .ifmap_sram_rvalid          ( ifmap_0_rvalid            ),
-//   .ifmap_sram_raddr           ( ifmap_0_raddr             ),
-//   .ifmap_sram_rdata           ( ifmap_0_rdata             ),
-//   .ifmap_sram_rsparse         ( ifmap_0_rsparse           ),
+  .ifmap_sram_rvalid          ( pea_qact_rvalid           ),
+  .ifmap_sram_raddr           ( pea_qact_raddr            ),
+  .ifmap_sram_rdata           ( pea_qact_rdata            ),
 
-//   .ifmapmask_sram_rvalid      ( ifmapmask_0_rvalid        ),
-//   .ifmapmask_sram_raddr       ( ifmapmask_0_raddr         ),
-//   .ifmapmask_sram_rdata       ( ifmapmask_0_rdata         ),
+  .weight_sram_rvalid         ( weight_0_rvalid           ),
+  .weight_sram_raddr          ( weight_0_raddr            ),
+  .weight_sram_rdata          ( weight_0_rdata            ),
 
-//   .weight_sram_rvalid         ( weight_0_rvalid           ),
-//   .weight_sram_raddr          ( weight_0_raddr            ),
-//   .weight_sram_rdata          ( weight_0_rdata            ),
+  .scale_sram_rvalid          ( pea_scale_rvalid          ),
+  .scale_sram_raddr           ( pea_scale_raddr           ),
+  .scale_sram_rdata           ( pea_scale_rdata           ),
 
-//   .psum_sram_rvalid           ( psum_pea_0_rvalid         ),
-//   .psum_sram_raddr            ( psum_pea_0_raddr          ),
-//   .psum_sram_rdata            ( psum_pea_0_rdata          ),
+  .psum_sram_rvalid           ( psum_pea_0_rvalid         ),
+  .psum_sram_raddr            ( psum_pea_0_raddr          ),
+  .psum_sram_rdata            ( psum_pea_0_rdata          ),
 
-//   .ifmap_scale_sram_rvalid    ( ifmap_scale_0_rvalid      ),
-//   .ifmap_scale_sram_raddr     ( ifmap_scale_0_raddr       ),
-//   .ifmap_scale_sram_rdata     ( ifmap_scale_0_rdata       ),
+  .psum_sram_wvalid           ( psum_pea_0_wvalid         ),
+  .psum_sram_waddr            ( psum_pea_0_waddr          ),
+  .psum_sram_wdata            ( psum_pea_0_wdata          ),
 
-//   .weight_scale_sram_rvalid   ( weight_scale_0_rvalid     ),
-//   .weight_scale_sram_raddr    ( weight_scale_0_raddr      ),
-//   .weight_scale_sram_rdata    ( weight_scale_0_rdata      ),
-
-//   .psum_sram_wvalid           ( psum_pea_0_wvalid         ),
-//   .psum_sram_waddr            ( psum_pea_0_waddr          ),
-//   .psum_sram_wdata            ( psum_pea_0_wdata          ),
-
-//   .outlier_index_sram_rvalid  ( outlier_index_0_rvalid    ),
-//   .outlier_index_sram_raddr   ( outlier_index_0_raddr     ),
-//   .outlier_index_sram_rdata   ( outlier_index_0_rdata     ),
-//   .outlier_index_sram_rsparse ( outlier_index_0_rsparse   ),
-
-//   .enable_prof_counter        ( enable_prof_counter       ),
-//   .execute_time               ( pea_0_execute_time        )
-// );
+  .enable_prof_counter        ( enable_prof_counter       ),
+  .execute_time               ( pea_0_execute_time        )
+);
 
 vcu u_vcu_0(
   .clk                 ( clk                 ),
@@ -929,6 +924,10 @@ vcu u_vcu_0(
   .psum_rvalid         ( psum_vcu_0_rvalid   ),
   .psum_raddr          ( psum_vcu_0_raddr    ),
   .psum_rdata          ( psum_vcu_0_rdata    ),
+
+  .psum_1_rvalid       ( psum_vcu_1_rvalid   ),
+  .psum_1_raddr        ( psum_vcu_1_raddr    ),
+  .psum_1_rdata        ( psum_vcu_1_rdata    ),
 
   .ifmap_rvalid        ( ifmap_0_rvalid      ),
   .ifmap_raddr         ( ifmap_0_raddr       ),
@@ -958,13 +957,17 @@ vcu u_vcu_0(
   .psum_waddr          ( psum_vcu_0_waddr    ),
   .psum_wdata          ( psum_vcu_0_wdata    ),
 
+  .psum_1_wvalid       ( psum_vcu_1_wvalid   ),
+  .psum_1_waddr        ( psum_vcu_1_waddr    ),
+  .psum_1_wdata        ( psum_vcu_1_wdata    ),
+
   .vcures_wvalid       ( vcures_0_wvalid     ),
   .vcures_waddr        ( vcures_0_waddr      ),
   .vcures_wdata        ( vcures_0_wdata      ),
 
   //To Pea
   .qact_wvalid         ( vcu_qact_wvalid     ),
-  .qact_waddr          (  vcu_qact_waddr      ),
+  .qact_waddr          ( vcu_qact_waddr      ),
   .qact_wdata          ( vcu_qact_wdata      ),
 
   .scale_wvalid        ( vcu_scale_wvalid    ),
@@ -1067,7 +1070,6 @@ scale_ram #(
   .wdata      ( vcu_scale_wdata         )
 );
 
-
 ofmap_ram u_ofmap_ram(
   .clk          ( clk                     ),
   .rst_n        ( rst_n                   ),
@@ -1144,6 +1146,23 @@ psum_vcu_0_ram u_psum_vcu_0_ram(
   .vcu_0_rvalid ( psum_vcu_0_rvalid       ),
   .vcu_0_raddr  ( psum_vcu_0_raddr        ),
   .vcu_0_rdata  ( psum_vcu_0_rdata        ),
+
+  .dma_rvalid   ( dma_0_psum_sram_rvalid  ),
+  .dma_raddr    ( dma_0_psum_sram_raddr   ),
+  .dma_rdata    ( dma_0_psum_sram_rdata   )
+);
+
+psum_vcu_1_ram u_psum_vcu_1_ram(
+  .clk          ( clk                     ),
+  .rst_n        ( rst_n                   ),
+
+  .vcu_0_wvalid ( psum_vcu_1_wvalid       ),
+  .vcu_0_waddr  ( psum_vcu_1_waddr        ),
+  .vcu_0_wdata  ( psum_vcu_1_wdata        ),
+
+  .vcu_0_rvalid ( psum_vcu_1_rvalid       ),
+  .vcu_0_raddr  ( psum_vcu_1_raddr        ),
+  .vcu_0_rdata  ( psum_vcu_1_rdata        ),
 
   .dma_rvalid   ( dma_0_psum_sram_rvalid  ),
   .dma_raddr    ( dma_0_psum_sram_raddr   ),

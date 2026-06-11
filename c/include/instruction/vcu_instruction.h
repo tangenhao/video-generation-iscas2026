@@ -16,23 +16,26 @@ namespace insn {
     uint64_t data_out_ram : 2;         // 23 + 2 = 25
     uint64_t opcode_number : 7;        // 25 + 7 = 32
     uint64_t opcode_addr : 7;          // 32 + 7 = 39
-    uint64_t psum_in_addr : 15;        // 39 + 15 = 54, change to 15
-    uint64_t para_in_addr : 6;         // 54 + 6 = 60
-    //4bits
-    uint64_t resadd_in_addr_low : 5;   // 64 + 5 = 69
-    uint64_t resadd_in_addr_high : 8;  // 69 + 8 = 77
-    uint64_t ram_out_addr : 16;        // 77 + 16 = 93, change to 16
-    uint64_t num_data_cnt : 14;        // 93 + 14 = 107
-    uint64_t oc_group_cnt : 8;         // 107 + 8 = 115
-    uint64_t para_func_cnt : 2;        // 115 + 2 = 117
-    uint64_t psum_sram_valid : 1;      // 117 + 1 = 118
-    uint64_t resadd_sram_valid : 1;    // 118 + 1 = 119
-    uint64_t para_sram_valid : 1;      // 119 + 1 = 120
-    uint64_t psum_addr_hop : 1;        // 120 + 1 = 121
-    uint64_t acc_clear : 1;            // 121 + 1 = 122
-    uint64_t stream_en : 1;     // 122 + 1 = 123
-    uint64_t ifmap_sram_valid : 1;     // 123 + 1 = 124
-    uint64_t ifmap_in_addr : 4;        // 124 + 4 = 128
+    uint64_t psum_in_addr : 9;         // 39 + 9 = 48
+    uint64_t para_in_addr : 9;         // 48 + 9 = 57
+    uint64_t resadd_in_addr_low : 7;   // 57 + 7 = 64
+    uint64_t resadd_in_addr_high : 2;  // 64 + 2 = 66
+    uint64_t ram_out_addr : 8;         // 66 + 8 = 74
+    uint64_t num_data_cnt : 14;        // 74 + 14 = 88
+    uint64_t oc_group_cnt : 8;         // 88 + 8 = 96
+    uint64_t para_func_cnt : 2;        // 96 + 2 = 98
+    uint64_t psum_sram_valid : 1;      // 98 + 1 = 99
+    uint64_t resadd_sram_valid : 1;    // 99 + 1 = 100
+    uint64_t para_sram_valid : 1;      // 100 + 1 = 101
+    uint64_t psum_addr_hop : 1;        // 101 + 1 = 102
+    uint64_t acc_clear : 1;            // 102 + 1 = 103
+    uint64_t stream_en : 1;            // 103 + 1 = 104
+    uint64_t ifmap_sram_valid : 1;     // 104 + 1 = 105
+    uint64_t ifmap_in_addr : 9;        // 105 + 9 = 114
+    uint64_t s2p_32_en : 1;            // 114 + 1 = 115
+    uint64_t psum_1_sram_valid : 1;    // 115 + 1 = 116
+    uint64_t psum_1_in_addr : 9;       // 116 + 9 = 125
+    uint64_t reversed : 3;             // 125 + 3 = 128
   } vcu_execute_bits;
 #else
   // for vcs simulation
@@ -46,25 +49,30 @@ namespace insn {
     uint64_t data_out_ram : 2;         // 23 + 2 = 25
     uint64_t opcode_number : 7;        // 25 + 7 = 32
     uint64_t opcode_addr : 7;          // 32 + 7 = 39
-    uint64_t psum_in_addr : 14;        // 39 + 14 = 53
-    uint64_t para_in_addr : 6;         // 53 + 6 = 59
-    uint64_t resadd_in_addr_low : 5;   // 59 + 5 = 64
-    uint64_t resadd_in_addr_high : 8;  // 64 + 8 = 72
-    uint64_t ram_out_addr : 14;        // 72 + 14 = 86
-    uint64_t num_data_cnt : 14;        // 86 + 14 = 100
-    uint64_t oc_group_cnt : 8;         // 100 + 8 = 108
-    uint64_t para_func_cnt : 2;        // 108 + 2 = 110
-    uint64_t psum_sram_valid : 1;      // 110 + 1 = 111
-    uint64_t resadd_sram_valid : 1;    // 111 + 1 = 112
-    uint64_t para_sram_valid : 1;      // 112 + 1 = 113
-    uint64_t psum_addr_hop : 1;        // 113 + 1 = 114
-    uint64_t acc_clear : 1;            // 114 + 1 = 115
-    uint64_t stream_en : 1;     // 115 + 1 = 116
-    uint64_t ifmap_sram_valid : 1;     // 116 + 1 = 117
-    uint64_t ifmap_in_addr : 9;        // 117 + 9 = 126
-    uint64_t reversed : 2;             // 126 + 2 = 128
+    uint64_t psum_in_addr : 9;         // 39 + 9 = 48
+    uint64_t para_in_addr : 9;         // 48 + 9 = 57
+    uint64_t resadd_in_addr_low : 7;   // 57 + 7 = 64
+    uint64_t resadd_in_addr_high : 2;  // 64 + 2 = 66
+    uint64_t ram_out_addr : 8;         // 66 + 8 = 74
+    uint64_t num_data_cnt : 14;        // 74 + 14 = 88
+    uint64_t oc_group_cnt : 8;         // 88 + 8 = 96
+    uint64_t para_func_cnt : 2;        // 96 + 2 = 98
+    uint64_t psum_sram_valid : 1;      // 98 + 1 = 99
+    uint64_t resadd_sram_valid : 1;    // 99 + 1 = 100
+    uint64_t para_sram_valid : 1;      // 100 + 1 = 101
+    uint64_t psum_addr_hop : 1;        // 101 + 1 = 102
+    uint64_t acc_clear : 1;            // 102 + 1 = 103
+    uint64_t stream_en : 1;            // 103 + 1 = 104
+    uint64_t ifmap_sram_valid : 1;     // 104 + 1 = 105
+    uint64_t ifmap_in_addr : 9;        // 105 + 9 = 114
+    uint64_t s2p_32_en : 1;            // 114 + 1 = 115
+    uint64_t psum_1_sram_valid : 1;    // 115 + 1 = 116
+    uint64_t psum_1_in_addr : 9;       // 116 + 9 = 125
+    uint64_t reversed : 3;             // 125 + 3 = 128
   } vcu_execute_bits;
 #endif
+
+static_assert(sizeof(vcu_execute_bits) == sizeof(insn_bits), "vcu_execute_bits must remain 128 bits");
 
 typedef struct {
   uint64_t insn_opcode : 6;                   // 0 + 6 = 6
@@ -255,7 +263,10 @@ struct vcu_execute: public instruction {
               uint64_t acc_clear         = 0,
               uint64_t stream_en  = 0,
               uint64_t ifmap_sram_valid  = 0,
-              uint64_t ifmap_in_addr     = 0)
+              uint64_t ifmap_in_addr     = 0,
+              uint64_t s2p_32_en         = 0,
+              uint64_t psum_1_sram_valid = 0,
+              uint64_t psum_1_in_addr    = 0)
   {
     this->storage_t.insn_opcode         = 25;
     this->storage_t.insn_number         = 0;
@@ -268,8 +279,8 @@ struct vcu_execute: public instruction {
     this->storage_t.opcode_addr         = opcode_addr;
     this->storage_t.psum_in_addr        = psum_in_addr;
     this->storage_t.para_in_addr        = para_in_addr;
-    this->storage_t.resadd_in_addr_low  = (resadd_in_addr & 0x1F);
-    this->storage_t.resadd_in_addr_high = (resadd_in_addr >> 5);
+    this->storage_t.resadd_in_addr_low  = (resadd_in_addr & 0x7F);
+    this->storage_t.resadd_in_addr_high = (resadd_in_addr >> 7);
     this->storage_t.ram_out_addr        = ram_out_addr;
     this->storage_t.num_data_cnt        = num_data_cnt;
     this->storage_t.oc_group_cnt        = oc_group_cnt;
@@ -282,6 +293,9 @@ struct vcu_execute: public instruction {
     this->storage_t.stream_en    = stream_en;
     this->storage_t.ifmap_sram_valid    = ifmap_sram_valid;
     this->storage_t.ifmap_in_addr       = ifmap_in_addr;
+    this->storage_t.s2p_32_en           = s2p_32_en;
+    this->storage_t.psum_1_sram_valid   = psum_1_sram_valid;
+    this->storage_t.psum_1_in_addr      = psum_1_in_addr;
     this->set_insn();
   }
 
@@ -347,8 +361,8 @@ struct vcu_execute: public instruction {
 
   void set_resadd_in_addr(uint64_t resadd_in_addr)
   {
-    this->storage_t.resadd_in_addr_low  = (resadd_in_addr & 0x1F);
-    this->storage_t.resadd_in_addr_high = (resadd_in_addr >> 5);
+    this->storage_t.resadd_in_addr_low  = (resadd_in_addr & 0x7F);
+    this->storage_t.resadd_in_addr_high = (resadd_in_addr >> 7);
     this->set_insn();
   }
 
@@ -424,6 +438,24 @@ struct vcu_execute: public instruction {
     this->set_insn();
   }
 
+  void set_s2p_32_en(uint64_t s2p_32_en)
+  {
+    this->storage_t.s2p_32_en = s2p_32_en;
+    this->set_insn();
+  }
+
+  void set_psum_1_sram_valid(uint64_t psum_1_sram_valid)
+  {
+    this->storage_t.psum_1_sram_valid = psum_1_sram_valid;
+    this->set_insn();
+  }
+
+  void set_psum_1_in_addr(uint64_t psum_1_in_addr)
+  {
+    this->storage_t.psum_1_in_addr = psum_1_in_addr;
+    this->set_insn();
+  }
+
   void set_insn()
   {
     union vcu_cvt cvt;
@@ -488,7 +520,7 @@ struct vcu_execute: public instruction {
 
   int64_t get_resadd_in_addr()
   {
-    return (this->storage_t.resadd_in_addr_high << 5) | this->storage_t.resadd_in_addr_low;
+    return (this->storage_t.resadd_in_addr_high << 7) | this->storage_t.resadd_in_addr_low;
   }
 
   int64_t get_ram_out_addr()
@@ -549,6 +581,21 @@ struct vcu_execute: public instruction {
   int64_t get_ifmap_in_addr()
   {
     return this->storage_t.ifmap_in_addr;
+  }
+
+  int64_t get_s2p_32_en()
+  {
+    return this->storage_t.s2p_32_en;
+  }
+
+  int64_t get_psum_1_sram_valid()
+  {
+    return this->storage_t.psum_1_sram_valid;
+  }
+
+  int64_t get_psum_1_in_addr()
+  {
+    return this->storage_t.psum_1_in_addr;
   }
 };
 

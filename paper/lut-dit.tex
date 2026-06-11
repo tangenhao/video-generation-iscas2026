@@ -1,0 +1,231 @@
+
+\title{LUT-DiT: A LUT-Based Diffusion Transformer Accelerator for Scalable LUT Inference}
+
+\begin{abstract}
+Large-scale Diffusion Transformers (e.g., FLUX.1) deliver strong generation quality but face severe memory and latency bottlenecks. Although Lookup Table (LUT)-based inference eliminates expensive multiplications, conventional LUT schemes that precompute all weight-activation combinations suffer from prohibitive table growth, resulting in 178.81 GB of precomputed tables for FLUX.1 under W4A4 quantization. To address this problem, this paper proposes LUT-DiT, a LUT-based Diffusion Transformer accelerator for scalable LUT inference. First, we employ outlier-aware Product Quantization (PQ) to map weights into a compact codebook domain, thereby shifting precomputation from the full weight domain to the codebook domain. Second, we introduce a two-level lookup mechanism that reformulates full weight-activation precomputation as index-to-codebook mapping followed by codebook-activation lookup, reducing memory complexity from $O(N_{\text{weight}} \times 2^{b_{\text{act}}})$ to $O(N_{\text{codebook}} \times 2^{b_{\text{act}}})$. Third, we design a pipelined datapath with input-channel sharing and symmetry-based compression, reducing the active on-chip working set of precomputed tables to 2.75 KB. This compact working set is efficiently managed by a three-level on-chip storage hierarchy. Experimental results on FLUX.1 show that LUT-DiT reduces the global off-chip storage required by precomputed tables from 178.81 GB to 5.124 GB, achieving a 34.9$\times$ reduction, while delivering 3.15$\times$ higher throughput (steps/s) and 7.00$\times$ higher energy efficiency than an NVIDIA RTX 4090 GPU. Compared with the state-of-the-art diffusion accelerator, LUT-DiT improves throughput and energy efficiency by 2.26$\times$ and 1.25$\times$, respectively.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+% \IEEEPARstart{I}{n}
+\IEEEPARstart{I}{n} recent years, Diffusion Transformer (DiT) models~\cite{dit} have achieved remarkable performance in the rapidly growing field of AI-generated content (AIGC)~\cite{ddpm,ldm,repaint}. As DiT architectures scale to billions of parameters, large-scale models such as FLUX.1 (12B), have emerged as state-of-the-art (SOTA) generative models~\cite{flux}. This strong generation capability incurs extremely high computational cost and long inference latency. Generating a single 1024$\times$1024 image with FLUX.1 requires 77.5 TFLOPs per denoising step, or 3875 TFLOPs over 50 steps, making efficient deployment on FPGA devices highly challenging.
+
+Quantization is widely adopted to reduce model size and arithmetic cost. Recent studies have quantized large-scale models to FP4~\cite{svdquant} and INT4~\cite{convrot,svdquant,ViDiT-Q}, substantially reducing memory footprint and computation cost. Hardware accelerators have also evolved to support low-bit computation. For example, NVIDIA Blackwell~\cite{b200}, Hopper~\cite{h100}, and Turing Tensor Cores~\cite{turing} support FP4, FP8, and 1-bit operations, respectively. In conventional scalar quantization, each weight or activation is represented independently by a low-bit numerical value. This value-wise representation improves inference efficiency by reducing the cost of per-value arithmetic. As the bit-width is reduced to only a few bits, especially near the one-bit-per-value limit, the remaining computation becomes dominated by simple bit-level logic. Further bit-width reduction therefore brings only marginal hardware savings, making it difficult to obtain additional efficiency gains from conventional low-bit arithmetic alone~\cite{lut-dla,accelerator-wall,Irreversibility,cmos-limits}.
+
+The diminishing returns of conventional low-bit arithmetic motivate Lookup Table (LUT)-based inference as an alternative computation paradigm. Instead of performing multiplications online with Arithmetic Logic Units (ALUs), LUT-based designs precompute multiplication results and replace arithmetic-intensive operations with table lookups~\cite{pqa,maddness,pim-dl,pecan,lut-nn}. Prior studies have shown that such lookup-based computation can deliver orders-of-magnitude improvements in computational efficiency and substantial gains in energy efficiency compared with conventional ALU-based designs~\cite{lut-dla,accelerator-wall}. These advantages make LUT-based inference a promising direction for improving the efficiency of large-scale generative models beyond conventional arithmetic-based designs.
+
+However, directly applying existing LUT-based schemes to large-scale diffusion models such as FLUX.1 remains challenging. Existing LUT designs can be broadly categorized into three paradigms. (1) \textbf{Weight-only quantization-based LUT designs} keep activations in high precision and generate lookup tables at runtime, but the required online table generation introduces non-negligible overhead for large-scale models~\cite{lut-gemm,t-mac,luttensorcore,localut}. (2) \textbf{Product Quantization (PQ)/Vector Quantization (VQ) activation-quantization-based LUT designs} enable offline precomputation by mapping activations to compact codebooks, but they rely on activation calibration, which is difficult for diffusion models due to timestep-dependent activation variation, and often incur substantial hardware overhead~\cite{pqa,maddness,pim-dl,pecan,lut-nn,lut-dla}. (3) \textbf{Low-bit scalar quantization-based LUT designs} preserve offline precomputation and hardware simplicity, making them more suitable for diffusion models. Nevertheless, their precomputed tables still scale with all weight-activation combinations. Under W4A4 quantization, the precomputed tables for FLUX.1 reach 178.81 GB, far exceeding the 8--16 GB off-chip DRAM capacity commonly available in FPGA-based deployments. The root cause is the $O(N_{\text{weight}} \times 2^{b_{\text{act}}})$ memory complexity caused by precomputing products for every quantized weight and activation value.
+
+This observation motivates a reformulation of LUT precomputation. Instead of materializing lookup tables for the full weight domain, we shift precomputation to a compact codebook domain, so that many weights can share the same set of precomputed codebook-activation products. Specifically, we reformulate the lookup process as a two-level procedure: Level 1 performs index-to-codebook mapping, and Level 2 performs lookup over codebook-activation pairs. This reformulation reduces memory complexity from $O(N_{\text{weight}} \times 2^{b_{\text{act}}})$ to $O(N_{\text{codebook}} \times 2^{b_{\text{act}}})$, where $N_{\text{codebook}} \ll N_{\text{weight}}$.
+
+Based on this reformulation, we propose \textbf{LUT-DiT}, a LUT-based Diffusion Transformer accelerator for scalable LUT inference on large-scale diffusion models. At the algorithm level, we adopt outlier-aware PQ to map weights into a compact codebook domain, enabling precomputation over shared codebooks rather than the full weight space. At the architecture level, we design a two-level LUT microarchitecture that efficiently supports index-to-codebook mapping and codebook-activation lookup. Together with an \textit{input-channel sharing} paradigm and \textit{symmetry-based compression}, the active on-chip working set of precomputed tables is reduced to 2.75 KB. This compact working set is managed through a three-level on-chip storage hierarchy (URAM$\rightarrow$BRAM$\rightarrow$LUTs), enabling layer-wise prefetching and effective latency hiding.
+
+To validate the effectiveness of LUT-DiT, we conduct comprehensive experiments on FLUX.1. At the algorithm level, our outlier-aware PQ method mitigates quality degradation and achieves generation performance comparable to the BF16 baseline, with FID 20.067 vs. 20.092 on FLUX.1-dev. At the hardware level, LUT-DiT reduces the global off-chip storage required by precomputed tables from 178.81 GB to 5.124 GB, achieving a 34.9$\times$ reduction, while keeping the active on-chip working set at 2.75 KB. Experimental results show that LUT-DiT achieves 3.15$\times$ higher throughput and 7.00$\times$ higher energy efficiency than an NVIDIA RTX 4090 GPU. Compared with the SOTA diffusion accelerator, LUT-DiT improves throughput and energy efficiency by 2.26$\times$ and 1.25$\times$, respectively.
+
+Our contributions are summarized as follows:
+\begin{itemize}
+\item We propose LUT-DiT, a LUT-based Diffusion Transformer accelerator for scalable LUT inference on large-scale diffusion models.
+\item We develop an outlier-aware PQ scheme and a two-level LUT microarchitecture, which shift precomputation from the full weight domain to a compact codebook domain and reduce memory complexity from $O(N_{\text{weight}} \times 2^{b_{\text{act}}})$ to $O(N_{\text{codebook}} \times 2^{b_{\text{act}}})$.
+\item We co-design input-channel sharing, symmetry-based compression, and a three-level on-chip storage hierarchy, reducing the active on-chip working set of precomputed tables to 2.75 KB and enabling efficient lookup-based execution.
+% \item Extensive experiments on FLUX.1 demonstrate that LUT-DiT achieves substantial improvements in memory efficiency, throughput, and energy efficiency over both GPUs and SOTA diffusion accelerators.
+\item Extensive experiments on FLUX.1 demonstrate that LUT-DiT achieves substantial improvements in memory efficiency, throughput, and energy efficiency over an NVIDIA RTX 4090 GPU and the SOTA diffusion accelerator Diff-DiT.
+\end{itemize}
+
+\section{LUT-Constrained Quantization}
+\label{sec:quantization}
+
+\begin{figure*}
+\centering
+\includegraphics[width=7.0in]{fig/pdf/quant-outlier.pdf}
+\caption{3D visualization of outlier evolution in FLUX.1 Single-DiT Block 18 during inference. Activations are captured at the first denoising step (step 1/50) of a 1024$\times$1024 image generation task. (a) The original activation tensor exhibits sparse high-magnitude outliers (yellow peaks, $>2.0$). (b) The original weight matrix contains moderate outliers ($>0.5$). (c-d) After smoothing, activation outliers are migrated to the weight matrix while preserving the overall magnitude distribution. (e) The residual after rank-32 decomposition exhibits a substantially more compact distribution. (f-g) Color scales indicate magnitude with outlier thresholds at 2.0 for activations and 0.5 for weights; values exceeding these thresholds are rendered in yellow. Max-pooling downsampling is used to preserve outlier peaks.}
+\label{fig:three_stage_evolution}
+\end{figure*}
+
+This section describes the algorithmic front-end of LUT-DiT. Its goal is not merely to minimize quantization error, but to generate compact codebooks and low-bit activations that satisfy the precomputed-table memory budget required for scalable LUT inference while preserving generation quality.
+
+% \subsection{Problem Formulation: LUT-Constrained Codebook Generation}
+
+% Traditional quantization methods for neural network inference primarily aim to minimize quantization error under bit-width constraints, assuming that quantized weights will still be consumed by arithmetic operators such as matrix multipliers on GPUs or CPUs. LUT-based inference fundamentally changes this assumption. Instead of performing multiplications online, LUT-based inference precomputes products and stores them as lookup tables. As a result, the optimization objective is no longer determined by quantization error alone: the resulting precomputed tables must also satisfy the memory constraints of the target hardware.
+
+% \textbf{Traditional Quantization Problem.} Existing quantization methods can be formulated as
+% \begin{equation}
+% \begin{aligned}
+% \min_{Q} \quad & \|XW - Q(X)Q(W)\|_F \\
+% \text{s.t.} \quad & \text{bit-width}(Q(W)) \leq b,
+% \end{aligned}
+% \end{equation}
+% where $Q(\cdot)$ denotes the quantization function and $b$ is the target bit-width. In this setting, quantized weights are stored in off-chip memory and loaded on demand during matrix multiplication. The primary objective is to minimize reconstruction error, while bit-width serves as the main constraint.
+
+% \textbf{LUT-Constrained Quantization Problem.} In LUT-based inference, weights are not consumed directly by arithmetic units. Instead, they are encoded as indices $\mathbf{idx}$ into a compact codebook $\mathcal{C}$, and inference is performed through precomputed lookups. This leads to a different optimization problem:
+% \begin{equation}
+% \begin{aligned}
+% \min_{\mathcal{C}, \mathbf{idx}} \quad & \|XW - \text{LUT}(X, \mathcal{C}, \mathbf{idx})\|_F \\
+% \text{s.t.} \quad & G \times K \times 2^{b_{\text{act}}} \times w_{\text{result}} \leq M_{\text{on-chip}}, \\
+% & \|XW - \text{LUT}(X, \mathcal{C}, \mathbf{idx})\|_F \leq \epsilon,
+% \end{aligned}
+% \end{equation}
+% where $\mathcal{C} = \{\mathcal{C}_1, \ldots, \mathcal{C}_G\}$ denotes a set of $G$ group-wise codebooks, each containing $K$ entries; $\mathbf{idx} \in \{1, \ldots, K\}^{N_{\text{weight}}}$ are the codebook indices; $b_{\text{act}}$ is the activation bit-width; $w_{\text{result}}$ is the bit-width of each precomputed lookup result; and $M_{\text{on-chip}}$ is the available on-chip memory budget. The key difference from conventional quantization is the explicit table-size constraint
+% $G \times K \times 2^{b_{\text{act}}} \times w_{\text{result}} \leq M_{\text{on-chip}}$, which captures the memory footprint of all precomputed products between codebook entries and quantized activations. Therefore, codebook generation must satisfy both an accuracy target and a hardware memory budget.
+
+% Here, $K$ controls the codebook size, $G$ the number of PQ groups, and $b_{\text{act}}$ the activation precision; together they determine the precomputed-table footprint.
+
+% \textbf{Design Implications.} The table-size constraint shows that the precomputed-table footprint is governed mainly by three factors: the codebook size $K$, the number of groups $G$, and the activation bit-width $b_{\text{act}}$.
+
+% \begin{itemize}
+%     \item \textbf{Codebook size $K$.} A smaller codebook directly reduces table size, but overly aggressive compression degrades approximation quality. Improving codebook quality is therefore essential to maintaining accuracy under a small $K$.
+    
+%     \item \textbf{Number of groups $G$.} In PQ, $G=n/d$ is determined by the weight dimension $n$ and the sub-vector size $d$. A smaller sub-vector size $d$ results in a larger number of groups $G$, which generally improves approximation quality through finer-grained representation. However, it also increases the storage cost of codebook indices.
+    
+%     \item \textbf{Activation bit-width $b_{\text{act}}$.} The table size grows exponentially with activation precision as $2^{b_{\text{act}}}$. Reducing activation precision is therefore critical for scalable LUT inference, but diffusion-model activations contain severe outliers that make direct low-bit quantization inaccurate.
+% \end{itemize}
+
+% These constraints motivate a quantization pipeline that simultaneously suppresses activation outliers, improves codebook quality, and controls codebook granularity for scalable LUT inference.
+
+\subsection{Problem Formulation: LUT-Aware Codebook Generation under Memory Constraints}
+
+Traditional quantization primarily aims to minimize approximation error under low-bit representation constraints, assuming that quantized weights and activations are still consumed by arithmetic units such as multipliers. In LUT-based inference, however, multiplications are replaced by precomputed lookups. As a result, the optimization target is no longer determined by approximation quality alone: the generated representation must also satisfy the memory budget of LUT execution.
+
+\textbf{Conventional Low-Bit Approximation.} A conventional quantization problem can be written as
+\begin{equation}
+\begin{aligned}
+\min_{Q_X,Q_W} \quad & \|XW - Q_X(X)Q_W(W)\|_F \\
+\text{s.t.} \quad & \text{bit-width}(Q_X) \leq b_{\text{act}}, \\
+& \text{bit-width}(Q_W) \leq b_{\text{w}},
+\end{aligned}
+\end{equation}
+where $Q_X(\cdot)$ and $Q_W(\cdot)$ denote activation and weight quantization functions, respectively. In this setting, the primary objective is to reduce reconstruction error, while bit-width serves as the main constraint.
+
+\textbf{LUT-Aware Codebook Generation.} In LUT-based inference, weights are not consumed directly by multipliers. Instead, they are encoded as indices $\mathbf{idx}$ into a group-wise codebook set $\mathcal{C}=\{\mathcal{C}_1,\ldots,\mathcal{C}_G\}$, and inference is performed through precomputed lookups over quantized activations. The problem can therefore be formulated as
+\begin{equation}
+\begin{aligned}
+\min_{\mathcal{C},\mathbf{idx},Q_X} \quad & \|XW - \mathrm{LUT}(Q_X(X),\mathcal{C},\mathbf{idx})\|_F \\
+\text{s.t.} \quad & G \times K \times 2^{b_{\text{act}}} \times w_{\text{result}} \leq M_{\text{LUT}},
+\end{aligned}
+\end{equation}
+where $G$ is the number of PQ groups, $K$ is the codebook size of each group, $b_{\text{act}}$ is the activation bit-width, $w_{\text{result}}$ is the bit-width of each precomputed lookup result, and $M_{\text{LUT}}$ denotes the memory budget for the dominant lookup-table term. Unlike conventional quantization, this formulation explicitly couples approximation quality with LUT-table complexity.
+
+This constraint shows that the lookup-table footprint is mainly determined by three factors: the codebook size $K$, the number of groups $G$, and the activation bit-width $b_{\text{act}}$.
+
+% \textbf{Design Implications.} First, reducing $K$ directly decreases table size, but may degrade approximation quality if the codebook becomes too coarse. Second, in PQ, $G=n/d$ is determined by the weight dimension $n$ and the sub-vector size $d$; a smaller $d$ generally improves approximation fidelity, but increases the number of groups and hence the table footprint. Third, the lookup-table size grows exponentially with activation precision as $2^{b_{\text{act}}}$, making low-bit activation representation essential for scalable LUT inference.
+\textbf{Design Implications.} The LUT-table constraint indicates that the storage cost is mainly governed by the codebook size $K$, the number of groups $G$, and the activation bit-width $b_{\text{act}}$. A smaller $K$ directly reduces the table footprint, but excessive compression may harm approximation quality. The number of groups $G=n/d$ is determined by the sub-vector size $d$: using a smaller $d$ generally improves representation fidelity, but increases the number of groups and thus the table footprint. In addition, the lookup-table size grows exponentially with activation precision as $2^{b_{\text{act}}}$, making low-bit activation representation essential for scalable LUT inference. These observations suggest that LUT-oriented quantization must jointly suppress activation outliers, improve codebook quality, and control codebook granularity under a hardware memory budget.
+
+Therefore, the goal of LUT-DiT is not merely to quantize weights and activations to low precision, but to jointly construct compact codebooks and low-bit activations that satisfy the LUT memory budget while preserving model quality.
+
+% \subsection{Three-Stage Quantization Pipeline}
+
+% The proposed pipeline addresses the outlier problem progressively. Stage 1 smooths activations to enable low-bit activation quantization. Stage 2 absorbs the migrated weight outliers into a low-rank branch, restoring a PQ-friendly residual distribution. Stage 3 then applies PQ to the residual branch, producing compact codebooks under the LUT memory budget. Fig.~\ref{fig:three_stage_evolution} illustrates how activation and weight distributions evolve across these stages.
+
+% \subsubsection{Stage 1: Activation Smoothing for LUT Compatibility}
+
+% To reduce $b_{\text{act}}$ in the LUT table-size constraint, we adopt smoothing~\cite{smoothquant,awq} to migrate activation outliers into the weight matrix through per-channel scaling:
+% \begin{equation}
+%     \mathbf{Y} = \mathbf{X}\mathbf{W}
+%     = (\mathbf{X} \cdot \text{diag}(\mathbf{s})^{-1})
+%       \cdot
+%       (\text{diag}(\mathbf{s}) \cdot \mathbf{W})
+%     = \hat{\mathbf{X}}\hat{\mathbf{W}},
+% \end{equation}
+% where $\mathbf{s} \in \mathbb{R}^{C}$ is calibrated offline to reduce the dynamic range of activations while keeping the transformed weights within a controlled range. As shown in Fig.~\ref{fig:three_stage_evolution}(c-d), the smoothed activation $\hat{\mathbf{X}}$ exhibits substantially reduced outliers, making low-bit activation quantization feasible. However, this transformation also amplifies the dynamic range of $\hat{\mathbf{W}}$, shifting the outlier problem into the weight domain and making the transformed weights less suitable for direct PQ.
+
+% \subsubsection{Stage 2: Low-Rank Outlier Absorption}
+
+% To restore a PQ-friendly weight distribution, we isolate the dominant outliers in $\hat{\mathbf{W}}$ into a low-rank branch:
+% \begin{equation}
+%     \hat{\mathbf{W}} = \mathbf{U}\mathbf{\Sigma}\mathbf{V}^T
+%     \approx \mathbf{L}_1\mathbf{L}_2 + \mathbf{R},
+% \end{equation}
+% where $\mathbf{L}_1 = \mathbf{U}_{:,:r}\mathbf{\Sigma}_{:r,:r} \in \mathbb{R}^{m \times r}$, $\mathbf{L}_2 = \mathbf{V}_{:,:r}^T \in \mathbb{R}^{r \times n}$.
+
+% The dominant singular components absorb most of the migrated outliers, while the residual $\mathbf{R}$ becomes substantially more compact and uniform, as illustrated in Fig.~\ref{fig:three_stage_evolution}(e). This residual distribution is significantly more amenable to PQ and enables smaller codebooks without severe accuracy loss. During inference, the original matrix multiplication is approximated as
+% \begin{equation}
+%     \mathbf{X}\mathbf{W}
+%     \approx
+%     \hat{\mathbf{X}}\mathbf{L}_1\mathbf{L}_2
+%     +
+%     \text{LUT}\!\left(Q(\hat{\mathbf{X}}), \mathcal{C}, \mathbf{idx}\right),
+% \end{equation}
+% where the residual branch is executed through lookup over PQ codebooks rather than direct multiplication.
+
+% \subsubsection{Stage 3: Product Quantization for Compact Codebook Generation}
+
+% \textbf{Why not scalar quantization?} Scalar quantization alone does not provide sufficient codebook sharing across weights. As a result, LUT precomputation still scales with the number of quantized weights rather than the number of shared codebook entries. In other words, scalar quantization reduces numeric precision, but does not fundamentally change the scaling law of LUT precomputation, making the precomputed-table size prohibitively large.
+
+% \textbf{Codebook Sharing with PQ.} We apply PQ to the residual matrix $\mathbf{R}\in\mathbb{R}^{m\times n}$. The matrix is divided into $G=n/d$ groups according to sub-vector size $d$. For each group $g$, K-means clustering produces a shared codebook $\mathcal{C}_g=\{c_{g,1},\ldots,c_{g,K}\}$ with $K$ entries, and each sub-vector is encoded as a $\log_2K$-bit index. This transforms LUT precomputation from the full weight domain to a compact codebook domain, reducing the table size from
+% $N_{\text{weight}} \times 2^{b_{\text{act}}} \times w_{\text{result}}$
+% to
+% $G \times K \times 2^{b_{\text{act}}} \times w_{\text{result}}$.
+% Here, $N_{\text{codebook}} = G \times K$, so the precomputed-table complexity scales with the number of shared codebook entries rather than the number of weights.
+
+\subsection{Three-Stage Quantization Pipeline}
+
+The proposed pipeline progressively reshapes the weight--activation representation to satisfy LUT execution requirements. Stage 1 suppresses activation outliers to enable low-bit activation quantization. Stage 2 absorbs the migrated weight outliers into a low-rank branch, producing a more PQ-friendly residual. Stage 3 applies PQ to the residual branch, generating compact shared codebooks under the LUT memory budget. Fig.~\ref{fig:three_stage_evolution} illustrates how the activation and weight distributions evolve across these stages.
+
+\textbf{1) Stage 1: Activation Smoothing for LUT Compatibility.} To reduce $b_{\text{act}}$ in the LUT-table constraint, we adopt smoothing~\cite{smoothquant,svdquant} to migrate activation outliers into the weight matrix through per-channel scaling:
+\begin{equation}
+Y = XW = (X \cdot \mathrm{diag}(s)^{-1}) \cdot (\mathrm{diag}(s)\cdot W) = \hat{X}\hat{W},
+\end{equation}
+where $s \in \mathbb{R}^{C}$ is calibrated offline. After smoothing, $\hat{X}$ exhibits a substantially reduced dynamic range, making low-bit activation quantization feasible. However, the transformed weight matrix $\hat{W}$ becomes less suitable for direct PQ because the migrated outliers are now concentrated in the weight domain.
+
+\textbf{2) Stage 2: Low-Rank Outlier Absorption.} To restore a PQ-friendly weight distribution, we decompose the transformed weight matrix into a low-rank branch and a residual branch:
+\begin{equation}
+\hat{W}=U\Sigma V^{T}\approx L_{1}L_{2}+R,
+\end{equation}
+where the dominant singular components are absorbed by $L_{1}L_{2}$ and the residual $R$ becomes more compact and uniform. This residual distribution is more amenable to PQ and supports smaller codebooks with limited accuracy loss. During inference, the original matrix multiplication is approximated as
+\begin{equation}
+XW \approx X\hat{L}_{1}L_{2} + \mathrm{LUT}(Q(\hat{X}),\mathcal{C},\mathbf{idx}),
+\end{equation}
+where the residual branch is executed through lookup over shared codebooks.
+
+\textbf{3) Stage 3: Product Quantization for Compact Codebook Generation.} Scalar quantization alone reduces numerical precision, but does not provide sufficient codebook sharing across weights. As a result, LUT precomputation still scales with the number of quantized weights, making the table size prohibitively large. To address this problem, we apply PQ to the residual matrix $R\in\mathbb{R}^{m\times n}$. The matrix is divided into $G=n/d$ groups according to sub-vector size $d$. For each group $g$, K-means clustering produces a shared codebook $\mathcal{C}_{g}=\{c_{g,1},\ldots,c_{g,K}\}$ with $K$ entries, and each sub-vector is encoded as a $\log_{2}K$-bit index. This shifts LUT precomputation from the full weight domain to a compact codebook domain, reducing the lookup-table complexity from $N_{\text{weight}}\times 2^{b_{\text{act}}}\times w_{\text{result}}$ to $G\times K\times 2^{b_{\text{act}}}\times w_{\text{result}}$.
+
+\subsection{Block-Wise Static Mixed-Precision Assignment}
+
+Beyond codebook construction within each block, LUT-DiT also requires global memory allocation across transformer blocks. Since different blocks contribute unequally to generation quality, we further introduce a block-wise static mixed-precision assignment strategy to balance model quality and storage overhead under a fixed memory budget.
+
+\subsubsection{Block Sensitivity Analysis via Removal Experiment}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=3.5in]{fig/pdf/quant-block-sens.pdf}
+\caption{Impact of individual transformer blocks on image generation quality in FLUX.1.}
+\label{fig:block_sensitivity}
+\end{figure}
+
+Not all transformer blocks contribute equally to the final generation quality. To identify the most critical blocks, we conduct a block removal experiment on FLUX.1. Specifically, we remove one block at a time and observe the resulting degradation in generated image quality, thereby measuring the importance of each block to the generation process.
+
+\textbf{Experimental Setup.} FLUX.1 consists of 19 MM-DiT blocks (indexed 0--18) and 38 Single-DiT blocks (indexed 0--37). For each trial, we remove one block and generate images using the same prompt and random seed as the baseline model with all blocks present. Comparing the generated images reveals the sensitivity of each block to removal.
+
+\textbf{Key Observations.} Fig.~\ref{fig:block_sensitivity} shows a clear U-shaped sensitivity pattern.
+
+\begin{itemize}
+    \item \textbf{Early blocks (high sensitivity):} Removing MM-DiT block 0 causes catastrophic failure and produces only a dark green image with no recognizable content, indicating that early blocks establish essential semantic structure.
+    
+    \item \textbf{Middle blocks (low sensitivity):} Removing MM-DiT block 11 or Single-DiT block 18 causes only minor degradation, suggesting higher redundancy during iterative feature refinement.
+    
+    \item \textbf{Late blocks (high sensitivity):} Removing Single-DiT block 37 leads to severe quality degradation, including blur, color shifts, and loss of fine details, indicating that late blocks are critical for final detail synthesis.
+\end{itemize}
+
+This U-shaped sensitivity pattern motivates our mixed-precision assignment strategy.
+
+\subsubsection{Static Mixed-Precision Assignment Strategy}
+
+Based on the observed sensitivity pattern, we adopt a static mixed-precision assignment strategy that allocates PQ granularity according to block importance:
+
+\begin{itemize}
+    \item \textbf{High-sensitivity blocks (early and late stages):} We use finer PQ granularity (e.g., smaller sub-vector size $d$) to preserve critical features.
+    
+    \item \textbf{Low-sensitivity blocks (middle stages):} We use coarser PQ granularity (e.g., larger sub-vector size $d$) to enable more aggressive compression.
+\end{itemize}
+
+
+% \subsection{Block-Wise Static Mixed-Precision Assignment}
+
+% Beyond codebook construction within individual blocks, LUT-DiT also requires global memory allocation across transformer blocks. Since different blocks contribute unequally to generation quality, we introduce a block-wise static mixed-precision assignment strategy to balance model quality and LUT storage overhead under a fixed memory budget.
+
+% \textbf{1) Block Sensitivity Analysis.} To estimate block importance, we conduct a block removal experiment on FLUX.1 by removing one block at a time while keeping the prompt and random seed unchanged. The results reveal a clear U-shaped sensitivity pattern: early blocks are critical for establishing semantic structure, middle blocks are relatively more redundant, and late blocks are important for final detail synthesis. This observation indicates that codebook capacity should not be allocated uniformly across all blocks.
+
+% \textbf{2) Static Mixed-Precision Assignment.} Based on the above sensitivity pattern, we assign larger codebooks and higher-bit indices to high-sensitivity blocks, especially in early and late stages, while using more aggressive compression for less sensitive middle blocks. This static mixed-precision assignment improves the overall quality--memory tradeoff and defines the final codebook configuration used by the LUT microarchitecture.
+
+% The resulting quantized activations, group-wise codebooks, and codebook indices define the precomputation space consumed by the LUT microarchitecture, which we describe next.
+
+本报告围绕扩散模型高效部署中的算法与芯片协同优化展开。首先介绍 DiffAccel：针对 Stable Diffusion 中 U-Net 迭代去噪计算量大、层间访存需求差异显著的问题，提出选择性特征增强与自适应特征缓存，在保证生成质量的同时将计算量由 105 TFLOPs 降至 69 TFLOPs，实现 2.93× 算法加速；硬件上通过可重构阵列在 OS/WS 数据流间动态切换，并结合数据量感知存储管理和细粒度流水融合，后端实现结果较已有扩散加速器提升 5.25×–5.79× 吞吐率。进一步，本报告结合 LUT-DiT 算法部分，讨论面向大规模 Diffusion Transformer 的 LUT 化推理：通过激活平滑、低秩异常值吸收、PQ 码本生成和分块混合精度分配，将预计算从完整权重域转移到紧凑码本域，为未来扩散模型加速器提供可扩展的低存储、高能效计算范式。

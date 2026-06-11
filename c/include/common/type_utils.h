@@ -17,7 +17,7 @@ enum DType : int32_t {
 enum VcuOutSram : int32_t {
   PSUM   = 0,
   OFMAP  = 1,
-  VCURES = 2,
+  PSUM_1 = 2,
   SCALE  = 3
 };
 

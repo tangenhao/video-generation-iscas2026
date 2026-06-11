@@ -359,7 +359,10 @@ struct Conv2dOp {
                                  args.vcu_exe_args.acc_clear,
                                  args.vcu_exe_args.stream_en,
                                  args.vcu_exe_args.ifmap_sram_valid,
-                                 args.vcu_exe_args.ifmap_in_addr};
+                                 args.vcu_exe_args.ifmap_in_addr,
+                                 args.vcu_exe_args.s2p_32_en,
+                                 args.vcu_exe_args.psum_1_sram_valid,
+                                 args.vcu_exe_args.psum_1_in_addr};
 
     vcu_t vcu_op;
     auto  vcu_exe_insns = vcu_op(vcu_args);
@@ -1431,7 +1434,10 @@ struct GemmOp {
                                  args.vcu_exe_args.acc_clear,
                                  args.vcu_exe_args.stream_en,
                                  args.vcu_exe_args.ifmap_sram_valid,
-                                 args.vcu_exe_args.ifmap_in_addr};
+                                 args.vcu_exe_args.ifmap_in_addr,
+                                 args.vcu_exe_args.s2p_32_en,
+                                 args.vcu_exe_args.psum_1_sram_valid,
+                                 args.vcu_exe_args.psum_1_in_addr};
 
     vcu_t vcu_op;
     auto  vcu_exe_insns = vcu_op(vcu_args);
