@@ -8,6 +8,7 @@
 #include "vcu/vcu_insn.h"
 #include "vcu/vcu_opcode.h"
 #include "write_reg.h"
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -36,8 +37,8 @@ int main(int argc, const char** argv)
   // int w = 14;
 
   int seq_len       = 1;
-  int d_model       = 128;
-  int oc_group_size = 32;
+  int d_model       = 144;
+  int oc_group_size = 36;
   int oc_group      = d_model / oc_group_size;
 
   uint64_t psum_data_type   = vcu_psum_dtype.at(kHalf);
@@ -130,7 +131,7 @@ int main(int argc, const char** argv)
   /*                                                opcode gen                                                */
   /* -------------------------------------------------------------------------------------------------------- */
 
-  auto vcucode_series = vcu::asm_vcu_op({"redmax ifmap, reg11, 32"});
+  auto vcucode_series = vcu::asm_vcu_op({"redmax ifmap, reg11, 36"});
 
   auto   num_vcucodes      = vcucode_series.size();
   size_t vcucode_bytes     = vcucode_series.size() * sizeof(uint64_t);
@@ -152,10 +153,12 @@ int main(int argc, const char** argv)
 
   insn_series.push_back(insn::load_iteration_2<0>(opcode_ddr_base_addr, vcucode_ddr_lines - 1, 0, 0, 0, MASTER_VCUCODE_ADDR, 0));
 
-  auto seq_1_offset = split_exp_fra(seq_len * oc_group_size * bytes_input);
+  auto seq_1_bytes = seq_len * oc_group_size * bytes_input;
+  auto seq_1_lines = (seq_1_bytes + 31) / 32;
+  auto seq_1_offset = split_exp_fra(seq_1_bytes);
 
   insn_series.push_back(insn::load_iteration_2<0>(data_in_ddr_base_addr,
-                                                  seq_len * bytes_input * oc_group_size / 32 - 1,
+                                                  seq_1_lines - 1,
                                                   seq_1_offset.first,
                                                   seq_1_offset.second,
                                                   oc_group - 1,
@@ -199,7 +202,7 @@ int main(int argc, const char** argv)
   insn_series.insert(insn_series.end(), vcu_insns.begin(), vcu_insns.end());
 
   insn_series.push_back(insn::store_iteration_2<0>(data_out_ddr_base_addr,
-                                                   seq_len * bytes_input * oc_group_size / 32 - 1,
+                                                   seq_1_lines - 1,
                                                    seq_1_offset.first,
                                                    seq_1_offset.second,
                                                    oc_group - 1,

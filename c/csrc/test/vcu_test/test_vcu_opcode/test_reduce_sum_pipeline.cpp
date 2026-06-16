@@ -8,6 +8,7 @@
 #include "vcu/vcu_insn.h"
 #include "vcu/vcu_opcode.h"
 #include "write_reg.h"
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -36,8 +37,8 @@ int main(int argc, const char** argv)
   // int w = 14;
 
   int seq_len       = 1;
-  int d_model       = 128;
-  int oc_group_size = 32;
+  int d_model       = 1152;
+  int oc_group_size = 36;
   int oc_group      = d_model / oc_group_size;
 
   uint64_t psum_data_type   = vcu_psum_dtype.at(kHalf);
@@ -92,6 +93,18 @@ int main(int argc, const char** argv)
   std::cout << "\n================ reduce_sum pipeline golden ================\n";
   std::cout << "shape: oc_group=" << oc_group << ", seq_len=" << seq_len << ", oc_group_size=" << oc_group_size << "\n";
   std::cout << "dtype: fp16\n";
+  std::cout << "input fp16 hex values:\n";
+  for (int row = 0; row < oc_group * seq_len; ++row) {
+    for (int lane_base = 0; lane_base < oc_group_size; lane_base += 18) {
+      int lane_end = std::min(lane_base + 17, oc_group_size - 1);
+      std::cout << "  row[" << std::setw(2) << row << "] lane[" << std::setw(2) << lane_base << ":" << std::setw(2) << lane_end
+                << "]:";
+      for (int lane = lane_base; lane <= lane_end; ++lane) {
+        std::cout << " " << fp16_hex(data_in[row * oc_group_size + lane]);
+      }
+      std::cout << "\n";
+    }
+  }
   if (row_sum.size() == 1) {
     std::cout << "expected scalar sum: " << fp16_hex(row_sum[0]) << " (" << static_cast<float>(row_sum[0]) << ")\n";
   }
@@ -114,7 +127,7 @@ int main(int argc, const char** argv)
   /*                                                opcode gen                                                */
   /* -------------------------------------------------------------------------------------------------------- */
 
-  auto vcucode_series = vcu::asm_vcu_op({"redsum ifmap, reg11, 32"});
+  auto vcucode_series = vcu::asm_vcu_op({"redsum ifmap, reg11, 36"});
 
   auto   num_vcucodes      = vcucode_series.size();
   size_t vcucode_bytes     = vcucode_series.size() * sizeof(uint64_t);
@@ -136,10 +149,12 @@ int main(int argc, const char** argv)
 
   insn_series.push_back(insn::load_iteration_2<0>(opcode_ddr_base_addr, vcucode_ddr_lines - 1, 0, 0, 0, MASTER_VCUCODE_ADDR, 0));
 
-  auto seq_1_offset = split_exp_fra(seq_len * oc_group_size * bytes_input);
+  auto seq_1_bytes = oc_group_size * bytes_input * oc_group;
+  auto seq_1_lines = seq_1_bytes  / 32;
+  auto seq_1_offset = split_exp_fra(seq_1_bytes);
 
   insn_series.push_back(insn::load_iteration_2<0>(
-    data_in_ddr_base_addr, seq_len * bytes_input * oc_group_size / 32 - 1, seq_1_offset.first, seq_1_offset.second, oc_group - 1, MASTER_IFMAP_ADDR, 0));
+    data_in_ddr_base_addr, seq_1_lines - 1, seq_1_offset.first, seq_1_offset.second, seq_len - 1, MASTER_IFMAP_ADDR, 0));
 
   using vcu_cfg_t               = vcu::VcuConfig;
   vcu_cfg_t::Arguments cfg_args = {0, 0, 1, 2, 3, 0, 0, 0, 0, 0};
@@ -177,7 +192,7 @@ int main(int argc, const char** argv)
   insn_series.insert(insn_series.end(), vcu_insns.begin(), vcu_insns.end());
 
   insn_series.push_back(insn::store_iteration_2<0>(
-    data_out_ddr_base_addr, seq_len * bytes_input * oc_group_size / 32 - 1, seq_1_offset.first, seq_1_offset.second, oc_group - 1, MASTER_PSUM_ADDR, 1));
+    data_out_ddr_base_addr, seq_1_lines - 1, seq_1_offset.first, seq_1_offset.second, seq_len - 1, MASTER_PSUM_ADDR, 1));
 
 
   common::insn::pad_serial_sync_word(insn_series);

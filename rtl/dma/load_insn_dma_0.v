@@ -38,11 +38,11 @@ localparam integer LOAD_INSN_OPCODE_ID      = 1;
 localparam integer LOAD_INSN_OPCODE_ID_BITS = 5;
 localparam integer LOAD_INSN_ID_BITS        = 2;
 
-parameter IFMAP_WIDTH             = 512;
+parameter IFMAP_WIDTH             = 576;
 parameter VCUCODE_WIDTH           = 64;
-parameter VCUPARA_WIDTH           = 512;
+parameter VCUPARA_WIDTH           = 576;
 parameter VCULUT_WIDTH            = 64;
-parameter VCURES_WIDTH            = 512;
+parameter VCURES_WIDTH            = 576;
 
 parameter IFMAP_ADDR_BITS         = 9;  //bank:4,2bits; addr:6bits, 36 depth, highaddr:1bits
 parameter VCUPARA_ADDR_BITS       = 9;  //vector_mul, fp16
@@ -130,6 +130,11 @@ wire sram_1_done;
 wire sram_2_done;
 wire sram_3_done;
 wire sram_done;
+
+wire [287:0]                 data_out_288b;
+wire                         valid_data_out_288b;
+wire                         need_256_to_288_conversion;
+
 
 reg                          load_working;
 
@@ -438,23 +443,6 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    sram_addr <= 'd0;
-  end
-  else begin
-    if (load_start) begin
-      sram_addr <= sram_baseaddr;
-    end
-    else if (sram_wvalid) begin
-      sram_addr <= sram_addr + 1;
-    end
-    else begin
-      sram_addr <= sram_addr;
-    end
-  end
-end
-
 reg one_burst_0_resp_done;
 wire real_sram_en;
 
@@ -636,7 +624,7 @@ always @(posedge clk or negedge rst_n) begin
     if ((write_high_addr == IFMAP_ID) ||
         (write_high_addr == VCUPARA_ID) ||
         (write_high_addr == VCURES_ID)) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         two_cat_one_cnt <= two_cat_one_cnt + 1'b1;
       end
       else begin
@@ -658,20 +646,7 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (!data_fifo_empty) begin
-      if (write_high_addr == VCULUT_ID) begin
-        if (!local_fifo_ren) begin
-          if ((!split_block) && (!(|one_split_four_cnt)) || (split_block && (&one_split_four_cnt))) begin
-            local_fifo_ren <= 1'b1;
-          end
-          else begin
-            local_fifo_ren <= 1'b0;
-          end
-        end
-        else begin
-          local_fifo_ren <= 1'b0;
-        end
-      end
-      else if (write_high_addr == VCUCODE_ID) begin
+      if (write_high_addr == VCUCODE_ID) begin
         if (!local_fifo_ren) begin
           if ((!split_block) && (!(|one_split_four_cnt)) || (split_block && (&one_split_four_cnt))) begin
             local_fifo_ren <= 1'b1;
@@ -710,23 +685,57 @@ end
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
+    sram_addr <= 'd0;
+  end
+  else begin
+    if (load_start) begin
+      sram_addr <= sram_baseaddr;
+    end
+    else if (sram_wvalid && !need_256_to_288_conversion) begin
+      sram_addr <= sram_addr + 1;
+    end
+    else if (valid_data_out_288b && need_256_to_288_conversion) begin
+      sram_addr <= sram_addr + 1;
+    end
+    else begin
+      sram_addr <= sram_addr;
+    end
+  end
+end
+
+assign need_256_to_288_conversion = (write_high_addr == IFMAP_ID) || (write_high_addr == VCUPARA_ID) || (write_high_addr == VCURES_ID);
+
+gearbox_256_to_288 u_cb_pp_256_to_288(
+  .clk              (clk                                      ),
+  .rst_n            (rst_n                                    ),
+  .restart          (1'b0                                     ),
+    
+  .valid_data_in    (sram_wvalid && need_256_to_288_conversion),
+  .data_in          (sram_wdata                               ),
+
+  .valid_data_out   (valid_data_out_288b                      ),
+  .data_out         (data_out_288b                            )
+);
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
     ifmap_wvalid <= 1'b0;
     ifmap_waddr  <= 'd0;
     ifmap_wdata  <= 'd0;
   end
   else begin
     if (write_high_addr == IFMAP_ID) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         case(two_cat_one_cnt)
           1'b0: begin
             ifmap_wvalid <= 1'b0;
             ifmap_waddr  <= sram_addr[IFMAP_ADDR_BITS:1];
-            ifmap_wdata  <= {sram_wdata, 256'd0};
+            ifmap_wdata  <= {data_out_288b, 288'd0};
           end
           1'b1: begin
             ifmap_wvalid <= 1'b1;
             ifmap_waddr  <= sram_addr[IFMAP_ADDR_BITS:1];
-            ifmap_wdata  <= {sram_wdata, ifmap_wdata[511:256]};
+            ifmap_wdata  <= {data_out_288b, ifmap_wdata[575:288]};
           end
         endcase
       end
@@ -798,17 +807,17 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == VCURES_ID) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         case(two_cat_one_cnt)
           1'b0: begin
             vcures_wvalid <= 1'b0;
             vcures_waddr  <= sram_addr[VCURES_ADDR_BITS:1];
-            vcures_wdata  <= {sram_wdata, 256'd0};
+            vcures_wdata  <= {data_out_288b, 288'd0};
           end
           1'b1: begin
             vcures_wvalid <= 1'b1;
             vcures_waddr  <= sram_addr[VCURES_ADDR_BITS:1];
-            vcures_wdata  <= {sram_wdata, vcures_wdata[511:256]};
+            vcures_wdata  <= {data_out_288b, vcures_wdata[575:288]};
           end
         endcase
       end
@@ -834,17 +843,17 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == VCUPARA_ID) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         case(two_cat_one_cnt)
           1'b0: begin
             vcupara_wvalid <= 1'b0;
             vcupara_waddr  <= sram_addr[VCUPARA_ADDR_BITS:1];
-            vcupara_wdata  <= {sram_wdata, 256'd0};
+            vcupara_wdata  <= {data_out_288b, 288'd0};
           end
           1'b1: begin
             vcupara_wvalid <= 1'b1;
             vcupara_waddr  <= sram_addr[VCUPARA_ADDR_BITS:1];
-            vcupara_wdata  <= {sram_wdata, vcupara_wdata[511:256]};
+            vcupara_wdata  <= {data_out_288b, vcupara_wdata[575:288]};
           end
         endcase
       end

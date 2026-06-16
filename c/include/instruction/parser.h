@@ -218,14 +218,9 @@ struct instruction_parser {
       if (insn.get_pea_insn_kind() == 0) {
         auto pea_insn = pea_config(insn);
         std::cout << "PEA config" << std::endl;
-        std::cout << "Sparse enable: " << pea_insn.get_sparse_enable() << std::endl;
-        std::cout << "Ifmap Non Uniform: " << pea_insn.get_ifmap_non_uniform_quantization() << std::endl;
-        std::cout << "Weight Non Uniform: " << pea_insn.get_weight_non_uniform_quantization() << std::endl;
-        std::cout << "Outlier enable: " << pea_insn.get_outlier_enable() << std::endl;
-        std::cout << "Stride width: " << pea_insn.get_stride_width() << std::endl;
-        std::cout << "Stride height: " << pea_insn.get_stride_height() << std::endl;
-        std::cout << "Dilation width: " << pea_insn.get_dilation_width() << std::endl;
-        std::cout << "Dilation height: " << pea_insn.get_dilation_height() << std::endl;
+        std::cout << "Real k groups: " << pea_insn.get_real_k_groups() << std::endl;
+        std::cout << "Real n groups: " << pea_insn.get_real_n_groups() << std::endl;
+        std::cout << "GEMM type: " << pea_insn.get_gemm_type() << std::endl;
       }
       else if (insn.get_pea_insn_kind() == 1) {
         auto pea_insn = convolution_execute(insn);

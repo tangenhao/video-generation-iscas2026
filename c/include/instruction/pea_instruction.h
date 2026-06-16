@@ -6,19 +6,14 @@ namespace common {
 namespace insn {
 
 typedef struct {
-  uint64_t insn_opcode : 6;                      // 0 + 6 = 6
-  uint64_t insn_number : 4;                      // 6 + 4 = 10
-  uint64_t insn_kind : 3;                        // 10 + 3 = 13
-  uint64_t sparse_enable : 1;                    // 13 + 1 = 14
-  uint64_t ifmap_non_uniform_quantization : 1;   // 14 + 1 = 15
-  uint64_t weight_non_uniform_quantization : 1;  // 15 + 1 = 16
-  uint64_t outlier_enable : 1;                   // 16 + 1 = 17
-  uint64_t stride_width : 5;                     // 17 + 5 = 22
-  uint64_t stride_height : 5;                    // 22 + 5 = 27
-  uint64_t dilation_width : 5;                   // 27 + 5 = 32
-  uint64_t dilation_height : 5;                  // 32 + 5 = 37
-  uint64_t reserved_low : 27;                    // 37 + 27 = 64
-  uint64_t reserved_high : 64;                   // 64 + 64 = 128
+  uint64_t insn_opcode : 6;     // 0 + 6 = 6
+  uint64_t insn_number : 4;     // 6 + 4 = 10
+  uint64_t insn_kind : 3;       // 10 + 3 = 13
+  uint64_t real_k_groups : 8;   // 13 + 8 = 21
+  uint64_t real_n_groups : 8;   // 21 + 8 = 29
+  uint64_t gemm_type : 2;       // 29 + 2 = 31
+  uint64_t reserved_low : 33;   // 31 + 33 = 64
+  uint64_t reserved_high : 64;  // 64 + 64 = 128
 } pea_config_bits;
 
 typedef struct {
@@ -60,7 +55,8 @@ typedef struct {
   uint64_t k_groups : 8;          //  42 + 8 = 50
   uint64_t ifmap_highaddr : 1;    // 50 + 1 = 51
   uint64_t weight_highaddr : 1;   // 51 + 1 = 52
-  uint64_t psum_highaddr : 2;     // 52 + 2 = 54
+  uint64_t psum_write_flag : 1;   // 52 + 1 = 53
+  uint64_t psum_read_flag : 1;    // 53 + 1 = 54
   uint64_t psum_number_low : 10;  // 54 + 10 = 64
   uint64_t psum_number_high : 2;  // 64 + 2 = 66
   uint64_t psum_accumulated : 1;  // 66 + 1 = 67
@@ -419,6 +415,35 @@ struct gemm_execute: public instruction {
                uint64_t psum_highaddr,
                uint64_t psum_number,
                uint64_t psum_accumulated)
+    : gemm_execute(type_a,
+                   type_b,
+                   type_accumulator,
+                   type_output,
+                   tile_m,
+                   n_groups,
+                   k_groups,
+                   ifmap_highaddr,
+                   weight_highaddr,
+                   (psum_highaddr >> 1) & 0x1,
+                   psum_highaddr & 0x1,
+                   psum_number,
+                   psum_accumulated)
+  {
+  }
+
+  gemm_execute(uint64_t type_a,
+               uint64_t type_b,
+               uint64_t type_accumulator,
+               uint64_t type_output,
+               uint64_t tile_m,
+               uint64_t n_groups,
+               uint64_t k_groups,
+               uint64_t ifmap_highaddr,
+               uint64_t weight_highaddr,
+               uint64_t psum_read_flag,
+               uint64_t psum_write_flag,
+               uint64_t psum_number,
+               uint64_t psum_accumulated)
   {
     this->storage_t.insn_opcode      = 17;
     this->storage_t.insn_number      = 0;
@@ -432,7 +457,8 @@ struct gemm_execute: public instruction {
     this->storage_t.k_groups         = k_groups;
     this->storage_t.ifmap_highaddr   = ifmap_highaddr;
     this->storage_t.weight_highaddr  = weight_highaddr;
-    this->storage_t.psum_highaddr    = psum_highaddr;
+    this->storage_t.psum_read_flag   = psum_read_flag;
+    this->storage_t.psum_write_flag  = psum_write_flag;
     this->storage_t.psum_number_low  = (psum_number & 0x3FF);
     this->storage_t.psum_number_high = (psum_number >> 10);
     this->storage_t.psum_accumulated = psum_accumulated;
@@ -513,7 +539,20 @@ struct gemm_execute: public instruction {
 
   void set_psum_highaddr(uint64_t psum_highaddr)
   {
-    this->storage_t.psum_highaddr = psum_highaddr;
+    this->storage_t.psum_read_flag  = (psum_highaddr >> 1) & 0x1;
+    this->storage_t.psum_write_flag = psum_highaddr & 0x1;
+    this->set_insn();
+  }
+
+  void set_psum_read_flag(uint64_t psum_read_flag)
+  {
+    this->storage_t.psum_read_flag = psum_read_flag;
+    this->set_insn();
+  }
+
+  void set_psum_write_flag(uint64_t psum_write_flag)
+  {
+    this->storage_t.psum_write_flag = psum_write_flag;
     this->set_insn();
   }
 
@@ -589,7 +628,17 @@ struct gemm_execute: public instruction {
 
   int64_t get_psum_highaddr()
   {
-    return this->storage_t.psum_highaddr;
+    return (this->storage_t.psum_read_flag << 1) | this->storage_t.psum_write_flag;
+  }
+
+  int64_t get_psum_read_flag()
+  {
+    return this->storage_t.psum_read_flag;
+  }
+
+  int64_t get_psum_write_flag()
+  {
+    return this->storage_t.psum_write_flag;
   }
 
   int64_t get_psum_number()
@@ -621,26 +670,14 @@ struct pea_config: public instruction {
     this->set_insn();
   }
 
-  pea_config(uint64_t sparse_enable,
-             uint64_t ifmap_non_uniform_quantization,
-             uint64_t weight_non_uniform_quantization,
-             uint64_t outlier_enable,
-             uint64_t stride_width,
-             uint64_t stride_height,
-             uint64_t dilation_width,
-             uint64_t dilation_height)
+  pea_config(uint64_t real_k_groups, uint64_t real_n_groups, uint64_t gemm_type)
   {
-    this->storage_t.insn_opcode                     = 17;
-    this->storage_t.insn_number                     = 0;
-    this->storage_t.insn_kind                       = 0;
-    this->storage_t.sparse_enable                   = sparse_enable;
-    this->storage_t.ifmap_non_uniform_quantization  = ifmap_non_uniform_quantization;
-    this->storage_t.weight_non_uniform_quantization = weight_non_uniform_quantization;
-    this->storage_t.outlier_enable                  = outlier_enable;
-    this->storage_t.stride_width                    = stride_width;
-    this->storage_t.stride_height                   = stride_height;
-    this->storage_t.dilation_width                  = dilation_width;
-    this->storage_t.dilation_height                 = dilation_height;
+    this->storage_t.insn_opcode   = 17;
+    this->storage_t.insn_number   = 0;
+    this->storage_t.insn_kind     = 0;
+    this->storage_t.real_k_groups = real_k_groups;
+    this->storage_t.real_n_groups = real_n_groups;
+    this->storage_t.gemm_type     = gemm_type;
     this->set_insn();
   }
 
@@ -662,51 +699,21 @@ struct pea_config: public instruction {
     this->set_insn();
   }
 
-  void set_sparse_enable(uint64_t sparse_enable)
+  void set_real_k_groups(uint64_t real_k_groups)
   {
-    this->storage_t.sparse_enable = sparse_enable;
+    this->storage_t.real_k_groups = real_k_groups;
     this->set_insn();
   }
 
-  void set_ifmap_non_uniform_quantization(uint64_t ifmap_non_uniform_quantization)
+  void set_real_n_groups(uint64_t real_n_groups)
   {
-    this->storage_t.ifmap_non_uniform_quantization = ifmap_non_uniform_quantization;
+    this->storage_t.real_n_groups = real_n_groups;
     this->set_insn();
   }
 
-  void set_weight_non_uniform_quantization(uint64_t weight_non_uniform_quantization)
+  void set_gemm_type(uint64_t gemm_type)
   {
-    this->storage_t.weight_non_uniform_quantization = weight_non_uniform_quantization;
-    this->set_insn();
-  }
-
-  void set_outlier_enable(uint64_t outlier_enable)
-  {
-    this->storage_t.outlier_enable = outlier_enable;
-    this->set_insn();
-  }
-
-  void set_stride_width(uint64_t stride_width)
-  {
-    this->storage_t.stride_width = stride_width;
-    this->set_insn();
-  }
-
-  void set_stride_height(uint64_t stride_height)
-  {
-    this->storage_t.stride_height = stride_height;
-    this->set_insn();
-  }
-
-  void set_dilation_width(uint64_t dilation_width)
-  {
-    this->storage_t.dilation_width = dilation_width;
-    this->set_insn();
-  }
-
-  void set_dilation_height(uint64_t dilation_height)
-  {
-    this->storage_t.dilation_height = dilation_height;
+    this->storage_t.gemm_type = gemm_type;
     this->set_insn();
   }
 
@@ -732,44 +739,19 @@ struct pea_config: public instruction {
     return this->storage_t.insn_kind;
   }
 
-  int64_t get_stride_width()
+  int64_t get_real_k_groups()
   {
-    return this->storage_t.stride_width;
+    return this->storage_t.real_k_groups;
   }
 
-  int64_t get_stride_height()
+  int64_t get_real_n_groups()
   {
-    return this->storage_t.stride_height;
+    return this->storage_t.real_n_groups;
   }
 
-  int64_t get_dilation_width()
+  int64_t get_gemm_type()
   {
-    return this->storage_t.dilation_width;
-  }
-
-  int64_t get_dilation_height()
-  {
-    return this->storage_t.dilation_height;
-  }
-
-  int64_t get_sparse_enable()
-  {
-    return this->storage_t.sparse_enable;
-  }
-
-  int64_t get_ifmap_non_uniform_quantization()
-  {
-    return this->storage_t.ifmap_non_uniform_quantization;
-  }
-
-  int64_t get_weight_non_uniform_quantization()
-  {
-    return this->storage_t.weight_non_uniform_quantization;
-  }
-
-  int64_t get_outlier_enable()
-  {
-    return this->storage_t.outlier_enable;
+    return this->storage_t.gemm_type;
   }
 };
 

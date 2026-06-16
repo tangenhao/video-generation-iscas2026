@@ -37,11 +37,11 @@ parameter AXI_OUTSTANDING_DEPTH  = 128;
 parameter AXI_M_AXI_MIN_ID       = 0;
 parameter AXI_M_AXI_MAX_ID       = 15;
 
-parameter IFMAP_WIDTH             = 512;
+parameter IFMAP_WIDTH             = 576;
 parameter VCUCODE_WIDTH           = 64;
-parameter VCUPARA_WIDTH           = 512;
+parameter VCUPARA_WIDTH           = 576;
 parameter VCULUT_WIDTH            = 64;
-parameter VCURES_WIDTH            = 512;
+parameter VCURES_WIDTH            = 576;
 
 parameter IFMAP_ADDR_BITS         = 9;  //bank:4,2bits; addr:6bits, 36 depth, highaddr:1bits
 parameter VCUPARA_ADDR_BITS       = 9;  //vector_mul, fp16

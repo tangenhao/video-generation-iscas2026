@@ -15,7 +15,7 @@ int main()
   std::vector<instruction> insn_series;
   insn_series.push_back(synchronize_indie(1, 0, 0, 5, 0, 0));
   insn_series.push_back(load_iteration_2(0x0, 55, 4, 112, 55, MASTER_PSUM_ADDR, 0));
-  insn_series.push_back(pea_config(0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0));
+  insn_series.push_back(pea_config(0, 0, 0));
   insn_series.push_back(synchronize_indie(1, 0, 0, 5, 0, 0));
   insn_series.push_back(convolution_execute(2, 2, 1, 1, 13, 13, 2, 2, 13, 13, 0, 0, 9, 9, 9, 9, 9, 0, 0));
   insn_series.push_back(load_iteration_2(0x0, 55, 4, 112, 55, MASTER_PSUM_ADDR, 0));

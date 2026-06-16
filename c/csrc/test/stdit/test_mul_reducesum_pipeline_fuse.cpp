@@ -58,12 +58,15 @@ half add_half(half lhs, half rhs)
   return half(static_cast<float>(lhs) + static_cast<float>(rhs));
 }
 
-half reduce_tree_32(std::vector<half> values)
+half reduce_tree(std::vector<half> values)
 {
   while (values.size() > 1) {
     std::vector<half> next;
-    next.reserve(values.size() / 2);
-    for (size_t i = 0; i < values.size(); i += 2) {
+    next.reserve((values.size() + 1) / 2);
+    if (values.size() & 1) {
+      next.push_back(values.back());
+    }
+    for (size_t i = 0; i + 1 < values.size(); i += 2) {
       next.push_back(add_half(values[i], values[i + 1]));
     }
     values.swap(next);
@@ -79,12 +82,12 @@ int main(int argc, const char** argv)
   // Pair-fuse target:
   //   stream_en = 1 && opcode_number = 2
   //   code0 = stream MUL, code1 = REDUCE_SUM
-  // Each execute consumes d_model / 32 beats. The second execute starts from
+  // Each execute consumes d_model / oc_group_size beats. The second execute starts from
   // the next sequence row with acc_clear=1. If the stream accumulator is not
   // cleared, seq1 becomes seq0 + seq1 instead of seq1.
   int seq_len       = 2;
   int d_model       = 1152;
-  int oc_group_size = 32;
+  int oc_group_size = 36;
   int oc_group      = d_model / oc_group_size;
 
   uint64_t psum_data_type        = vcu_psum_dtype.at(kHalf);
@@ -128,7 +131,7 @@ int main(int argc, const char** argv)
         mul_golden[idx] = data_in[idx] * data_para[idx];
         group_values.push_back(mul_golden[idx]);
       }
-      sum = add_half(reduce_tree_32(group_values), sum);
+      sum = add_half(reduce_tree(group_values), sum);
     }
     seq_sum[seq] = sum;
     for (int lane = 0; lane < oc_group_size; ++lane) {
@@ -143,7 +146,7 @@ int main(int argc, const char** argv)
   std::cout << "shape: seq_len=" << seq_len << ", d_model=" << d_model << ", oc_group=" << oc_group
             << ", lanes/beat=" << oc_group_size << "\n";
   std::cout << "dtype: fp16, stream_en=1, opcode_number=2, code0=mul ifmap para, code1=redsum reg0\n";
-  std::cout << "beats per execute: " << oc_group << " (RTL consumes 32 lanes/cycle)\n";
+  std::cout << "beats per execute: " << oc_group << " (RTL consumes " << oc_group_size << " lanes/cycle)\n";
   std::cout << "acc_clear check: seq1 expected " << fp16_hex(seq_sum[1]) << " (" << static_cast<float>(seq_sum[1])
             << "), stale-acc failure would be " << fp16_hex(seq1_with_stale_acc) << " ("
             << static_cast<float>(seq1_with_stale_acc) << ")\n";
@@ -168,7 +171,7 @@ int main(int argc, const char** argv)
     std::cout << "\n";
 
     std::cout << "  seq[" << seq << "] redsum over d_model: " << fp16_hex(seq_sum[seq]) << " ("
-              << static_cast<float>(seq_sum[seq]) << "), broadcast to 32 lanes\n";
+              << static_cast<float>(seq_sum[seq]) << "), broadcast to " << oc_group_size << " lanes\n";
   }
   print_bytes_right_low("IFMAP fp16 DDR/wave hex", data_in.data_ptr(), data_in.numel() * sizeof(half), 32);
   print_bytes_right_low("VCUPARA fp16 DDR/wave hex", data_para.data_ptr(), data_para.numel() * sizeof(half), 32);
@@ -197,7 +200,7 @@ int main(int argc, const char** argv)
 
   auto vcucode_series = vcu::asm_vcu_op({
     "mul ifmap para, reg0",
-    "redsum reg0, reg11, 32",
+    "redsum reg0, reg11, 36",
   });
 
   auto   num_vcucodes      = vcucode_series.size();
@@ -216,11 +219,12 @@ int main(int argc, const char** argv)
 
   insn_series.push_back(insn::load_iteration_2<0>(opcode_ddr_base_addr, vcucode_ddr_lines - 1, 0, 0, 0, MASTER_VCUCODE_ADDR, 0));
 
-  auto seq_in_offset  = split_exp_fra(oc_group * oc_group_size * bytes_input);
-  auto seq_out_offset = split_exp_fra(oc_group_size * bytes_output);
+
+  auto seq_in_offset  = split_exp_fra(d_model * bytes_input);
+  auto seq_out_offset = split_exp_fra(d_model * bytes_output);
 
   insn_series.push_back(insn::load_iteration_2<0>(data_in_ddr_base_addr,
-                                                  oc_group * bytes_input * oc_group_size / 32 - 1,
+                                                  d_model * bytes_input / 32 - 1,
                                                   seq_in_offset.first,
                                                   seq_in_offset.second,
                                                   seq_len - 1,
@@ -228,7 +232,7 @@ int main(int argc, const char** argv)
                                                   0));
 
   insn_series.push_back(insn::load_iteration_2<0>(data_para_ddr_base_addr,
-                                                  oc_group * bytes_input * oc_group_size / 32 - 1,
+                                                  d_model * bytes_input / 32 - 1,
                                                   seq_in_offset.first,
                                                   seq_in_offset.second,
                                                   seq_len - 1,
@@ -258,7 +262,7 @@ int main(int argc, const char** argv)
       seq_base_addr,    // para_in_addr
       0,                // resadd_in_addr
       seq,              // ram_out_addr
-      (uint64_t)oc_group - 1, // num_data: d_model / 32 beats
+      (uint64_t)oc_group - 1, // num_data: d_model / 36 beats
       0,                // oc_group
       para_func,
       0,                // psum_sram_valid
@@ -275,7 +279,7 @@ int main(int argc, const char** argv)
   }
 
   insn_series.push_back(insn::store_iteration_2<0>(data_out_ddr_base_addr,
-                                                   bytes_output * oc_group_size / 32 - 1,
+                                                   bytes_output * d_model / 32 - 1,
                                                    seq_out_offset.first,
                                                    seq_out_offset.second,
                                                    seq_len - 1,

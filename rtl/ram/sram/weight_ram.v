@@ -13,30 +13,30 @@ for(clogb2=0; bit_depth>0; clogb2=clogb2+1)
 end                                                           
 endfunction 
 
-parameter WIDTH     = 256;
+parameter WIDTH     = 288;
 parameter ADDR_BITS = 14;
 parameter BANK      = 32;
 
-input                       clk;
-input                       rst_n;
-
-input                       rvalid_0;
-input       [ADDR_BITS-1:0] raddr_0;
-output reg  [WIDTH-1:0]     rdata_0;
-
-input                       dma_wvalid;
-input       [ADDR_BITS-1:0] dma_waddr;
-input       [WIDTH-1:0]     dma_wdata;
+input                        clk;
+input                        rst_n;
+ 
+input                        rvalid_0;
+input       [ADDR_BITS-1:0]  raddr_0;
+output reg  [WIDTH*BANK-1:0] rdata_0;
+ 
+input                        dma_wvalid;
+input       [ADDR_BITS-1:0]  dma_waddr;
+input       [WIDTH-1:0]      dma_wdata;
 
 localparam BANK_BITS = clogb2(BANK)-1;
 
-wire [BANK-1:0]                ren;
+wire                           ren;
 wire [ADDR_BITS-BANK_BITS-1:0] raddr;
 wire [WIDTH-1:0]               rdata[0:BANK-1];
 wire                           wen[0:BANK-1];
 wire [ADDR_BITS-BANK_BITS-1:0] waddr[0:BANK-1];
 wire [WIDTH-1:0]               wdata[0:BANK-1];
-reg  [BANK-1:0]                ren_reg;
+reg                            ren_reg;
 
 reg  [BANK-1:0]                dma_wen;
 reg  [ADDR_BITS-1:0]           dma_waddr_reg;
@@ -74,7 +74,7 @@ generate
     assign waddr[sram_i] = {dma_waddr_reg[ADDR_BITS-1], dma_waddr_reg[ADDR_BITS-BANK_BITS-2:0]};
     assign wdata[sram_i] = dma_wdata_reg;
 
-    sram_256x144 u_ram_bank(
+    sram_288x128 u_ram_bank(
       .w_clk  ( clk           ),
       .w_en   ( wen[sram_i]   ),
       .w_addr ( waddr[sram_i] ),
@@ -87,13 +87,7 @@ generate
   end
 endgenerate
 
-genvar rd_i;
-generate
-  for (rd_i = 0; rd_i < BANK; rd_i = rd_i + 1) begin: rd_mux
-    assign ren[rd_i]   = (raddr_0[(ADDR_BITS-2):(ADDR_BITS-BANK_BITS-1)] == rd_i) & rvalid_0;
-  end
-endgenerate
-
+assign ren   = rvalid_0;
 assign raddr = {raddr_0[ADDR_BITS-1], raddr_0[ADDR_BITS-BANK_BITS-2:0]};
 
 always @(posedge clk or negedge rst_n) begin
@@ -112,8 +106,8 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     for (rdata_i = 0; rdata_i < BANK; rdata_i = rdata_i + 1) begin
-      if (ren_reg[rdata_i]) begin
-        rdata_0 <= rdata[rdata_i];
+      if (ren_reg) begin
+        rdata_0[rdata_i*WIDTH +: WIDTH] <= rdata[rdata_i];
       end
     end
   end

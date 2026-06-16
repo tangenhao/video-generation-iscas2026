@@ -12,7 +12,6 @@ module vcu(
   psum_wvalid, psum_waddr, psum_wdata,
   psum_1_wvalid, psum_1_waddr, psum_1_wdata,
   vcucode_wvalid, vcucode_waddr, vcucode_wdata,
-  vculut_wvalid, vculut_waddr, vculut_wdata,
   ofmap_wvalid, ofmap_waddr, ofmap_wdata,
   vcures_wvalid, vcures_waddr, vcures_wdata,
   qact_wvalid, qact_waddr, qact_wdata,
@@ -22,15 +21,15 @@ module vcu(
 );
 
 
-parameter PSUM_WIDTH        = 512;
-parameter IFMAP_WIDTH       = 512;
+parameter PSUM_WIDTH        = 576;
+parameter IFMAP_WIDTH       = 576;
 parameter VCUCODE_WIDTH     = 64;
-parameter VCUPARA_WIDTH     = 512;
+parameter VCUPARA_WIDTH     = 576;
 parameter VCULUT_WIDTH      = 64;
-parameter VCURES_WIDTH      = 512;
-parameter OFMAP_WIDTH       = 256;
-parameter QACT_WIDTH        = 256;
-parameter SCALE_WIDTH       = 512;
+parameter VCURES_WIDTH      = 576;
+parameter OFMAP_WIDTH       = 288;
+parameter QACT_WIDTH        = 288;
+parameter SCALE_WIDTH       = 576;
 
 parameter PSUM_ADDR_BITS    = 9;
 parameter IFMAP_ADDR_BITS   = 9;
@@ -43,7 +42,7 @@ parameter VCUCODE_ADDR_BITS = 7;
 parameter VCULUT_ADDR_BITS  = 9;
 
 parameter INSN_WIDTH        = 128;
-parameter PARALLELISM       = 32;
+parameter PARALLELISM       = 36;
 parameter DATA_WIDTH        = 16;
 parameter VCU_INSN_OPCODE   = 5'd10;
 parameter VCU_SERIAL_NUMBER = 3'b000;
@@ -130,10 +129,6 @@ output reg   [PSUM_WIDTH-1:0]        psum_wdata;
 output reg                           psum_1_wvalid;
 output reg   [PSUM_ADDR_BITS-1:0]    psum_1_waddr;
 output reg   [PSUM_WIDTH-1:0]        psum_1_wdata;
-
-input                                vculut_wvalid;
-input        [VCULUT_ADDR_BITS-1:0]  vculut_waddr;
-input        [VCULUT_WIDTH-1:0]      vculut_wdata;
 
 input                                work_en;
 input        [INSN_WIDTH-1:0]        insn;
@@ -312,8 +307,6 @@ reg                      stream_opcode_second_pending;
 reg                      stream_opcode_second_done_reg;
 wire                     opcode_data_update;
 
-wire [PARALLELISM-1:0]       operator_done;
-wire [PARALLELISM-1:0]       prefetch;
 wire                         change_para;
 wire                         read_cross_ocgroup;
 wire                         read_cross_ocgroup_flag;
@@ -416,11 +409,11 @@ reg [5:0]                transpose_iteration_write_index;
 
 reg                      transpose_psum_sram_rdata_valid;
 reg                      transpose_psum_sram_rdata_valid_delay;
-reg [DATA_WIDTH-1:0]     transpose_psum_sram_rdata[0:PARALLELISM-1];
+reg [31:0]               transpose_psum_sram_rdata[0:PARALLELISM-1];
 reg                      transpose_psum_sram_wvalid;
 reg [PSUM_ADDR_BITS-1:0] transpose_psum_sram_waddr;
 reg [PSUM_WIDTH-1:0]     transpose_psum_sram_wdata;
-reg [PSUM_WIDTH-1:0]     transpose_psum_sram_out_temp;
+reg [32*PARALLELISM-1:0] transpose_psum_sram_out_temp;
 
 
 always @(posedge clk or negedge rst_n) begin
@@ -451,7 +444,7 @@ always @(posedge clk or negedge rst_n) begin
           psum_rvalid <= 1'b0;
         end
         else if (!transpose_psum_read_done) begin
-          if (transpose_psum_read_number == 31) begin
+          if (transpose_psum_read_number == PARALLELISM-1) begin
             psum_rvalid <= 1'b0;
           end
           else begin
@@ -486,7 +479,7 @@ always @(posedge clk or negedge rst_n) begin
           psum_raddr  <= 1'b0;
         end
         else if (!transpose_psum_read_done) begin
-          if (transpose_psum_read_number == 31) begin
+          if (transpose_psum_read_number == PARALLELISM-1) begin
             psum_raddr  <= 1'b0;
           end
           else begin
@@ -1118,49 +1111,53 @@ end
 /* -------------------------------------------------------------------------------------------------------- */
 
 reg  [31:0] current_transpose_data;
-wire [31:0] transpose_data[0:31];
+wire [31:0] transpose_data[0:PARALLELISM-1];
 
 always @(*) begin
   case(transpose_psum_internal_sram_sel_delay_1)
-    5'b00000: current_transpose_data = transpose_data[0];
-    5'b00001: current_transpose_data = transpose_data[1];
-    5'b00010: current_transpose_data = transpose_data[2];
-    5'b00011: current_transpose_data = transpose_data[3];
-    5'b00100: current_transpose_data = transpose_data[4];
-    5'b00101: current_transpose_data = transpose_data[5];
-    5'b00110: current_transpose_data = transpose_data[6];
-    5'b00111: current_transpose_data = transpose_data[7];
-    5'b01000: current_transpose_data = transpose_data[8];
-    5'b01001: current_transpose_data = transpose_data[9];
-    5'b01010: current_transpose_data = transpose_data[10];
-    5'b01011: current_transpose_data = transpose_data[11];
-    5'b01100: current_transpose_data = transpose_data[12];
-    5'b01101: current_transpose_data = transpose_data[13];
-    5'b01110: current_transpose_data = transpose_data[14];
-    5'b01111: current_transpose_data = transpose_data[15];
-    5'b10000: current_transpose_data = transpose_data[16];
-    5'b10001: current_transpose_data = transpose_data[17];
-    5'b10010: current_transpose_data = transpose_data[18];
-    5'b10011: current_transpose_data = transpose_data[19];
-    5'b10100: current_transpose_data = transpose_data[20];
-    5'b10101: current_transpose_data = transpose_data[21];
-    5'b10110: current_transpose_data = transpose_data[22];
-    5'b10111: current_transpose_data = transpose_data[23];
-    5'b11000: current_transpose_data = transpose_data[24];
-    5'b11001: current_transpose_data = transpose_data[25];
-    5'b11010: current_transpose_data = transpose_data[26];
-    5'b11011: current_transpose_data = transpose_data[27];
-    5'b11100: current_transpose_data = transpose_data[28];
-    5'b11101: current_transpose_data = transpose_data[29];
-    5'b11110: current_transpose_data = transpose_data[30];
-    5'b11111: current_transpose_data = transpose_data[31];
-    default : current_transpose_data = 32'b0;
+    6'd0:  current_transpose_data = transpose_data[0];
+    6'd1:  current_transpose_data = transpose_data[1];
+    6'd2:  current_transpose_data = transpose_data[2];
+    6'd3:  current_transpose_data = transpose_data[3];
+    6'd4:  current_transpose_data = transpose_data[4];
+    6'd5:  current_transpose_data = transpose_data[5];
+    6'd6:  current_transpose_data = transpose_data[6];
+    6'd7:  current_transpose_data = transpose_data[7];
+    6'd8:  current_transpose_data = transpose_data[8];
+    6'd9:  current_transpose_data = transpose_data[9];
+    6'd10: current_transpose_data = transpose_data[10];
+    6'd11: current_transpose_data = transpose_data[11];
+    6'd12: current_transpose_data = transpose_data[12];
+    6'd13: current_transpose_data = transpose_data[13];
+    6'd14: current_transpose_data = transpose_data[14];
+    6'd15: current_transpose_data = transpose_data[15];
+    6'd16: current_transpose_data = transpose_data[16];
+    6'd17: current_transpose_data = transpose_data[17];
+    6'd18: current_transpose_data = transpose_data[18];
+    6'd19: current_transpose_data = transpose_data[19];
+    6'd20: current_transpose_data = transpose_data[20];
+    6'd21: current_transpose_data = transpose_data[21];
+    6'd22: current_transpose_data = transpose_data[22];
+    6'd23: current_transpose_data = transpose_data[23];
+    6'd24: current_transpose_data = transpose_data[24];
+    6'd25: current_transpose_data = transpose_data[25];
+    6'd26: current_transpose_data = transpose_data[26];
+    6'd27: current_transpose_data = transpose_data[27];
+    6'd28: current_transpose_data = transpose_data[28];
+    6'd29: current_transpose_data = transpose_data[29];
+    6'd30: current_transpose_data = transpose_data[30];
+    6'd31: current_transpose_data = transpose_data[31];
+    6'd32: current_transpose_data = transpose_data[32];
+    6'd33: current_transpose_data = transpose_data[33];
+    6'd34: current_transpose_data = transpose_data[34];
+    6'd35: current_transpose_data = transpose_data[35];
+    default: current_transpose_data = 32'b0;
   endcase
 end
 
 genvar transpose_sram_i;
 generate
-  for (transpose_sram_i = 0; transpose_sram_i < 32; transpose_sram_i = transpose_sram_i + 1) begin: transpose_sram
+  for (transpose_sram_i = 0; transpose_sram_i < PARALLELISM; transpose_sram_i = transpose_sram_i + 1) begin: transpose_sram
     sram_32x64 u_sram_32x64(
       .w_clk  ( clk                                                                                           ),
       .w_en   ( transpose_psum_sram_rdata_valid_delay                                                         ),
@@ -1174,27 +1171,27 @@ generate
   end
 endgenerate
 
-wire [PSUM_WIDTH/8-1:0] transposed_wire_4bit;
-wire [PSUM_WIDTH/4-1:0] transposed_wire_8bit;
-wire [PSUM_WIDTH/2-1:0] transposed_wire_16bit;
+wire [4*PARALLELISM-1:0]  transposed_wire_4bit;
+wire [8*PARALLELISM-1:0]  transposed_wire_8bit;
+wire [16*PARALLELISM-1:0] transposed_wire_16bit;
 
 genvar t_4bit;
 generate
-  for (t_4bit = 0; t_4bit < 32; t_4bit = t_4bit + 1) begin : transpose_4bit
+  for (t_4bit = 0; t_4bit < PARALLELISM; t_4bit = t_4bit + 1) begin : transpose_4bit
     assign transposed_wire_4bit[t_4bit*4+:4] = transpose_psum_sram_out_temp[t_4bit*32+:4];
   end
 endgenerate
 
 genvar t_8bit;
 generate
-  for (t_8bit = 0; t_8bit < 32; t_8bit = t_8bit + 1) begin : transpose_8bit
+  for (t_8bit = 0; t_8bit < PARALLELISM; t_8bit = t_8bit + 1) begin : transpose_8bit
     assign transposed_wire_8bit[t_8bit*8+:8] = transpose_psum_sram_out_temp[t_8bit*32+:8];
   end
 endgenerate
 
 genvar t_16bit;
 generate
-  for (t_16bit = 0; t_16bit < 32; t_16bit = t_16bit + 1) begin : transpose_16bit
+  for (t_16bit = 0; t_16bit < PARALLELISM; t_16bit = t_16bit + 1) begin : transpose_16bit
     assign transposed_wire_16bit[t_16bit*16+:16] = transpose_psum_sram_out_temp[t_16bit*32+:16];
   end
 endgenerate
@@ -1209,7 +1206,7 @@ always @(posedge clk or negedge rst_n) begin
     transpose_psum_read_done                    <= 1'b0;
     transpose_psum_read_done_delay_1            <= 1'b0;
     transpose_psum_read_done_delay_2            <= 1'b0;
-    for (transpose_read_i = 0; transpose_read_i < 32; transpose_read_i = transpose_read_i + 1) begin
+    for (transpose_read_i = 0; transpose_read_i < PARALLELISM; transpose_read_i = transpose_read_i + 1) begin
       transpose_psum_sram_rdata[transpose_read_i] <= 32'b0;
     end
   end
@@ -1222,7 +1219,7 @@ always @(posedge clk or negedge rst_n) begin
         transpose_psum_read_done   <= 1'b0;
       end
       else if (!transpose_psum_read_done) begin
-        if (transpose_psum_read_number == 31) begin
+        if (transpose_psum_read_number == PARALLELISM-1) begin
           transpose_psum_read_number <= 1'b0;
           transpose_psum_read_done   <= 1'b1;
         end
@@ -1239,7 +1236,7 @@ always @(posedge clk or negedge rst_n) begin
         transpose_psum_internal_sram_write_number <= 1'b0;
       end
       else if (!transpose_psum_read_done_delay_2) begin
-        if (transpose_psum_internal_sram_write_number == 31) begin
+        if (transpose_psum_internal_sram_write_number == PARALLELISM-1) begin
           transpose_psum_internal_sram_write_number <= 1'b0;
         end
         else begin
@@ -1260,9 +1257,14 @@ always @(posedge clk or negedge rst_n) begin
     transpose_psum_sram_rdata_valid_delay <= transpose_psum_sram_rdata_valid;
 
     if (transpose_psum_sram_rdata_valid) begin
-      for (transpose_read_i = 0; transpose_read_i < 32; transpose_read_i = transpose_read_i + 1) begin
+      for (transpose_read_i = 0; transpose_read_i < PARALLELISM; transpose_read_i = transpose_read_i + 1) begin
         if (transpose_psum_datawidth == 3) begin
-          transpose_psum_sram_rdata[transpose_read_i] <= psum_rdata[transpose_read_i*32+:32];
+          if (transpose_read_i < (PSUM_WIDTH/32)) begin
+            transpose_psum_sram_rdata[transpose_read_i] <= psum_rdata[transpose_read_i*32+:32];
+          end
+          else begin
+            transpose_psum_sram_rdata[transpose_read_i] <= 32'b0;
+          end
         end
         else if (transpose_psum_datawidth == 2) begin
           transpose_psum_sram_rdata[transpose_read_i] <= {16'd0, psum_rdata[transpose_read_i*16+:16]};
@@ -1288,7 +1290,7 @@ always @(posedge clk or negedge rst_n) begin
     end
     else if (transpose_start) begin
       if (transpose_psum_sram_rdata_valid) begin
-        if (transpose_iteration_write_index == 31) begin
+        if (transpose_iteration_write_index == PARALLELISM-1) begin
           transpose_iteration_write_index <= 6'b0;
         end
         else begin
@@ -1326,7 +1328,7 @@ always @(posedge clk or negedge rst_n) begin
     transpose_psum_internal_sram_sel_delay_2 <= transpose_psum_internal_sram_sel_delay_1;
     if (transpose_start && !transpose_done) begin
       if (transpose_psum_read_done_delay_1) begin
-        if (transpose_psum_write_number == 31 && transpose_psum_sram_wvalid) begin
+        if (transpose_psum_write_number == PARALLELISM-1 && transpose_psum_sram_wvalid) begin
           transpose_psum_internal_read_en <= 1'b0;
           transpose_psum_sram_wvalid      <= 1'b0;
           transpose_psum_sram_wdata       <= 0;
@@ -1334,19 +1336,19 @@ always @(posedge clk or negedge rst_n) begin
         end
         else begin
           transpose_psum_internal_read_en <= 1'b1;
-          if (transpose_psum_internal_process_number == 31 && transpose_psum_internal_rvalid_delay) begin
+          if (transpose_psum_internal_process_number == PARALLELISM-1 && transpose_psum_internal_rvalid_delay) begin
             transpose_psum_sram_wvalid <= 1'b1;
             if (transpose_psum_datawidth == 0) begin
-              transpose_psum_sram_wdata <= {1792'd0, transposed_wire_4bit};
+              transpose_psum_sram_wdata <= {{(PSUM_WIDTH-4*PARALLELISM){1'b0}}, transposed_wire_4bit};
             end
             else if (transpose_psum_datawidth == 1) begin
-              transpose_psum_sram_wdata <= {896'd0, transposed_wire_8bit};
+              transpose_psum_sram_wdata <= {{(PSUM_WIDTH-8*PARALLELISM){1'b0}}, transposed_wire_8bit};
             end
             else if (transpose_psum_datawidth == 2) begin
-              transpose_psum_sram_wdata <= {512'd0, transposed_wire_16bit};
+              transpose_psum_sram_wdata <= transposed_wire_16bit;
             end
             else if (transpose_psum_datawidth == 3) begin
-              transpose_psum_sram_wdata <= transpose_psum_sram_out_temp;
+              transpose_psum_sram_wdata <= transpose_psum_sram_out_temp[PSUM_WIDTH-1:0];
             end
             transpose_psum_internal_process_number <= 0;
           end
@@ -1356,13 +1358,13 @@ always @(posedge clk or negedge rst_n) begin
           end
 
           if (transpose_psum_internal_rvalid) begin
-            transpose_psum_sram_out_temp <= {current_transpose_data, transpose_psum_sram_out_temp[PSUM_WIDTH-1:32]};
+            transpose_psum_sram_out_temp <= {current_transpose_data, transpose_psum_sram_out_temp[32*PARALLELISM-1:32]};
           end
         end
       end
 
       if (transpose_psum_read_done_delay_2) begin
-        if (transpose_psum_internal_read_number == 31) begin
+        if (transpose_psum_internal_read_number == PARALLELISM-1) begin
           transpose_psum_internal_read_number <= 0;
           transpose_psum_internal_sram_sel <= transpose_psum_internal_sram_sel + 1;
         end
@@ -1396,7 +1398,7 @@ always @(posedge clk or negedge rst_n) begin
     transpose_psum_write_number <= 0;
   end
   else begin
-    if (transpose_start && transpose_psum_write_number == 31 && transpose_psum_sram_wvalid) begin
+    if (transpose_start && transpose_psum_write_number == PARALLELISM-1 && transpose_psum_sram_wvalid) begin
       transpose_done <= 1'b1;
       transpose_psum_write_number <= 0;
     end
@@ -2308,9 +2310,6 @@ operator u_operator(
   .ini_addr                    ( ini_addr                        ), 
   .end_addr                    ( end_addr                        ),
   .loop_address                ( loop_address                    ),
-  .vculut_wvalid               ( vculut_wvalid                   ),
-  .vculut_waddr                ( vculut_waddr                    ),
-  .vculut_wdata                ( vculut_wdata                    ),
   .func_base_highaddr          ( func_base_highaddr              )
 );
 
@@ -2417,19 +2416,6 @@ assign vcu_execute_psum_1_sram_wdata = stream_ewise_write_fire ? vcu_out[PSUM_WI
                                                                  stream_ewise_opcode ? {PSUM_WIDTH{1'b0}} :
                                                                  write_cross_ocgroup_reg ? write_cross_ocgroup_sram_id_reg == 2 ? vcu_out_reg[PSUM_WIDTH-1:0] : {PSUM_WIDTH{1'b0}} :
                                                                  data_out_ram == 2 ? vcu_out_reg[PSUM_WIDTH-1:0] : {PSUM_WIDTH{1'b0}};
-
-// always @(posedge clk or negedge rst_n) begin
-//   if (!rst_n) begin
-//     vcures_wvalid <= 1'b0;
-//     vcures_waddr  <= {VCURES_ADDR_BITS{1'b0}};
-//     vcures_wdata  <= {VCURES_WIDTH{1'b0}};
-//   end
-//   else begin
-//     vcures_wvalid <= 1'b0;
-//     vcures_waddr  <= {VCURES_ADDR_BITS{1'b0}};
-//     vcures_wdata  <= {VCURES_WIDTH{1'b0}};
-//   end
-// end
 
 reg start_level;
 

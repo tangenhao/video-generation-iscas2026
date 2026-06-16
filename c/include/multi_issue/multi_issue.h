@@ -107,34 +107,14 @@ bool check_pvsq_enable(std::vector<insn::instruction>& instructions)
 
 bool check_sparse_enable(std::vector<insn::instruction>& instructions)
 {
-  bool sparse_enable = false;
-  for (int i = 0; i < instructions.size(); i++) {
-    if (instructions[i].get_insn_opcode() == 3 && instructions[i].get_pea_insn_kind() == 0) {
-      auto pea_insn = insn::pea_config(instructions[i]);
-      if (pea_insn.get_insn_kind() == 1) {
-        if (pea_insn.get_sparse_enable() != 0) {
-          sparse_enable = true;
-        }
-      }
-    }
-  }
-  return sparse_enable;
+  (void)instructions;
+  return false;
 }
 
 bool check_outlier_enable(std::vector<insn::instruction>& instructions)
 {
-  bool outlier_enable = false;
-  for (int i = 0; i < instructions.size(); i++) {
-    if (instructions[i].get_insn_opcode() == 3 && instructions[i].get_pea_insn_kind() == 0) {
-      auto pea_insn = insn::pea_config(instructions[i]);
-      if (pea_insn.get_insn_kind() == 1) {
-        if (pea_insn.get_outlier_enable() != 0) {
-          outlier_enable = true;
-        }
-      }
-    }
-  }
-  return outlier_enable;
+  (void)instructions;
+  return false;
 }
 
 bool check_conversion_enable(std::vector<insn::instruction>& instructions)

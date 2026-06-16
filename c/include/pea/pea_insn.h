@@ -275,14 +275,7 @@ struct Conv2dOp {
     int64_t ifmap_mask_ddr_offset;
 
     // convolution Config
-    instruction_series.push_back(insn::pea_config(SPARSE_ENABLE,
-                                                  WEIGHT_NON_UNIFORM_QUANTIZATION,
-                                                  IFMAP_NON_UNIFORM_QUANTIZATION,
-                                                  OUTLIER_ENABLE,
-                                                  args.stride_w,
-                                                  args.stride_h,
-                                                  args.dilation_w,
-                                                  args.dilation_h));
+    instruction_series.push_back(insn::pea_config(0, 0, 0));
 
     for (int oc_iter = 0; oc_iter < oc_iterations; ++oc_iter) {
       for (int h_iter = 0; h_iter < h_iterations; ++h_iter) {
@@ -1136,9 +1129,8 @@ struct GemmOp {
     int n_iterations = ceil((double)n_group / (double)args.block_n_group);
     int k_iterations = ceil((double)k_group / (double)args.block_k_group);
 
-    // convolution Config
-    instruction_series.push_back(
-      insn::pea_config(SPARSE_ENABLE, WEIGHT_NON_UNIFORM_QUANTIZATION, IFMAP_NON_UNIFORM_QUANTIZATION, OUTLIER_ENABLE, 0, 0, 0, 0));
+    // GEMM Config
+    instruction_series.push_back(insn::pea_config(k_group, n_group, 0));
     for (int n_iter = 0; n_iter < n_iterations; ++n_iter) {
       for (int m_iter = 0; m_iter < m_iterations; ++m_iter) {
         for (int k_iter = 0; k_iter < k_iterations; ++k_iter) {

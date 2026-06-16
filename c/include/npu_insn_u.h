@@ -386,14 +386,7 @@ struct Conv2dOp {
     auto             vcu_convertion_insn = vcu_convertion(convertion_args);
 
     // convolution Config
-    instruction_series.push_back(insn::pea_config(SPARSE_ENABLE,
-                                                  WEIGHT_NON_UNIFORM_QUANTIZATION,
-                                                  IFMAP_NON_UNIFORM_QUANTIZATION,
-                                                  OUTLIER_ENABLE,
-                                                  args.stride_w,
-                                                  args.stride_h,
-                                                  args.dilation_w,
-                                                  args.dilation_h));
+    instruction_series.push_back(insn::pea_config(0, 0, 0));
     if (args.vcu_exe_args.acc_compute & 0x1) {
       instruction_series.push_back(insn::load_iteration_2(rec_lut_ddr_base_addr, 64 * 128 / 256 - 1, 0, 0, 0, MASTER_VCULUT_ADDR, 0));
 
@@ -1465,9 +1458,8 @@ struct GemmOp {
     vcu_convertion_t vcu_convertion;
     auto             vcu_convertion_insn = vcu_convertion(convertion_args);
 
-    // convolution Config
-    instruction_series.push_back(insn::pea_config(
-      SPARSE_ENABLE, WEIGHT_NON_UNIFORM_QUANTIZATION, IFMAP_NON_UNIFORM_QUANTIZATION, OUTLIER_ENABLE, 0, 0, 0, 0, 0, 0, 0));
+    // GEMM Config
+    instruction_series.push_back(insn::pea_config(k_group, n_group, 0));
 
     if (args.vcu_exe_args.acc_compute & 0x1) {
       instruction_series.push_back(insn::load_iteration_2(rec_lut_ddr_base_addr, 64 * 128 / 256 - 1, 0, 0, 0, MASTER_VCULUT_ADDR, 0));

@@ -32,7 +32,7 @@ parameter AXI_OUTSTANDING_DEPTH  = 128;
 parameter AXI_M_AXI_MIN_ID       = 0;
 parameter AXI_M_AXI_MAX_ID       = 15;
 
-parameter WEIGHT_WIDTH            = 256;
+parameter WEIGHT_WIDTH            = 288;
 parameter WEIGHT_ADDR_BITS        = 14;  //bank:32,5bits; addr:8bits, 144 depth, highaddr:1bits
 
 input                                  clk; 

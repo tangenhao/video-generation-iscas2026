@@ -33,8 +33,11 @@ localparam integer LOAD_INSN_OPCODE_ID      = 1;
 localparam integer LOAD_INSN_OPCODE_ID_BITS = 5;
 localparam integer LOAD_INSN_ID_BITS        = 2;
 
-parameter WEIGHT_WIDTH            = 256;
-parameter WEIGHT_ADDR_BITS        = 14;  //bank:32,5bits; addr:8bits, 144 depth, highaddr:1bits
+parameter          WEIGHT_WIDTH            = 288;
+parameter          WEIGHT_ADDR_BITS        = 14;  //bank:32,5bits; addr:8bits, 144 depth, highaddr:1bits
+parameter          WEIGHT_DEPTH            = 144;
+parameter          WEIGHT_BANK             = 32;
+localparam         WEIGHT_BANK_BITS        = clogb2(WEIGHT_BANK)-1; //5bits
 
 input                                     clk;
 input                                     rst_n;
@@ -117,15 +120,31 @@ reg [4:0]  insn_number;
 
 localparam WEIGHT_ID       = 4'b0011;
 
+reg [WEIGHT_ADDR_BITS-WEIGHT_BANK_BITS-2:0] weight_low_addr;
+reg [WEIGHT_BANK_BITS-1:0]                  weight_bank_addr;
 
-reg  [SRAM_ADDR_WIDTH-1:0] sram_addr;
+wire [SRAM_ADDR_WIDTH-1:0] sram_addr;
 wire [PERI_DATA_WIDTH-1:0] sram_wdata;
 reg  [PERI_DATA_WIDTH-1:0] sram_wdata_reg;
 reg                        local_fifo_ren;
 
-wire [3:0] write_high_addr;
-assign write_high_addr = sram_addr[19:16];
+wire [WEIGHT_WIDTH-1:0]   data_out_288b;
+wire                      valid_data_out_288b;
 
+reg [3:0] write_high_addr;
+// assign write_high_addr = sram_addr[19:16];
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    write_high_addr <= 'd0;
+  end
+  else if (load_start) begin
+    write_high_addr <= sram_baseaddr[19:16];
+  end
+  else begin
+    write_high_addr <= write_high_addr;
+  end
+end
 
 
 always @(posedge clk or negedge rst_n) begin
@@ -400,20 +419,39 @@ end
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
-    sram_addr <= 'd0;
+    weight_bank_addr <= 'd0;
   end
   else begin
-    if (load_start) begin
-      sram_addr <= sram_baseaddr;
+    if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1) begin
+      weight_bank_addr <= 'd0;
     end
-    else if (sram_wvalid) begin
-      sram_addr <= sram_addr + 1;
+    else if (valid_data_out_288b) begin
+      weight_bank_addr <= weight_bank_addr + 1;
     end
     else begin
-      sram_addr <= sram_addr;
+      weight_bank_addr <= weight_bank_addr;
     end
   end
 end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    weight_low_addr <= 'd0;
+  end
+  else begin
+    if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1 && weight_low_addr == WEIGHT_DEPTH - 1) begin
+      weight_low_addr <= 'd0;
+    end
+    else if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1) begin
+      weight_low_addr <= weight_low_addr + 1;
+    end
+    else begin
+      weight_low_addr <= weight_low_addr;
+    end
+  end
+end
+
+assign sram_addr = {1'b0, weight_bank_addr, weight_low_addr};
 
 reg one_burst_0_resp_done;
 wire real_sram_en;
@@ -569,6 +607,18 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
+gearbox_256_to_288 u_cb_pp_256_to_288(
+  .clk              (clk),
+  .rst_n            (rst_n),
+  .restart          (1'b0),
+    
+  .valid_data_in    (sram_wvalid),
+  .data_in          (sram_wdata),
+
+  .valid_data_out   (valid_data_out_288b),
+  .data_out         (data_out_288b)
+);
+
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     weight_wvalid <= 1'b0;
@@ -577,10 +627,10 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == WEIGHT_ID) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         weight_wvalid <= 1'b1;
         weight_waddr  <= sram_addr[WEIGHT_ADDR_BITS-1:0];
-        weight_wdata  <= sram_wdata;
+        weight_wdata  <= data_out_288b;
       end
       else begin
         weight_wvalid <= 1'b0;

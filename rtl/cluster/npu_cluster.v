@@ -74,16 +74,18 @@ parameter SLAVE_PERI_DATA_WIDTH     = 256;
 parameter SLAVE_PERI_ADDR_WIDTH     = 38;
 parameter SLAVE_PERI_BUSRSTS_WIDTH  = 22;
 
-parameter IFMAP_WIDTH             = 512;
-parameter WEIGHT_WIDTH            = 256;
+parameter WEIGHT_BANK             = 32;
+
+parameter IFMAP_WIDTH             = 576;  //2*288, double buffer for vcu
+parameter WEIGHT_WIDTH            = 288;
 parameter VCUCODE_WIDTH           = 64;
-parameter VCUPARA_WIDTH           = 512;
+parameter VCUPARA_WIDTH           = 576;
 parameter VCULUT_WIDTH            = 64;
-parameter VCURES_WIDTH            = 512;
+parameter VCURES_WIDTH            = 576;
 parameter OFMAP_WIDTH             = 256;
-parameter PSUM_WIDTH              = 512;
-parameter QACT_WIDTH              = 256;
-parameter SCALE_WIDTH             = 512;
+parameter PSUM_WIDTH              = 576;
+parameter QACT_WIDTH              = 288;
+parameter SCALE_WIDTH             = 576;
 
 parameter IFMAP_ADDR_BITS         = 9;   //bank:1,0bits; addr:8bits, 144 depth, highaddr:1bits
 parameter WEIGHT_ADDR_BITS        = 14;  //bank:32,5bits; addr:8bits, 144 depth, highaddr:1bits
@@ -351,9 +353,9 @@ wire [OFMAP_ADDR_BITS-1:0]         dma_1_ofmap_sram_raddr;
 wire [OFMAP_WIDTH-1:0]             dma_1_ofmap_sram_rdata;
 
 /* pea0 to sram */
-wire                               weight_0_rvalid;
-wire [WEIGHT_ADDR_BITS-1:0]        weight_0_raddr;
-wire [WEIGHT_WIDTH-1:0]            weight_0_rdata;
+wire                                weight_0_rvalid;
+wire [WEIGHT_ADDR_BITS-1:0]         weight_0_raddr;
+wire [WEIGHT_WIDTH*WEIGHT_BANK-1:0] weight_0_rdata;
 
 wire                               pea_qact_rvalid;
 wire [QACT_ADDR_BITS-1:0]          pea_qact_raddr;
@@ -387,10 +389,6 @@ wire [VCURES_WIDTH-1:0]            vcures_0_rdata;
 wire                               vcures_0_wvalid;
 wire [VCURES_ADDR_BITS-1:0]        vcures_0_waddr;
 wire [VCURES_WIDTH-1:0]            vcures_0_wdata;
-
-wire                               vculut_0_wvalid;
-wire [8:0]                         vculut_0_waddr;
-wire [63:0]                        vculut_0_wdata;
 
 wire                               vcucode_0_wvalid;
 wire [6:0]                         vcucode_0_waddr;
@@ -901,14 +899,6 @@ pea u_pea_0(
   .scale_sram_raddr           ( pea_scale_raddr           ),
   .scale_sram_rdata           ( pea_scale_rdata           ),
 
-  .psum_sram_rvalid           ( psum_pea_0_rvalid         ),
-  .psum_sram_raddr            ( psum_pea_0_raddr          ),
-  .psum_sram_rdata            ( psum_pea_0_rdata          ),
-
-  .psum_sram_wvalid           ( psum_pea_0_wvalid         ),
-  .psum_sram_waddr            ( psum_pea_0_waddr          ),
-  .psum_sram_wdata            ( psum_pea_0_wdata          ),
-
   .enable_prof_counter        ( enable_prof_counter       ),
   .execute_time               ( pea_0_execute_time        )
 );
@@ -940,10 +930,6 @@ vcu u_vcu_0(
   .vcucode_wvalid      ( vcucode_0_wvalid    ),
   .vcucode_waddr       ( vcucode_0_waddr     ),
   .vcucode_wdata       ( vcucode_0_wdata     ),
-
-  .vculut_wvalid       ( vculut_0_wvalid     ),
-  .vculut_waddr        ( vculut_0_waddr      ),
-  .vculut_wdata        ( vculut_0_wdata      ),
 
   .ofmap_wvalid        ( ofmap_0_wvalid      ),
   .ofmap_waddr         ( ofmap_0_waddr       ),
@@ -1023,7 +1009,10 @@ regfile_cluster u_regfile_cluster(
 /* ------------------------------------------------- srams ------------------------------------------------ */
 
 //pea: int8
-weight_ram  u_weight_ram(
+weight_ram #(
+  .WIDTH      ( WEIGHT_WIDTH               ),     
+  .ADDR_BITS  ( WEIGHT_ADDR_BITS           )
+) u_weight_ram(
   .clk        ( clk                      ),
   .rst_n      ( rst_n                    ),
 
@@ -1135,7 +1124,10 @@ vcuadd_ram #(
   .dma_wdata  ( dma_0_vcures_sram_wdata  )
 );
 
-psum_vcu_0_ram u_psum_vcu_0_ram(
+psum_vcu_0_ram #(
+  .WIDTH      ( PSUM_WIDTH               ),     
+  .ADDR_BITS  ( PSUM_ADDR_BITS           )
+) u_psum_vcu_0_ram(
   .clk          ( clk                     ),
   .rst_n        ( rst_n                   ),
 
@@ -1152,7 +1144,10 @@ psum_vcu_0_ram u_psum_vcu_0_ram(
   .dma_rdata    ( dma_0_psum_sram_rdata   )
 );
 
-psum_vcu_1_ram u_psum_vcu_1_ram(
+psum_vcu_1_ram #(
+  .WIDTH      ( PSUM_WIDTH               ),     
+  .ADDR_BITS  ( PSUM_ADDR_BITS           )
+) u_psum_vcu_1_ram(
   .clk          ( clk                     ),
   .rst_n        ( rst_n                   ),
 
