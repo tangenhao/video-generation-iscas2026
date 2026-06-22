@@ -1,18 +1,17 @@
 module mpt_w8a8(
   clk, rst_n,
-  a, b, c,
+  a, b,
   o,
-  valid, valid_c, done
+  valid, acc_clear, done
 );
 
 input              clk;
 input              rst_n;
 input      [255:0] a;
 input      [255:0] b;
-input      [31:0]  c;
 output     [31:0]  o;
 input              valid;
-input              valid_c;
+input              acc_clear;
 output             done;
 
 reg mul_done;
@@ -164,8 +163,8 @@ always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     add_result_5 <= 'd0;
   end
-  else if (valid_c) begin
-    add_result_5 <= c;
+  else if (acc_clear) begin
+    add_result_5 <= 'd0;
   end
   else if (add_done_4) begin
     add_result_5 <= add_result_4_reg + add_result_5;

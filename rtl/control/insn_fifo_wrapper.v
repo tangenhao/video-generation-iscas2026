@@ -15,6 +15,7 @@ module insn_fifo_wrapper(
 
 parameter INSN_WIDTH                      = 128;
 parameter INSN_FIFO_DEPTH                 = 128;
+parameter HAS_LOAD_FIFO                   = 1;
 
 input wire                  clk;
 input wire                  rst_n;
@@ -75,43 +76,55 @@ input  wire                  vcu_1_fifo_ren;
 output wire [INSN_WIDTH-1:0] vcu_1_fifo_rdata;
 output wire                  vcu_1_fifo_empty;
 
-insn_fifo #(
-  .width ( INSN_WIDTH      ),
-  .depth ( INSN_FIFO_DEPTH )
-) u_load_0_insn_fifo(
-  .clk      ( clk               ),
-  .rst_n    ( rst_n             ),
-  .w_en     ( load_0_fifo_wen   ),
-  .r_en     ( load_0_fifo_ren   ),
-  .w_data   ( load_0_fifo_wdata ),
-  .full     (                   ),
-  .empty    ( load_0_fifo_empty ),
-  .afull    ( load_0_fifo_full  ),
-  .aempty   (                   ),
-  .hfull    (                   ),
-  .hempty   (                   ),
-  .r_data   ( load_0_fifo_rdata ),
-  .capacity (                   )
-);
+// generate
+// if (HAS_LOAD_FIFO) begin : gen_load_fifo
+//   insn_fifo #(
+//     .width ( INSN_WIDTH      ),
+//     .depth ( INSN_FIFO_DEPTH )
+//   ) u_load_0_insn_fifo(
+//     .clk      ( clk               ),
+//     .rst_n    ( rst_n             ),
+//     .w_en     ( load_0_fifo_wen   ),
+//     .r_en     ( load_0_fifo_ren   ),
+//     .w_data   ( load_0_fifo_wdata ),
+//     .full     (                   ),
+//     .empty    ( load_0_fifo_empty ),
+//     .afull    ( load_0_fifo_full  ),
+//     .aempty   (                   ),
+//     .hfull    (                   ),
+//     .hempty   (                   ),
+//     .r_data   ( load_0_fifo_rdata ),
+//     .capacity (                   )
+//   );
 
-insn_fifo #(
-  .width ( INSN_WIDTH      ),
-  .depth ( INSN_FIFO_DEPTH )
-) u_load_1_insn_fifo(
-  .clk      ( clk               ),
-  .rst_n    ( rst_n             ),
-  .w_en     ( load_1_fifo_wen   ),
-  .r_en     ( load_1_fifo_ren   ),
-  .w_data   ( load_1_fifo_wdata ),
-  .full     (                   ),
-  .empty    ( load_1_fifo_empty ),
-  .afull    ( load_1_fifo_full  ),
-  .aempty   (                   ),
-  .hfull    (                   ),
-  .hempty   (                   ),
-  .r_data   ( load_1_fifo_rdata ),
-  .capacity (                   )
-);
+//   insn_fifo #(
+//     .width ( INSN_WIDTH      ),
+//     .depth ( INSN_FIFO_DEPTH )
+//   ) u_load_1_insn_fifo(
+//     .clk      ( clk               ),
+//     .rst_n    ( rst_n             ),
+//     .w_en     ( load_1_fifo_wen   ),
+//     .r_en     ( load_1_fifo_ren   ),
+//     .w_data   ( load_1_fifo_wdata ),
+//     .full     (                   ),
+//     .empty    ( load_1_fifo_empty ),
+//     .afull    ( load_1_fifo_full  ),
+//     .aempty   (                   ),
+//     .hfull    (                   ),
+//     .hempty   (                   ),
+//     .r_data   ( load_1_fifo_rdata ),
+//     .capacity (                   )
+//   );
+// end
+// else begin : gen_no_load_fifo
+//   assign load_0_fifo_full  = 1'b0;
+//   assign load_0_fifo_empty = 1'b1;
+//   assign load_0_fifo_rdata = {INSN_WIDTH{1'b0}};
+//   assign load_1_fifo_full  = 1'b0;
+//   assign load_1_fifo_empty = 1'b1;
+//   assign load_1_fifo_rdata = {INSN_WIDTH{1'b0}};
+// end
+// endgenerate
 
 insn_fifo #(
   .width ( INSN_WIDTH      ),

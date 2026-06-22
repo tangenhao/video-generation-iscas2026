@@ -3,7 +3,14 @@ module weight_ram(
 
   rvalid_0, raddr_0, rdata_0,
 
-  dma_wvalid, dma_waddr, dma_wdata
+  dma_wvalid,    dma_wdata,
+  dma_wvalid_1,  dma_wdata_1,
+  dma_wvalid_2,  dma_wdata_2,
+  dma_wvalid_3,  dma_wdata_3,
+  dma_wvalid_4,  dma_wdata_4,
+  dma_wvalid_5,  dma_wdata_5,
+  dma_wvalid_6,  dma_wdata_6,
+  dma_wvalid_7,  dma_wdata_7
 );
 
 function integer clogb2 (input integer bit_depth);              
@@ -16,101 +23,122 @@ endfunction
 parameter WIDTH     = 288;
 parameter ADDR_BITS = 14;
 parameter BANK      = 32;
+parameter DEPTH     = 128;
 
 input                        clk;
 input                        rst_n;
  
 input                        rvalid_0;
 input       [ADDR_BITS-1:0]  raddr_0;
-output reg  [WIDTH*BANK-1:0] rdata_0;
+output wire [WIDTH*BANK-1:0] rdata_0;
  
 input                        dma_wvalid;
-input       [ADDR_BITS-1:0]  dma_waddr;
 input       [WIDTH-1:0]      dma_wdata;
 
-localparam BANK_BITS = clogb2(BANK)-1;
+input                        dma_wvalid_1;
+input       [WIDTH-1:0]      dma_wdata_1;
 
-wire                           ren;
-wire [ADDR_BITS-BANK_BITS-1:0] raddr;
-wire [WIDTH-1:0]               rdata[0:BANK-1];
-wire                           wen[0:BANK-1];
-wire [ADDR_BITS-BANK_BITS-1:0] waddr[0:BANK-1];
-wire [WIDTH-1:0]               wdata[0:BANK-1];
-reg                            ren_reg;
+input                        dma_wvalid_2;
+input       [WIDTH-1:0]      dma_wdata_2;
 
-reg  [BANK-1:0]                dma_wen;
-reg  [ADDR_BITS-1:0]           dma_waddr_reg;
-reg  [WIDTH-1:0]               dma_wdata_reg;
+input                        dma_wvalid_3;
+input       [WIDTH-1:0]      dma_wdata_3;
 
-integer dma_wen_i;
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    for (dma_wen_i = 0; dma_wen_i < BANK; dma_wen_i = dma_wen_i + 1) begin
-      dma_wen[dma_wen_i] <= 1'b0;
-    end
-  end
-  else begin
-    for (dma_wen_i = 0; dma_wen_i < BANK; dma_wen_i = dma_wen_i + 1) begin
-      dma_wen[dma_wen_i] <= (dma_waddr[(ADDR_BITS-2):(ADDR_BITS-BANK_BITS-1)] == dma_wen_i) & dma_wvalid;
-    end
-  end
-end
+input                        dma_wvalid_4;
+input       [WIDTH-1:0]      dma_wdata_4;
 
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    dma_waddr_reg   <= 'd0;
-    dma_wdata_reg   <= 'd0;
-  end
-  else begin
-    dma_waddr_reg  <= dma_waddr;
-    dma_wdata_reg  <= dma_wdata;
-  end
-end
+input                        dma_wvalid_5;
+input       [WIDTH-1:0]      dma_wdata_5;
 
-genvar sram_i;
-generate
-  for (sram_i = 0; sram_i < BANK; sram_i = sram_i + 1) begin : gen_weight_sram
-    assign wen[sram_i] = dma_wen[sram_i];
-    assign waddr[sram_i] = {dma_waddr_reg[ADDR_BITS-1], dma_waddr_reg[ADDR_BITS-BANK_BITS-2:0]};
-    assign wdata[sram_i] = dma_wdata_reg;
+input                        dma_wvalid_6;
+input       [WIDTH-1:0]      dma_wdata_6;
 
-    sram_288x128 u_ram_bank(
-      .w_clk  ( clk           ),
-      .w_en   ( wen[sram_i]   ),
-      .w_addr ( waddr[sram_i] ),
-      .w_data ( wdata[sram_i] ),
-      .r_clk  ( clk           ),
-      .r_en   ( ren           ),
-      .r_addr ( raddr         ),
-      .r_data ( rdata[sram_i] )
-    );
-  end
-endgenerate
+input                        dma_wvalid_7;
+input       [WIDTH-1:0]      dma_wdata_7;
 
-assign ren   = rvalid_0;
-assign raddr = {raddr_0[ADDR_BITS-1], raddr_0[ADDR_BITS-BANK_BITS-2:0]};
+localparam BANK_DIV_4 = BANK >> 2;
 
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    ren_reg <= 'd0;
-  end
-  else begin
-    ren_reg <= ren;
-  end
-end
+wire [WIDTH*BANK_DIV_4-1:0] rdata_2dma_0;
+wire [WIDTH*BANK_DIV_4-1:0] rdata_2dma_1;
+wire [WIDTH*BANK_DIV_4-1:0] rdata_2dma_2;
+wire [WIDTH*BANK_DIV_4-1:0] rdata_2dma_3;
 
-integer rdata_i;
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    rdata_0 <= 'd0;
-  end
-  else begin
-    for (rdata_i = 0; rdata_i < BANK; rdata_i = rdata_i + 1) begin
-      if (ren_reg) begin
-        rdata_0[rdata_i*WIDTH +: WIDTH] <= rdata[rdata_i];
-      end
-    end
-  end
-end
+weight_ram_2dma #(
+  .WIDTH     ( WIDTH      ),
+  .ADDR_BITS ( ADDR_BITS  ),
+  .BANK      ( BANK_DIV_4 ),
+  .DEPTH     ( DEPTH      )
+) u_weight_ram_2dma_0(
+  .clk          ( clk          ),
+  .rst_n        ( rst_n        ),
+
+  .rvalid_0     ( rvalid_0     ),
+  .raddr_0      ( raddr_0      ),
+  .rdata        ( rdata_2dma_0 ),
+
+  .dma_wvalid_0 ( dma_wvalid   ),
+  .dma_wdata_0  ( dma_wdata    ),
+  .dma_wvalid_1 ( dma_wvalid_1 ),
+  .dma_wdata_1  ( dma_wdata_1  )
+);
+
+weight_ram_2dma #(
+  .WIDTH     ( WIDTH      ),
+  .ADDR_BITS ( ADDR_BITS  ),
+  .BANK      ( BANK_DIV_4 ),
+  .DEPTH     ( DEPTH      )
+) u_weight_ram_2dma_1(
+  .clk          ( clk          ),
+  .rst_n        ( rst_n        ),
+
+  .rvalid_0     ( rvalid_0     ),
+  .raddr_0      ( raddr_0      ),
+  .rdata        ( rdata_2dma_1 ),
+
+  .dma_wvalid_0 ( dma_wvalid_2 ),
+  .dma_wdata_0  ( dma_wdata_2  ),
+  .dma_wvalid_1 ( dma_wvalid_3 ),
+  .dma_wdata_1  ( dma_wdata_3  )
+);
+
+weight_ram_2dma #(
+  .WIDTH     ( WIDTH      ),
+  .ADDR_BITS ( ADDR_BITS  ),
+  .BANK      ( BANK_DIV_4 ),
+  .DEPTH     ( DEPTH      )
+) u_weight_ram_2dma_2(
+  .clk          ( clk          ),
+  .rst_n        ( rst_n        ),
+
+  .rvalid_0     ( rvalid_0     ),
+  .raddr_0      ( raddr_0      ),
+  .rdata        ( rdata_2dma_2 ),
+
+  .dma_wvalid_0 ( dma_wvalid_4 ),
+  .dma_wdata_0  ( dma_wdata_4  ),
+  .dma_wvalid_1 ( dma_wvalid_5 ),
+  .dma_wdata_1  ( dma_wdata_5  )
+);
+
+weight_ram_2dma #(
+  .WIDTH     ( WIDTH      ),
+  .ADDR_BITS ( ADDR_BITS  ),
+  .BANK      ( BANK_DIV_4 ),
+  .DEPTH     ( DEPTH      )
+) u_weight_ram_2dma_3(
+  .clk          ( clk          ),
+  .rst_n        ( rst_n        ),
+
+  .rvalid_0     ( rvalid_0     ),
+  .raddr_0      ( raddr_0      ),
+  .rdata        ( rdata_2dma_3 ),
+
+  .dma_wvalid_0 ( dma_wvalid_6 ),
+  .dma_wdata_0  ( dma_wdata_6  ),
+  .dma_wvalid_1 ( dma_wvalid_7 ),
+  .dma_wdata_1  ( dma_wdata_7  )
+);
+
+assign rdata_0 = {rdata_2dma_3, rdata_2dma_2, rdata_2dma_1, rdata_2dma_0};
 
 endmodule

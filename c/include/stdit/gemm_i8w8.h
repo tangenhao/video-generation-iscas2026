@@ -23,7 +23,7 @@
 #include <string>
 
 namespace stdit {
-namespace quant {
+namespace gemm {
 
 using namespace common;
 
@@ -36,49 +36,33 @@ struct insn_gen {
   int k_group_size;
   int n_group_size;
   
-  float bytes_ifmap;
-  float bytes_weight;
-  float bytes_ofmap;
+  int bytes_ifmap;
+  int bytes_weight;
+  int bytes_ofmap;
 
 
   struct Arguments {
     int      m;
     int      n;
     int      k;
-    int      tile_m;
     int      block_n_group;
     int      block_k_group;
     uint64_t ifmap_base_addr;
     uint64_t weight_base_addr;
     uint64_t ofmap_base_addr;
     uint64_t opcode_ddr_base_addr ;
-    uint64_t ifmap_scale_base_addr   ;
-    uint64_t weight_scale_base_addr  ;
     uint64_t bias_base_addr ;
-    uint64_t resmul_base_addr ;
-    uint64_t resadd_base_addr ;
-    int      subvec_size    ;
-    int      num_cc         ;
-    int      ff_enable      ;
-    bool     weight_uram_overflow;
-    bool     act_overflow   ;
-    bool     mem_l2_act_type; //0:int4 1:fp16
-    //vcu
-    uint64_t rank = 32  ;
-    vcu::VcuConfig::Arguments vcu_cfg_args;
-
-    uint64_t outlier_index_base_addr = 0;
-    uint64_t ifmap_mask_base_addr    = 0;
-    uint64_t all_done                = 0;
-    
+    uint64_t vecmul_base_addr ;
+    uint64_t vecadd_base_addr ;
+    vcu::VcuConfig::Arguments vcu_cfg_args; 
   };
 
   insn_gen()
   {
     
-    k_group_size = 32;
+    k_group_size = 36;
     n_group_size = 32;
-    bytes_ifmap  = 2;
+    bytes_ifmap  = 1;
     bytes_weight = 1;
     bytes_ofmap  = 2;
     
@@ -89,21 +73,9 @@ struct insn_gen {
     std::vector<insn::instruction> instruction_series;
     std::vector<uint64_t> vcucode_series;  // 声明在循环外部
 
-    int subvec = args.subvec_size;
-    int num_cc = args.num_cc;
-    int kg_eff = n_group_size / subvec;  // effective subcodebooks per 32-K group
-    float eff_bytes_cbpp = bytes_cbpp * subvec;
-    float eff_bytes_cbw  = bytes_cbw * subvec;
-    int64_t hop_cbpp     = int64_t(eff_bytes_cbpp * num_cc);
-    int64_t hop_cbw      = int64_t(eff_bytes_cbw  * num_cc);
-
     int m_iterations = ceil((double)args.m / (double)args.tile_m);
     int n_group      = ceil((double)args.n / (double)n_group_size);
     int k_group      = ceil((double)args.k / (double)(k_group_size));
-    int ff_enable    = args.ff_enable;
-    bool weight_uram_overflow = args.weight_uram_overflow;
-    bool act_overflow = args.act_overflow;
-    bool mem_l2_act_type = args.mem_l2_act_type;
 
     if (DEBUG) {
       std::cout << "m_iterations: " << m_iterations << std::endl;
@@ -114,77 +86,26 @@ struct insn_gen {
     }
 
     int64_t m_start;
-    int64_t m_start_ifmap;
-    int64_t i_ic, k_oc, k_ic;
-    uint64_t sw_front = 0;
-    uint64_t vcu_work_en = 0;
-    uint64_t sw_back  = 0;
 
   /* -------------------------------------------------------------------------------------------------------- */
-  /*                                                opcode gen                                                */
-  /* -------------------------------------------------------------------------------------------------------- */
-  // 1. quant_1: abs->redmax, ascale=mulc(max*(1/127),reg1), mul(ascale*wscale) -> scale(pea)
-  // 2. rec(ascale,reg1)->mul(psum(x_fp)*reg1, x*ascale)->clamp->round->qact(pea)
-  auto vcucode_series = vcu::asm_vcu_op({
-    "absm ifmap, reg0",       // num_data_cnt=dim//32, write to psum0
-    "redmax psum, reg0, 32",  // num_data_cnt=dim//32, write to reg0
-
-    "mulc reg0, reg0, 0x2008" // num_data_cnt=1-1, write to reg0 (reg0=ascale)
-    "rec reg0, reg2",         // num_data_cnt=1-1, write to reg2 (reg2=1/ascale)
-
-    "mul reg0 para, reg1",    // num_data_cnt=dim_weight//32, write to scale (最低16bits为ascale*wscale)
-
-    "mul ifmap, reg2, reg0", // num_data_cnt=dim//32, write to qact, data_out为int8； （round和clamp在data_out_convert.v中进行）
-  });
-
-  auto   num_vcucodes      = vcucode_series.size();
-  size_t vcucode_bytes     = vcucode_series.size() * sizeof(uint64_t);
-  size_t vcucode_ddr_lines = (vcucode_bytes + 31) / 32;
-  vcucode_series.resize(vcucode_ddr_lines * 8, 0);
-
-  common::file_utils::saveCharArrayToFormattedTextFile(
-    opcode_file.c_str(), reinterpret_cast<char*>(vcucode_series.data()), vcucode_series.size() * sizeof(uint64_t), 32, true);
-
-  instruction_series.push_back(insn::load_iteration_2<0>(opcode_ddr_base_addr, vcucode_ddr_lines - 1, 0, 0, 0, MASTER_VCUCODE_ADDR, 0));
-
-  /* -------------------------------------------------------------------------------------------------------- */
-  /*                                                vcu_insn gen                                              */
+  /*                                                pea insn gen                                              */
   /* -------------------------------------------------------------------------------------------------------- */
   
     int ifmap_ddr_offset, weight_ddr_offset, ofmap_ddr_offset;
-    int ifmap_scale_ddr_offset, weight_scale_ddr_offset;
-    int lowrank_1_ddr_offset, lowrank_2_ddr_offset;
-    int bias_ddr_offset, resmul_ddr_offset, resadd_ddr_offset;
-    int block_lowrank_2_group;
+    int bias_ddr_offset, vecmul_ddr_offset, vecadd_ddr_offset;
     int n_iterations = ceil((double)n_group / (double)args.block_n_group);
     int k_iterations = ceil((double)k_group / (double)args.block_k_group);
-
-    if (READ_FROM_IFMAP_SRAM) {
-      instruction_series.push_back(LoadIfmap(args.ifmap_base_addr, k_group_size, bytes_ifmap, args.block_k_group, k_iterations));
-      
-    }
 
 
     for (int m_iter = 0; m_iter < m_iterations; ++m_iter) {
       for (int n_iter = 0; n_iter < n_iterations; ++n_iter) {
         for (int k_iter = 0; k_iter < k_iterations; ++k_iter) {
 
-
-
-
-
-          
           m_start = m_iter * args.tile_m;
           k_oc    = std::min(n_group - (n_iter * args.block_n_group), args.block_n_group);
           i_ic = std::min(k_group - (k_iter * args.block_k_group), args.block_k_group);
           k_ic = std::min((k_group - (k_iter * args.block_k_group)) * 2, args.block_k_group * 2);
 
-          if (m_iter>0) {
-            m_start_ifmap = (m_iter+1) * args.tile_m ; 
-          }
-          else {
-            m_start_ifmap = m_iter * args.tile_m ;
-          }
 
           ifmap_ddr_offset = int64_t((bytes_ifmap * k_group_size * args.tile_m * 4 * k_iter) + (m_start_ifmap * bytes_ifmap * k_group_size * k_group));
  

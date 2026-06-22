@@ -150,32 +150,6 @@ parameter SLAVE_PERI_ADDR_WIDTH     = 38;
 parameter SLAVE_PERI_BUSRSTS_WIDTH  = 22;
 parameter SLAVE_PERI_DATA_WIDTH     = 256;
 
-parameter IFMAP_WIDTH             = 256;
-parameter WEIGHT_WIDTH            = 256;
-parameter PSUM_WIDTH              = 1024;
-parameter VCUCODE_WIDTH           = 64;
-parameter VCUPARA_WIDTH           = 1024;
-parameter VCULUT_WIDTH            = 64;
-parameter VCURES_WIDTH            = 1024;
-parameter IFMAP_SCALE_WIDTH       = 32;
-parameter WEIGHT_SCALE_WIDTH      = 16;
-parameter OUTLIER_INDEX_WIDTH     = 64;
-parameter OFMAP_WIDTH             = 256;
-parameter IFMAP_ADDR_BITS         = 12;
-parameter WEIGHT_ADDR_BITS        = 13;
-parameter PSUM_ADDR_BITS          = 13;
-parameter VCUCODE_ADDR_BITS       = 7;
-parameter VCUPARA_ADDR_BITS       = 6;
-parameter VCULUT_ADDR_BITS        = 9;
-parameter VCURES_ADDR_BITS        = 12;
-parameter IFMAP_SCALE_ADDR_BITS   = 12;
-parameter WEIGHT_SCALE_ADDR_BITS  = 13;
-parameter OUTLIER_INDEX_ADDR_BITS = 12;
-parameter OFMAP_ADDR_BITS         = 12;
-parameter IFMAPMASK_WIDTH         = 128;
-parameter IFMAPMASK_ADDR_BITS     = 13;
-parameter SRAM_ADDR_WIDTH         = 20;
-parameter SYNCHRONIZE_FIFO_DEPTH  = 128;
 parameter HIGHADDR_BITS           = 24;
 
 parameter integer INSN_R_ADDR_WIDTH    = 64;
@@ -185,6 +159,26 @@ parameter integer INSN_WIDTH           = 128;
 parameter integer INSN_FIFO_DEPTH      = 128;
 parameter REG_WIDTH                    = 32;
 parameter REG_NUM_BITS                 = 8;
+
+parameter CLUSTER_IFMAP_WIDTH       = 512;
+parameter CLUSTER_QACT_WIDTH        = 288;
+parameter CLUSTER_VCUCODE_WIDTH     = 64;
+parameter CLUSTER_VCUPARA_WIDTH     = 512;
+parameter CLUSTER_VCULUT_WIDTH      = 64;
+parameter CLUSTER_VCURES_WIDTH      = 512;
+
+parameter CLUSTER_IFMAP_ADDR_BITS   = 9;
+parameter CLUSTER_QACT_ADDR_BITS    = 9;
+parameter CLUSTER_VCUCODE_ADDR_BITS = 7;
+parameter CLUSTER_VCUPARA_ADDR_BITS = 9;
+parameter CLUSTER_VCULUT_ADDR_BITS  = 9;
+parameter CLUSTER_VCURES_ADDR_BITS  = 9;
+parameter WEIGHT_BANK               = 32;
+parameter WEIGHT_WIDTH              = 288;
+parameter WEIGHT_ADDR_BITS          = 14;
+  
+parameter OFMAP_ADDR_BITS           = 12;
+parameter OFMAP_WIDTH               = 256;
 
 
 input clk, rst_n;
@@ -688,6 +682,159 @@ wire                             cluster_0_wready;
 wire [31:0]                      cluster_0_waddr;
 wire [31:0]                      cluster_0_wdata;
 
+wire                             weight_0_rvalid;
+wire [WEIGHT_ADDR_BITS-1:0]      weight_0_raddr;
+wire [WEIGHT_WIDTH*WEIGHT_BANK-1:0] weight_0_rdata;
+
+wire                             weight_1_rvalid;
+wire [WEIGHT_ADDR_BITS-1:0]      weight_1_raddr;
+wire [WEIGHT_WIDTH*WEIGHT_BANK-1:0] weight_1_rdata;
+wire                             weight_2_rvalid;
+wire [WEIGHT_ADDR_BITS-1:0]      weight_2_raddr;
+wire [WEIGHT_WIDTH*WEIGHT_BANK-1:0] weight_2_rdata;
+wire                             weight_3_rvalid;
+wire [WEIGHT_ADDR_BITS-1:0]      weight_3_raddr;
+wire [WEIGHT_WIDTH*WEIGHT_BANK-1:0] weight_3_rdata;
+
+wire                             weight_dma_0_wvalid;
+wire [WEIGHT_ADDR_BITS-1:0]      weight_dma_0_waddr;
+wire [WEIGHT_WIDTH-1:0]          weight_dma_0_wdata;
+
+wire                             weight_dma_1_wvalid;
+wire [WEIGHT_ADDR_BITS-1:0]      weight_dma_1_waddr;
+wire [WEIGHT_WIDTH-1:0]          weight_dma_1_wdata;
+
+wire                             weight_dma_2_wvalid;
+wire [WEIGHT_ADDR_BITS-1:0]      weight_dma_2_waddr;
+wire [WEIGHT_WIDTH-1:0]          weight_dma_2_wdata;
+
+wire                             weight_dma_3_wvalid;
+wire [WEIGHT_ADDR_BITS-1:0]      weight_dma_3_waddr;
+wire [WEIGHT_WIDTH-1:0]          weight_dma_3_wdata;
+
+wire                             weight_dma_4_wvalid;
+wire [WEIGHT_WIDTH-1:0]          weight_dma_4_wdata;
+
+wire                             weight_dma_5_wvalid;
+wire [WEIGHT_WIDTH-1:0]          weight_dma_5_wdata;
+
+wire                             weight_dma_6_wvalid;
+wire [WEIGHT_WIDTH-1:0]          weight_dma_6_wdata;
+
+wire                             weight_dma_7_wvalid;
+wire [WEIGHT_WIDTH-1:0]          weight_dma_7_wdata;
+
+
+wire                             cluster_0_load_dma_rst_n;
+wire                             cluster_0_enable_prof_counter;
+wire                             cluster_0_load_0_local_done_wire;
+wire                             cluster_0_load_1_local_done_wire;
+wire                             cluster_0_load_0_global_done;
+wire                             cluster_0_load_1_global_done;
+wire [31:0]                      cluster_0_load_0_execute_time;
+wire [31:0]                      cluster_0_load_1_execute_time;
+
+wire                             cluster_0_dma_0_ifmap_wvalid;
+wire [CLUSTER_IFMAP_ADDR_BITS-1:0] cluster_0_dma_0_ifmap_waddr;
+wire [CLUSTER_IFMAP_WIDTH-1:0]   cluster_0_dma_0_ifmap_wdata;
+wire                             cluster_0_dma_0_qact_wvalid;
+wire [CLUSTER_QACT_ADDR_BITS-1:0] cluster_0_dma_0_qact_waddr;
+wire [CLUSTER_QACT_WIDTH-1:0]    cluster_0_dma_0_qact_wdata;
+wire                             cluster_0_dma_0_vcucode_wvalid;
+wire [CLUSTER_VCUCODE_ADDR_BITS:0] cluster_0_dma_0_vcucode_waddr;
+wire [CLUSTER_VCUCODE_WIDTH-1:0] cluster_0_dma_0_vcucode_wdata;
+wire                             cluster_0_dma_0_vcupara_wvalid;
+wire [CLUSTER_VCUPARA_ADDR_BITS:0] cluster_0_dma_0_vcupara_waddr;
+wire [CLUSTER_VCUPARA_WIDTH-1:0] cluster_0_dma_0_vcupara_wdata;
+wire                             cluster_0_dma_0_vcures_wvalid;
+wire [CLUSTER_VCURES_ADDR_BITS-1:0] cluster_0_dma_0_vcures_waddr;
+wire [CLUSTER_VCURES_WIDTH-1:0]  cluster_0_dma_0_vcures_wdata;
+wire                             cluster_0_load_regfile_wvalid;
+wire [31:0]                      cluster_0_load_regfile_waddr;
+wire [31:0]                      cluster_0_load_regfile_wdata;
+
+wire                             cluster_1_load_dma_rst_n;
+wire                             cluster_1_enable_prof_counter;
+wire                             cluster_1_load_0_local_done_wire;
+wire                             cluster_1_load_1_local_done_wire;
+wire                             cluster_1_load_0_global_done;
+wire                             cluster_1_load_1_global_done;
+wire [31:0]                      cluster_1_load_0_execute_time;
+wire [31:0]                      cluster_1_load_1_execute_time;
+wire                             cluster_1_dma_0_ifmap_wvalid;
+wire [CLUSTER_IFMAP_ADDR_BITS-1:0] cluster_1_dma_0_ifmap_waddr;
+wire [CLUSTER_IFMAP_WIDTH-1:0]   cluster_1_dma_0_ifmap_wdata;
+wire                             cluster_1_dma_0_qact_wvalid;
+wire [CLUSTER_QACT_ADDR_BITS-1:0] cluster_1_dma_0_qact_waddr;
+wire [CLUSTER_QACT_WIDTH-1:0]    cluster_1_dma_0_qact_wdata;
+wire                             cluster_1_dma_0_vcucode_wvalid;
+wire [CLUSTER_VCUCODE_ADDR_BITS:0] cluster_1_dma_0_vcucode_waddr;
+wire [CLUSTER_VCUCODE_WIDTH-1:0] cluster_1_dma_0_vcucode_wdata;
+wire                             cluster_1_dma_0_vcupara_wvalid;
+wire [CLUSTER_VCUPARA_ADDR_BITS:0] cluster_1_dma_0_vcupara_waddr;
+wire [CLUSTER_VCUPARA_WIDTH-1:0] cluster_1_dma_0_vcupara_wdata;
+wire                             cluster_1_dma_0_vcures_wvalid;
+wire [CLUSTER_VCURES_ADDR_BITS-1:0] cluster_1_dma_0_vcures_waddr;
+wire [CLUSTER_VCURES_WIDTH-1:0]  cluster_1_dma_0_vcures_wdata;
+wire                             cluster_1_load_regfile_wvalid;
+wire [31:0]                      cluster_1_load_regfile_waddr;
+wire [31:0]                      cluster_1_load_regfile_wdata;
+
+wire                             cluster_2_load_dma_rst_n;
+wire                             cluster_2_enable_prof_counter;
+wire                             cluster_2_load_0_local_done_wire;
+wire                             cluster_2_load_1_local_done_wire;
+wire                             cluster_2_load_0_global_done;
+wire                             cluster_2_load_1_global_done;
+wire [31:0]                      cluster_2_load_0_execute_time;
+wire [31:0]                      cluster_2_load_1_execute_time;
+wire                             cluster_2_dma_0_ifmap_wvalid;
+wire [CLUSTER_IFMAP_ADDR_BITS-1:0] cluster_2_dma_0_ifmap_waddr;
+wire [CLUSTER_IFMAP_WIDTH-1:0]   cluster_2_dma_0_ifmap_wdata;
+wire                             cluster_2_dma_0_qact_wvalid;
+wire [CLUSTER_QACT_ADDR_BITS-1:0] cluster_2_dma_0_qact_waddr;
+wire [CLUSTER_QACT_WIDTH-1:0]    cluster_2_dma_0_qact_wdata;
+wire                             cluster_2_dma_0_vcucode_wvalid;
+wire [CLUSTER_VCUCODE_ADDR_BITS:0] cluster_2_dma_0_vcucode_waddr;
+wire [CLUSTER_VCUCODE_WIDTH-1:0] cluster_2_dma_0_vcucode_wdata;
+wire                             cluster_2_dma_0_vcupara_wvalid;
+wire [CLUSTER_VCUPARA_ADDR_BITS:0] cluster_2_dma_0_vcupara_waddr;
+wire [CLUSTER_VCUPARA_WIDTH-1:0] cluster_2_dma_0_vcupara_wdata;
+wire                             cluster_2_dma_0_vcures_wvalid;
+wire [CLUSTER_VCURES_ADDR_BITS-1:0] cluster_2_dma_0_vcures_waddr;
+wire [CLUSTER_VCURES_WIDTH-1:0]  cluster_2_dma_0_vcures_wdata;
+wire                             cluster_2_load_regfile_wvalid;
+wire [31:0]                      cluster_2_load_regfile_waddr;
+wire [31:0]                      cluster_2_load_regfile_wdata;
+
+wire                             cluster_3_load_dma_rst_n;
+wire                             cluster_3_enable_prof_counter;
+wire                             cluster_3_load_0_local_done_wire;
+wire                             cluster_3_load_1_local_done_wire;
+wire                             cluster_3_load_0_global_done;
+wire                             cluster_3_load_1_global_done;
+wire [31:0]                      cluster_3_load_0_execute_time;
+wire [31:0]                      cluster_3_load_1_execute_time;
+wire                             cluster_3_dma_0_ifmap_wvalid;
+wire [CLUSTER_IFMAP_ADDR_BITS-1:0] cluster_3_dma_0_ifmap_waddr;
+wire [CLUSTER_IFMAP_WIDTH-1:0]   cluster_3_dma_0_ifmap_wdata;
+wire                             cluster_3_dma_0_qact_wvalid;
+wire [CLUSTER_QACT_ADDR_BITS-1:0] cluster_3_dma_0_qact_waddr;
+wire [CLUSTER_QACT_WIDTH-1:0]    cluster_3_dma_0_qact_wdata;
+wire                             cluster_3_dma_0_vcucode_wvalid;
+wire [CLUSTER_VCUCODE_ADDR_BITS:0] cluster_3_dma_0_vcucode_waddr;
+wire [CLUSTER_VCUCODE_WIDTH-1:0] cluster_3_dma_0_vcucode_wdata;
+wire                             cluster_3_dma_0_vcupara_wvalid;
+wire [CLUSTER_VCUPARA_ADDR_BITS:0] cluster_3_dma_0_vcupara_waddr;
+wire [CLUSTER_VCUPARA_WIDTH-1:0] cluster_3_dma_0_vcupara_wdata;
+wire                             cluster_3_dma_0_vcures_wvalid;
+wire [CLUSTER_VCURES_ADDR_BITS-1:0] cluster_3_dma_0_vcures_waddr;
+wire [CLUSTER_VCURES_WIDTH-1:0]  cluster_3_dma_0_vcures_wdata;
+wire                             cluster_3_load_regfile_wvalid;
+wire [31:0]                      cluster_3_load_regfile_waddr;
+wire [31:0]                      cluster_3_load_regfile_wdata;
+
+
 wire                             cluster_1_rvalid;
 wire                             cluster_1_rready;
 wire [31:0]                      cluster_1_raddr;
@@ -1171,9 +1318,37 @@ dispatch_top #(
   .cmd_start               ( cmd_start              ),
   .synchronize_fifo_full   ( synchronize_fifo_full  ),
   .load_0_fifo_full        ( load_0_fifo_full       ),
+  .load_1_fifo_full        ( load_1_fifo_full       ),
+  .load_2_fifo_full        ( load_2_fifo_full       ),
+  .load_3_fifo_full        ( load_3_fifo_full       ),
+  .load_4_fifo_full        ( load_4_fifo_full       ),
+  .load_5_fifo_full        ( load_5_fifo_full       ),
+  .load_6_fifo_full        ( load_6_fifo_full       ),
+  .load_7_fifo_full        ( load_7_fifo_full       ),
   .pea_0_fifo_full         ( pea_0_fifo_full        ),
+  .pea_1_fifo_full         ( pea_1_fifo_full        ),
+  .pea_2_fifo_full         ( pea_2_fifo_full        ),
+  .pea_3_fifo_full         ( pea_3_fifo_full        ),
+  .pea_4_fifo_full         ( pea_4_fifo_full        ),
+  .pea_5_fifo_full         ( pea_5_fifo_full        ),
+  .pea_6_fifo_full         ( pea_6_fifo_full        ),
+  .pea_7_fifo_full         ( pea_7_fifo_full        ),
   .vcu_0_fifo_full         ( vcu_0_fifo_full        ),
+  .vcu_1_fifo_full         ( vcu_1_fifo_full        ),
+  .vcu_2_fifo_full         ( vcu_2_fifo_full        ),
+  .vcu_3_fifo_full         ( vcu_3_fifo_full        ),
+  .vcu_4_fifo_full         ( vcu_4_fifo_full        ),
+  .vcu_5_fifo_full         ( vcu_5_fifo_full        ),
+  .vcu_6_fifo_full         ( vcu_6_fifo_full        ),
+  .vcu_7_fifo_full         ( vcu_7_fifo_full        ),
   .store_0_fifo_full       ( store_0_fifo_full      ),
+  .store_1_fifo_full       ( store_1_fifo_full      ),
+  .store_2_fifo_full       ( store_2_fifo_full      ),
+  .store_3_fifo_full       ( store_3_fifo_full      ),
+  .store_4_fifo_full       ( store_4_fifo_full      ),
+  .store_5_fifo_full       ( store_5_fifo_full      ),
+  .store_6_fifo_full       ( store_6_fifo_full      ),
+  .store_7_fifo_full       ( store_7_fifo_full      ),
   .axi4_full_M_AXI_ARID    ( insn_M_AXI_ARID        ),
   .axi4_full_M_AXI_ARADDR  ( insn_M_AXI_ARADDR      ),
   .axi4_full_M_AXI_ARLEN   ( insn_M_AXI_ARLEN       ),
@@ -1209,12 +1384,68 @@ dispatch_top #(
   .synchronize_fifo_wdata  ( synchronize_fifo_wdata ),
   .load_0_fifo_wen         ( load_0_fifo_wen        ),
   .load_0_fifo_wdata       ( load_0_fifo_wdata      ),
+  .load_1_fifo_wen         ( load_1_fifo_wen        ),
+  .load_1_fifo_wdata       ( load_1_fifo_wdata      ),
+  .load_2_fifo_wen         ( load_2_fifo_wen        ),
+  .load_2_fifo_wdata       ( load_2_fifo_wdata      ),
+  .load_3_fifo_wen         ( load_3_fifo_wen        ),
+  .load_3_fifo_wdata       ( load_3_fifo_wdata      ),
+  .load_4_fifo_wen         ( load_4_fifo_wen        ),
+  .load_4_fifo_wdata       ( load_4_fifo_wdata      ),
+  .load_5_fifo_wen         ( load_5_fifo_wen        ),
+  .load_5_fifo_wdata       ( load_5_fifo_wdata      ),
+  .load_6_fifo_wen         ( load_6_fifo_wen        ),
+  .load_6_fifo_wdata       ( load_6_fifo_wdata      ),
+  .load_7_fifo_wen         ( load_7_fifo_wen        ),
+  .load_7_fifo_wdata       ( load_7_fifo_wdata      ),
   .pea_0_fifo_wen          ( pea_0_fifo_wen         ),
+  .pea_1_fifo_wen          ( pea_1_fifo_wen         ),
+  .pea_2_fifo_wen          ( pea_2_fifo_wen         ),
+  .pea_3_fifo_wen          ( pea_3_fifo_wen         ),
+  .pea_4_fifo_wen          ( pea_4_fifo_wen         ),
+  .pea_5_fifo_wen          ( pea_5_fifo_wen         ),
+  .pea_6_fifo_wen          ( pea_6_fifo_wen         ),
+  .pea_7_fifo_wen          ( pea_7_fifo_wen         ),
   .pea_0_fifo_wdata        ( pea_0_fifo_wdata       ),
+  .pea_1_fifo_wdata        ( pea_1_fifo_wdata       ),
+  .pea_2_fifo_wdata        ( pea_2_fifo_wdata       ),
+  .pea_3_fifo_wdata        ( pea_3_fifo_wdata       ),
+  .pea_4_fifo_wdata        ( pea_4_fifo_wdata       ),
+  .pea_5_fifo_wdata        ( pea_5_fifo_wdata       ),
+  .pea_6_fifo_wdata        ( pea_6_fifo_wdata       ),
+  .pea_7_fifo_wdata        ( pea_7_fifo_wdata       ),
   .vcu_0_fifo_wen          ( vcu_0_fifo_wen         ),
+  .vcu_1_fifo_wen          ( vcu_1_fifo_wen         ),
+  .vcu_2_fifo_wen          ( vcu_2_fifo_wen         ),
+  .vcu_3_fifo_wen          ( vcu_3_fifo_wen         ),
+  .vcu_4_fifo_wen          ( vcu_4_fifo_wen         ),
+  .vcu_5_fifo_wen          ( vcu_5_fifo_wen         ),
+  .vcu_6_fifo_wen          ( vcu_6_fifo_wen         ),
+  .vcu_7_fifo_wen          ( vcu_7_fifo_wen         ),
   .vcu_0_fifo_wdata        ( vcu_0_fifo_wdata       ),
+  .vcu_1_fifo_wdata        ( vcu_1_fifo_wdata       ),
+  .vcu_2_fifo_wdata        ( vcu_2_fifo_wdata       ),
+  .vcu_3_fifo_wdata        ( vcu_3_fifo_wdata       ),
+  .vcu_4_fifo_wdata        ( vcu_4_fifo_wdata       ),
+  .vcu_5_fifo_wdata        ( vcu_5_fifo_wdata       ),
+  .vcu_6_fifo_wdata        ( vcu_6_fifo_wdata       ),
+  .vcu_7_fifo_wdata        ( vcu_7_fifo_wdata       ),
   .store_0_fifo_wen        ( store_0_fifo_wen       ),
   .store_0_fifo_wdata      ( store_0_fifo_wdata     ),
+  .store_1_fifo_wen        ( store_1_fifo_wen       ),
+  .store_1_fifo_wdata      ( store_1_fifo_wdata     ),
+  .store_2_fifo_wen        ( store_2_fifo_wen       ),
+  .store_2_fifo_wdata      ( store_2_fifo_wdata     ),
+  .store_3_fifo_wen        ( store_3_fifo_wen       ),
+  .store_3_fifo_wdata      ( store_3_fifo_wdata     ),
+  .store_4_fifo_wen        ( store_4_fifo_wen       ),
+  .store_4_fifo_wdata      ( store_4_fifo_wdata     ),
+  .store_5_fifo_wen        ( store_5_fifo_wen       ),
+  .store_5_fifo_wdata      ( store_5_fifo_wdata     ),
+  .store_6_fifo_wen        ( store_6_fifo_wen       ),
+  .store_6_fifo_wdata      ( store_6_fifo_wdata     ),
+  .store_7_fifo_wen        ( store_7_fifo_wen       ),
+  .store_7_fifo_wdata      ( store_7_fifo_wdata     ),
   .cib_irq_enable          ( cib_irq_enable         ),
   .cib_irq_highaddr        ( cib_irq_highaddr       ),
   .local_highaddr          ( local_highaddr         ),
@@ -1299,7 +1530,22 @@ synchronize u_synchronize(
 /* -------------------------------------------------------------------------------------------------------- */
 
 npu_cluster #(
-  .AXI_M_AXI_MIN_ID ( 64 )
+  .AXI_M_AXI_MIN_ID ( 64               ),
+  .WEIGHT_BANK      ( WEIGHT_BANK      ),
+  .WEIGHT_WIDTH     ( WEIGHT_WIDTH     ),
+  .WEIGHT_ADDR_BITS ( WEIGHT_ADDR_BITS ),
+  .IFMAP_WIDTH      ( CLUSTER_IFMAP_WIDTH       ),
+  .QACT_WIDTH       ( CLUSTER_QACT_WIDTH        ),
+  .VCUCODE_WIDTH    ( CLUSTER_VCUCODE_WIDTH     ),
+  .VCUPARA_WIDTH    ( CLUSTER_VCUPARA_WIDTH     ),
+  .VCULUT_WIDTH     ( CLUSTER_VCULUT_WIDTH      ),
+  .VCURES_WIDTH     ( CLUSTER_VCURES_WIDTH      ),
+  .IFMAP_ADDR_BITS  ( CLUSTER_IFMAP_ADDR_BITS   ),
+  .QACT_ADDR_BITS   ( CLUSTER_QACT_ADDR_BITS    ),
+  .VCUCODE_ADDR_BITS( CLUSTER_VCUCODE_ADDR_BITS ),
+  .VCUPARA_ADDR_BITS( CLUSTER_VCUPARA_ADDR_BITS ),
+  .VCULUT_ADDR_BITS ( CLUSTER_VCULUT_ADDR_BITS  ),
+  .VCURES_ADDR_BITS ( CLUSTER_VCURES_ADDR_BITS  )
 ) u_npu_cluster_0(
   .dma_0_M_AXI_AWREADY  ( cluster_0_dma_0_M_AXI_AWREADY ),
   .dma_0_M_AXI_WREADY   ( cluster_0_dma_0_M_AXI_WREADY  ),
@@ -1307,13 +1553,6 @@ npu_cluster #(
   .dma_0_M_AXI_BRESP    ( cluster_0_dma_0_M_AXI_BRESP   ),
   .dma_0_M_AXI_BUSER    ( cluster_0_dma_0_M_AXI_BUSER   ),
   .dma_0_M_AXI_BVALID   ( cluster_0_dma_0_M_AXI_BVALID  ),
-  .dma_0_M_AXI_ARREADY  ( cluster_0_dma_0_M_AXI_ARREADY ),
-  .dma_0_M_AXI_RID      ( cluster_0_dma_0_M_AXI_RID     ),
-  .dma_0_M_AXI_RDATA    ( cluster_0_dma_0_M_AXI_RDATA   ),
-  .dma_0_M_AXI_RRESP    ( cluster_0_dma_0_M_AXI_RRESP   ),
-  .dma_0_M_AXI_RLAST    ( cluster_0_dma_0_M_AXI_RLAST   ),
-  .dma_0_M_AXI_RUSER    ( cluster_0_dma_0_M_AXI_RUSER   ),
-  .dma_0_M_AXI_RVALID   ( cluster_0_dma_0_M_AXI_RVALID  ),
   .dma_0_M_AXI_AWID     ( cluster_0_dma_0_M_AXI_AWID    ),
   .dma_0_M_AXI_AWADDR   ( cluster_0_dma_0_M_AXI_AWADDR  ),
   .dma_0_M_AXI_AWLEN    ( cluster_0_dma_0_M_AXI_AWLEN   ),
@@ -1331,18 +1570,6 @@ npu_cluster #(
   .dma_0_M_AXI_WUSER    ( cluster_0_dma_0_M_AXI_WUSER   ),
   .dma_0_M_AXI_WVALID   ( cluster_0_dma_0_M_AXI_WVALID  ),
   .dma_0_M_AXI_BREADY   ( cluster_0_dma_0_M_AXI_BREADY  ),
-  .dma_0_M_AXI_ARID     ( cluster_0_dma_0_M_AXI_ARID    ),
-  .dma_0_M_AXI_ARADDR   ( cluster_0_dma_0_M_AXI_ARADDR  ),
-  .dma_0_M_AXI_ARLEN    ( cluster_0_dma_0_M_AXI_ARLEN   ),
-  .dma_0_M_AXI_ARSIZE   ( cluster_0_dma_0_M_AXI_ARSIZE  ),
-  .dma_0_M_AXI_ARBURST  ( cluster_0_dma_0_M_AXI_ARBURST ),
-  .dma_0_M_AXI_ARLOCK   ( cluster_0_dma_0_M_AXI_ARLOCK  ),
-  .dma_0_M_AXI_ARCACHE  ( cluster_0_dma_0_M_AXI_ARCACHE ),
-  .dma_0_M_AXI_ARPROT   ( cluster_0_dma_0_M_AXI_ARPROT  ),
-  .dma_0_M_AXI_ARQOS    ( cluster_0_dma_0_M_AXI_ARQOS   ),
-  .dma_0_M_AXI_ARUSER   ( cluster_0_dma_0_M_AXI_ARUSER  ),
-  .dma_0_M_AXI_ARVALID  ( cluster_0_dma_0_M_AXI_ARVALID ),
-  .dma_0_M_AXI_RREADY   ( cluster_0_dma_0_M_AXI_RREADY  ),
 
   .dma_1_M_AXI_AWREADY  ( cluster_0_dma_1_M_AXI_AWREADY ),
   .dma_1_M_AXI_WREADY   ( cluster_0_dma_1_M_AXI_WREADY  ),
@@ -1350,13 +1577,6 @@ npu_cluster #(
   .dma_1_M_AXI_BRESP    ( cluster_0_dma_1_M_AXI_BRESP   ),
   .dma_1_M_AXI_BUSER    ( cluster_0_dma_1_M_AXI_BUSER   ),
   .dma_1_M_AXI_BVALID   ( cluster_0_dma_1_M_AXI_BVALID  ),
-  .dma_1_M_AXI_ARREADY  ( cluster_0_dma_1_M_AXI_ARREADY ),
-  .dma_1_M_AXI_RID      ( cluster_0_dma_1_M_AXI_RID     ),
-  .dma_1_M_AXI_RDATA    ( cluster_0_dma_1_M_AXI_RDATA   ),
-  .dma_1_M_AXI_RRESP    ( cluster_0_dma_1_M_AXI_RRESP   ),
-  .dma_1_M_AXI_RLAST    ( cluster_0_dma_1_M_AXI_RLAST   ),
-  .dma_1_M_AXI_RUSER    ( cluster_0_dma_1_M_AXI_RUSER   ),
-  .dma_1_M_AXI_RVALID   ( cluster_0_dma_1_M_AXI_RVALID  ),
   .dma_1_M_AXI_AWID     ( cluster_0_dma_1_M_AXI_AWID    ),
   .dma_1_M_AXI_AWADDR   ( cluster_0_dma_1_M_AXI_AWADDR  ),
   .dma_1_M_AXI_AWLEN    ( cluster_0_dma_1_M_AXI_AWLEN   ),
@@ -1374,18 +1594,6 @@ npu_cluster #(
   .dma_1_M_AXI_WUSER    ( cluster_0_dma_1_M_AXI_WUSER   ),
   .dma_1_M_AXI_WVALID   ( cluster_0_dma_1_M_AXI_WVALID  ),
   .dma_1_M_AXI_BREADY   ( cluster_0_dma_1_M_AXI_BREADY  ),
-  .dma_1_M_AXI_ARID     ( cluster_0_dma_1_M_AXI_ARID    ),
-  .dma_1_M_AXI_ARADDR   ( cluster_0_dma_1_M_AXI_ARADDR  ),
-  .dma_1_M_AXI_ARLEN    ( cluster_0_dma_1_M_AXI_ARLEN   ),
-  .dma_1_M_AXI_ARSIZE   ( cluster_0_dma_1_M_AXI_ARSIZE  ),
-  .dma_1_M_AXI_ARBURST  ( cluster_0_dma_1_M_AXI_ARBURST ),
-  .dma_1_M_AXI_ARLOCK   ( cluster_0_dma_1_M_AXI_ARLOCK  ),
-  .dma_1_M_AXI_ARCACHE  ( cluster_0_dma_1_M_AXI_ARCACHE ),
-  .dma_1_M_AXI_ARPROT   ( cluster_0_dma_1_M_AXI_ARPROT  ),
-  .dma_1_M_AXI_ARQOS    ( cluster_0_dma_1_M_AXI_ARQOS   ),
-  .dma_1_M_AXI_ARUSER   ( cluster_0_dma_1_M_AXI_ARUSER  ),
-  .dma_1_M_AXI_ARVALID  ( cluster_0_dma_1_M_AXI_ARVALID ),
-  .dma_1_M_AXI_RREADY   ( cluster_0_dma_1_M_AXI_RREADY  ),
 
   .slv_regfile_wvalid   ( cluster_0_wvalid              ),
   .slv_regfile_wready   (               ),
@@ -1396,14 +1604,6 @@ npu_cluster #(
   .slv_regfile_raddr    ( cluster_0_raddr               ),
   .slv_regfile_rdata    ( cluster_0_rdata               ),
 
-  .load_0_fifo_wen      ( load_0_fifo_wen               ),
-  .load_0_fifo_wdata    ( load_0_fifo_wdata             ),
-  .load_0_fifo_full     ( load_0_fifo_full              ),
-  .load_0_fifo_empty    ( load_0_fifo_empty             ),
-  .load_1_fifo_wen      ( load_1_fifo_wen               ),
-  .load_1_fifo_wdata    ( load_1_fifo_wdata             ),
-  .load_1_fifo_full     ( load_1_fifo_full              ),
-  .load_1_fifo_empty    ( load_1_fifo_empty             ),
   .store_0_fifo_wen     ( store_0_fifo_wen              ),
   .store_0_fifo_wdata   ( store_0_fifo_wdata            ),
   .store_0_fifo_full    ( store_0_fifo_full             ),
@@ -1449,6 +1649,37 @@ npu_cluster #(
 
   .global_done          ( cluster_0_done                ),
 
+  .weight_sram_rvalid   ( weight_0_rvalid               ),
+  .weight_sram_raddr    ( weight_0_raddr                ),
+  .weight_sram_rdata    ( weight_0_rdata                ),
+
+  .load_0_local_done_wire ( cluster_0_load_0_local_done_wire ),
+  .load_1_local_done_wire ( cluster_0_load_1_local_done_wire ),
+  .load_0_global_done   ( cluster_0_load_0_global_done  ),
+  .load_1_global_done   ( cluster_0_load_1_global_done  ),
+  .load_0_execute_time  ( cluster_0_load_0_execute_time ),
+  .load_1_execute_time  ( cluster_0_load_1_execute_time ),
+  .load_dma_rst_n       ( cluster_0_load_dma_rst_n      ),
+  .enable_prof_counter  ( cluster_0_enable_prof_counter ),
+  .dma_0_ifmap_sram_wvalid ( cluster_0_dma_0_ifmap_wvalid ),
+  .dma_0_ifmap_sram_waddr  ( cluster_0_dma_0_ifmap_waddr  ),
+  .dma_0_ifmap_sram_wdata  ( cluster_0_dma_0_ifmap_wdata  ),
+  .dma_0_qact_wvalid       ( cluster_0_dma_0_qact_wvalid  ),
+  .dma_0_qact_waddr        ( cluster_0_dma_0_qact_waddr   ),
+  .dma_0_qact_wdata        ( cluster_0_dma_0_qact_wdata   ),
+  .dma_0_vcucode_sram_wvalid ( cluster_0_dma_0_vcucode_wvalid ),
+  .dma_0_vcucode_sram_waddr  ( cluster_0_dma_0_vcucode_waddr  ),
+  .dma_0_vcucode_sram_wdata  ( cluster_0_dma_0_vcucode_wdata  ),
+  .dma_0_vcupara_sram_wvalid ( cluster_0_dma_0_vcupara_wvalid ),
+  .dma_0_vcupara_sram_waddr  ( cluster_0_dma_0_vcupara_waddr  ),
+  .dma_0_vcupara_sram_wdata  ( cluster_0_dma_0_vcupara_wdata  ),
+  .dma_0_vcures_sram_wvalid  ( cluster_0_dma_0_vcures_wvalid  ),
+  .dma_0_vcures_sram_waddr   ( cluster_0_dma_0_vcures_waddr   ),
+  .dma_0_vcures_sram_wdata   ( cluster_0_dma_0_vcures_wdata   ),
+  .mst_regfile_wvalid     ( cluster_0_load_regfile_wvalid ),
+  .mst_regfile_waddr      ( cluster_0_load_regfile_waddr  ),
+  .mst_regfile_wdata      ( cluster_0_load_regfile_wdata  ),
+
   .clk                  ( clk                           ),
   .rst_n                ( rst_n                         ),
   .cmd_rst              ( cmd_rst_0                     ),
@@ -1458,6 +1689,505 @@ npu_cluster #(
   .store_highaddr       ( store_highaddr                ),
   .load_highaddr_sel    ( load_highaddr_sel             ),
   .store_highaddr_sel   ( store_highaddr_sel            )
+);
+
+
+/* -------------------------------------------------------------------------------------------------------- */
+/*                                             Load DMA Router                                              */
+/* -------------------------------------------------------------------------------------------------------- */
+
+npu_cluster_load_router #(
+  .INSN_BITS              ( INSN_BITS                 ),
+  .AXI_M_AXI_BURSTLENGTH  ( AXI_M_AXI_BURSTLENGTH     ),
+  .AXI_OUTSTANDING_DEPTH  ( AXI_OUTSTANDING_DEPTH     ),
+  .AXI_M_AXI_ID_WIDTH     ( AXI_M_AXI_ID_WIDTH        ),
+  .AXI_M_AXI_ADDR_WIDTH   ( AXI_M_AXI_ADDR_WIDTH      ),
+  .AXI_M_AXI_USER_WIDTH   ( AXI_M_AXI_USER_WIDTH      ),
+  .AXI_M_AXI_DATA_WIDTH   ( AXI_M_AXI_DATA_WIDTH      ),
+  .AXI_M_AXI_MIN_ID       ( 64                        ),
+  .MASTER_PERI_ADDR_WIDTH ( MASTER_PERI_ADDR_WIDTH    ),
+  .MASTER_PERI_BUSRSTS_WIDTH ( MASTER_PERI_BUSRSTS_WIDTH ),
+  .MASTER_PERI_DATA_WIDTH ( MASTER_PERI_DATA_WIDTH    ),
+  .MASTER_SRAM_ADDR_WIDTH ( MASTER_SRAM_ADDR_WIDTH    ),
+  .IFMAP_WIDTH            ( CLUSTER_IFMAP_WIDTH       ),
+  .QACT_WIDTH             ( CLUSTER_QACT_WIDTH        ),
+  .VCUCODE_WIDTH          ( CLUSTER_VCUCODE_WIDTH     ),
+  .VCUPARA_WIDTH          ( CLUSTER_VCUPARA_WIDTH     ),
+  .VCULUT_WIDTH           ( CLUSTER_VCULUT_WIDTH      ),
+  .VCURES_WIDTH           ( CLUSTER_VCURES_WIDTH      ),
+  .WEIGHT_WIDTH           ( WEIGHT_WIDTH              ),
+  .IFMAP_ADDR_BITS        ( CLUSTER_IFMAP_ADDR_BITS   ),
+  .QACT_ADDR_BITS         ( CLUSTER_QACT_ADDR_BITS    ),
+  .VCUCODE_ADDR_BITS      ( CLUSTER_VCUCODE_ADDR_BITS ),
+  .VCUPARA_ADDR_BITS      ( CLUSTER_VCUPARA_ADDR_BITS ),
+  .VCULUT_ADDR_BITS       ( CLUSTER_VCULUT_ADDR_BITS  ),
+  .VCURES_ADDR_BITS       ( CLUSTER_VCURES_ADDR_BITS  ),
+  .WEIGHT_ADDR_BITS       ( WEIGHT_ADDR_BITS          ),
+  .HIGHADDR_BITS          ( HIGHADDR_BITS             )
+) u_cluster_0_load_router(
+  .clk                 ( clk                            ),
+  .rst_n               ( rst_n                          ),
+  .logic_rst_n         ( cluster_0_load_dma_rst_n       ),
+  .axi4_clk            ( axi4_clk                       ),
+  .axi4_rst_n          ( axi4_rst_n                     ),
+  .load_highaddr       ( load_highaddr                  ),
+  .load_highaddr_sel   ( load_highaddr_sel              ),
+  .load_0_fifo_wen     ( load_0_fifo_wen               ),
+  .load_0_fifo_wdata   ( load_0_fifo_wdata             ),
+  .load_0_fifo_full    ( load_0_fifo_full              ),
+  .load_0_fifo_empty   ( load_0_fifo_empty             ),
+  .load_1_fifo_wen     ( load_1_fifo_wen               ),
+  .load_1_fifo_wdata   ( load_1_fifo_wdata             ),
+  .load_1_fifo_full    ( load_1_fifo_full              ),
+  .load_1_fifo_empty   ( load_1_fifo_empty             ),
+  .load_0_work_en      ( load_0_work_en                 ),
+  .load_1_work_en      ( load_1_work_en                 ),
+  .load_0_local_done   ( cluster_0_load_0_local_done_wire ),
+  .load_1_local_done   ( cluster_0_load_1_local_done_wire ),
+  .load_0_global_done  ( cluster_0_load_0_global_done   ),
+  .load_1_global_done  ( cluster_0_load_1_global_done   ),
+  .load_0_execute_time ( cluster_0_load_0_execute_time  ),
+  .load_1_execute_time ( cluster_0_load_1_execute_time  ),
+  .enable_prof_counter ( cluster_0_enable_prof_counter  ),
+  .ifmap_wvalid        ( cluster_0_dma_0_ifmap_wvalid   ),
+  .ifmap_waddr         ( cluster_0_dma_0_ifmap_waddr    ),
+  .ifmap_wdata         ( cluster_0_dma_0_ifmap_wdata    ),
+  .qact_wvalid         ( cluster_0_dma_0_qact_wvalid    ),
+  .qact_waddr          ( cluster_0_dma_0_qact_waddr     ),
+  .qact_wdata          ( cluster_0_dma_0_qact_wdata     ),
+  .vcucode_wvalid      ( cluster_0_dma_0_vcucode_wvalid ),
+  .vcucode_waddr       ( cluster_0_dma_0_vcucode_waddr  ),
+  .vcucode_wdata       ( cluster_0_dma_0_vcucode_wdata  ),
+  .vcupara_wvalid      ( cluster_0_dma_0_vcupara_wvalid ),
+  .vcupara_waddr       ( cluster_0_dma_0_vcupara_waddr  ),
+  .vcupara_wdata       ( cluster_0_dma_0_vcupara_wdata  ),
+  .vcures_wvalid       ( cluster_0_dma_0_vcures_wvalid  ),
+  .vcures_waddr        ( cluster_0_dma_0_vcures_waddr   ),
+  .vcures_wdata        ( cluster_0_dma_0_vcures_wdata   ),
+  .regfile_wvalid      ( cluster_0_load_regfile_wvalid  ),
+  .regfile_waddr       ( cluster_0_load_regfile_waddr   ),
+  .regfile_wdata       ( cluster_0_load_regfile_wdata   ),
+  .weight_0_wvalid     ( weight_dma_0_wvalid            ),
+  .weight_0_wdata      ( weight_dma_0_wdata             ),
+  .weight_1_wvalid     ( weight_dma_1_wvalid            ),
+  .weight_1_wdata      ( weight_dma_1_wdata             ),
+  .dma_0_M_AXI_ARID    ( cluster_0_dma_0_M_AXI_ARID     ),
+  .dma_0_M_AXI_ARADDR  ( cluster_0_dma_0_M_AXI_ARADDR   ),
+  .dma_0_M_AXI_ARLEN   ( cluster_0_dma_0_M_AXI_ARLEN    ),
+  .dma_0_M_AXI_ARSIZE  ( cluster_0_dma_0_M_AXI_ARSIZE   ),
+  .dma_0_M_AXI_ARBURST ( cluster_0_dma_0_M_AXI_ARBURST  ),
+  .dma_0_M_AXI_ARLOCK  ( cluster_0_dma_0_M_AXI_ARLOCK   ),
+  .dma_0_M_AXI_ARCACHE ( cluster_0_dma_0_M_AXI_ARCACHE  ),
+  .dma_0_M_AXI_ARPROT  ( cluster_0_dma_0_M_AXI_ARPROT   ),
+  .dma_0_M_AXI_ARQOS   ( cluster_0_dma_0_M_AXI_ARQOS    ),
+  .dma_0_M_AXI_ARUSER  ( cluster_0_dma_0_M_AXI_ARUSER   ),
+  .dma_0_M_AXI_ARVALID ( cluster_0_dma_0_M_AXI_ARVALID  ),
+  .dma_0_M_AXI_ARREADY ( cluster_0_dma_0_M_AXI_ARREADY  ),
+  .dma_0_M_AXI_RID     ( cluster_0_dma_0_M_AXI_RID      ),
+  .dma_0_M_AXI_RDATA   ( cluster_0_dma_0_M_AXI_RDATA    ),
+  .dma_0_M_AXI_RRESP   ( cluster_0_dma_0_M_AXI_RRESP    ),
+  .dma_0_M_AXI_RLAST   ( cluster_0_dma_0_M_AXI_RLAST    ),
+  .dma_0_M_AXI_RUSER   ( cluster_0_dma_0_M_AXI_RUSER    ),
+  .dma_0_M_AXI_RVALID  ( cluster_0_dma_0_M_AXI_RVALID   ),
+  .dma_0_M_AXI_RREADY  ( cluster_0_dma_0_M_AXI_RREADY   ),
+  .dma_1_M_AXI_ARID    ( cluster_0_dma_1_M_AXI_ARID     ),
+  .dma_1_M_AXI_ARADDR  ( cluster_0_dma_1_M_AXI_ARADDR   ),
+  .dma_1_M_AXI_ARLEN   ( cluster_0_dma_1_M_AXI_ARLEN    ),
+  .dma_1_M_AXI_ARSIZE  ( cluster_0_dma_1_M_AXI_ARSIZE   ),
+  .dma_1_M_AXI_ARBURST ( cluster_0_dma_1_M_AXI_ARBURST  ),
+  .dma_1_M_AXI_ARLOCK  ( cluster_0_dma_1_M_AXI_ARLOCK   ),
+  .dma_1_M_AXI_ARCACHE ( cluster_0_dma_1_M_AXI_ARCACHE  ),
+  .dma_1_M_AXI_ARPROT  ( cluster_0_dma_1_M_AXI_ARPROT   ),
+  .dma_1_M_AXI_ARQOS   ( cluster_0_dma_1_M_AXI_ARQOS    ),
+  .dma_1_M_AXI_ARUSER  ( cluster_0_dma_1_M_AXI_ARUSER   ),
+  .dma_1_M_AXI_ARVALID ( cluster_0_dma_1_M_AXI_ARVALID  ),
+  .dma_1_M_AXI_ARREADY ( cluster_0_dma_1_M_AXI_ARREADY  ),
+  .dma_1_M_AXI_RID     ( cluster_0_dma_1_M_AXI_RID      ),
+  .dma_1_M_AXI_RDATA   ( cluster_0_dma_1_M_AXI_RDATA    ),
+  .dma_1_M_AXI_RRESP   ( cluster_0_dma_1_M_AXI_RRESP    ),
+  .dma_1_M_AXI_RLAST   ( cluster_0_dma_1_M_AXI_RLAST    ),
+  .dma_1_M_AXI_RUSER   ( cluster_0_dma_1_M_AXI_RUSER    ),
+  .dma_1_M_AXI_RVALID  ( cluster_0_dma_1_M_AXI_RVALID   ),
+  .dma_1_M_AXI_RREADY  ( cluster_0_dma_1_M_AXI_RREADY   )
+);
+
+npu_cluster_load_router #(
+  .INSN_BITS              ( INSN_BITS                 ),
+  .AXI_M_AXI_BURSTLENGTH  ( AXI_M_AXI_BURSTLENGTH     ),
+  .AXI_OUTSTANDING_DEPTH  ( AXI_OUTSTANDING_DEPTH     ),
+  .AXI_M_AXI_ID_WIDTH     ( AXI_M_AXI_ID_WIDTH        ),
+  .AXI_M_AXI_ADDR_WIDTH   ( AXI_M_AXI_ADDR_WIDTH      ),
+  .AXI_M_AXI_USER_WIDTH   ( AXI_M_AXI_USER_WIDTH      ),
+  .AXI_M_AXI_DATA_WIDTH   ( AXI_M_AXI_DATA_WIDTH      ),
+  .AXI_M_AXI_MIN_ID       ( 128                        ),
+  .MASTER_PERI_ADDR_WIDTH ( MASTER_PERI_ADDR_WIDTH    ),
+  .MASTER_PERI_BUSRSTS_WIDTH ( MASTER_PERI_BUSRSTS_WIDTH ),
+  .MASTER_PERI_DATA_WIDTH ( MASTER_PERI_DATA_WIDTH    ),
+  .MASTER_SRAM_ADDR_WIDTH ( MASTER_SRAM_ADDR_WIDTH    ),
+  .IFMAP_WIDTH            ( CLUSTER_IFMAP_WIDTH       ),
+  .QACT_WIDTH             ( CLUSTER_QACT_WIDTH        ),
+  .VCUCODE_WIDTH          ( CLUSTER_VCUCODE_WIDTH     ),
+  .VCUPARA_WIDTH          ( CLUSTER_VCUPARA_WIDTH     ),
+  .VCULUT_WIDTH           ( CLUSTER_VCULUT_WIDTH      ),
+  .VCURES_WIDTH           ( CLUSTER_VCURES_WIDTH      ),
+  .WEIGHT_WIDTH           ( WEIGHT_WIDTH              ),
+  .IFMAP_ADDR_BITS        ( CLUSTER_IFMAP_ADDR_BITS   ),
+  .QACT_ADDR_BITS         ( CLUSTER_QACT_ADDR_BITS    ),
+  .VCUCODE_ADDR_BITS      ( CLUSTER_VCUCODE_ADDR_BITS ),
+  .VCUPARA_ADDR_BITS      ( CLUSTER_VCUPARA_ADDR_BITS ),
+  .VCULUT_ADDR_BITS       ( CLUSTER_VCULUT_ADDR_BITS  ),
+  .VCURES_ADDR_BITS       ( CLUSTER_VCURES_ADDR_BITS  ),
+  .WEIGHT_ADDR_BITS       ( WEIGHT_ADDR_BITS          ),
+  .HIGHADDR_BITS          ( HIGHADDR_BITS             )
+) u_cluster_1_load_router(
+  .clk                 ( clk                            ),
+  .rst_n               ( rst_n                          ),
+  .logic_rst_n         ( cluster_1_load_dma_rst_n       ),
+  .axi4_clk            ( axi4_clk                       ),
+  .axi4_rst_n          ( axi4_rst_n                     ),
+  .load_highaddr       ( load_highaddr                  ),
+  .load_highaddr_sel   ( load_highaddr_sel              ),
+  .load_0_fifo_wen     ( load_2_fifo_wen               ),
+  .load_0_fifo_wdata   ( load_2_fifo_wdata             ),
+  .load_0_fifo_full    ( load_2_fifo_full              ),
+  .load_0_fifo_empty   ( load_2_fifo_empty             ),
+  .load_1_fifo_wen     ( load_3_fifo_wen               ),
+  .load_1_fifo_wdata   ( load_3_fifo_wdata             ),
+  .load_1_fifo_full    ( load_3_fifo_full              ),
+  .load_1_fifo_empty   ( load_3_fifo_empty             ),
+  .load_0_work_en      ( load_2_work_en                 ),
+  .load_1_work_en      ( load_3_work_en                 ),
+  .load_0_local_done   ( cluster_1_load_0_local_done_wire ),
+  .load_1_local_done   ( cluster_1_load_1_local_done_wire ),
+  .load_0_global_done  ( cluster_1_load_0_global_done   ),
+  .load_1_global_done  ( cluster_1_load_1_global_done   ),
+  .load_0_execute_time ( cluster_1_load_0_execute_time  ),
+  .load_1_execute_time ( cluster_1_load_1_execute_time  ),
+  .enable_prof_counter ( cluster_1_enable_prof_counter  ),
+  .ifmap_wvalid        ( cluster_1_dma_0_ifmap_wvalid   ),
+  .ifmap_waddr         ( cluster_1_dma_0_ifmap_waddr    ),
+  .ifmap_wdata         ( cluster_1_dma_0_ifmap_wdata    ),
+  .qact_wvalid         ( cluster_1_dma_0_qact_wvalid    ),
+  .qact_waddr          ( cluster_1_dma_0_qact_waddr     ),
+  .qact_wdata          ( cluster_1_dma_0_qact_wdata     ),
+  .vcucode_wvalid      ( cluster_1_dma_0_vcucode_wvalid ),
+  .vcucode_waddr       ( cluster_1_dma_0_vcucode_waddr  ),
+  .vcucode_wdata       ( cluster_1_dma_0_vcucode_wdata  ),
+  .vcupara_wvalid      ( cluster_1_dma_0_vcupara_wvalid ),
+  .vcupara_waddr       ( cluster_1_dma_0_vcupara_waddr  ),
+  .vcupara_wdata       ( cluster_1_dma_0_vcupara_wdata  ),
+  .vcures_wvalid       ( cluster_1_dma_0_vcures_wvalid  ),
+  .vcures_waddr        ( cluster_1_dma_0_vcures_waddr   ),
+  .vcures_wdata        ( cluster_1_dma_0_vcures_wdata   ),
+  .regfile_wvalid      ( cluster_1_load_regfile_wvalid  ),
+  .regfile_waddr       ( cluster_1_load_regfile_waddr   ),
+  .regfile_wdata       ( cluster_1_load_regfile_wdata   ),
+  .weight_0_wvalid     ( weight_dma_2_wvalid            ),
+  .weight_0_wdata      ( weight_dma_2_wdata             ),
+  .weight_1_wvalid     ( weight_dma_3_wvalid            ),
+  .weight_1_wdata      ( weight_dma_3_wdata             ),
+  .dma_0_M_AXI_ARID    ( cluster_1_dma_0_M_AXI_ARID     ),
+  .dma_0_M_AXI_ARADDR  ( cluster_1_dma_0_M_AXI_ARADDR   ),
+  .dma_0_M_AXI_ARLEN   ( cluster_1_dma_0_M_AXI_ARLEN    ),
+  .dma_0_M_AXI_ARSIZE  ( cluster_1_dma_0_M_AXI_ARSIZE   ),
+  .dma_0_M_AXI_ARBURST ( cluster_1_dma_0_M_AXI_ARBURST  ),
+  .dma_0_M_AXI_ARLOCK  ( cluster_1_dma_0_M_AXI_ARLOCK   ),
+  .dma_0_M_AXI_ARCACHE ( cluster_1_dma_0_M_AXI_ARCACHE  ),
+  .dma_0_M_AXI_ARPROT  ( cluster_1_dma_0_M_AXI_ARPROT   ),
+  .dma_0_M_AXI_ARQOS   ( cluster_1_dma_0_M_AXI_ARQOS    ),
+  .dma_0_M_AXI_ARUSER  ( cluster_1_dma_0_M_AXI_ARUSER   ),
+  .dma_0_M_AXI_ARVALID ( cluster_1_dma_0_M_AXI_ARVALID  ),
+  .dma_0_M_AXI_ARREADY ( cluster_1_dma_0_M_AXI_ARREADY  ),
+  .dma_0_M_AXI_RID     ( cluster_1_dma_0_M_AXI_RID      ),
+  .dma_0_M_AXI_RDATA   ( cluster_1_dma_0_M_AXI_RDATA    ),
+  .dma_0_M_AXI_RRESP   ( cluster_1_dma_0_M_AXI_RRESP    ),
+  .dma_0_M_AXI_RLAST   ( cluster_1_dma_0_M_AXI_RLAST    ),
+  .dma_0_M_AXI_RUSER   ( cluster_1_dma_0_M_AXI_RUSER    ),
+  .dma_0_M_AXI_RVALID  ( cluster_1_dma_0_M_AXI_RVALID   ),
+  .dma_0_M_AXI_RREADY  ( cluster_1_dma_0_M_AXI_RREADY   ),
+  .dma_1_M_AXI_ARID    ( cluster_1_dma_1_M_AXI_ARID     ),
+  .dma_1_M_AXI_ARADDR  ( cluster_1_dma_1_M_AXI_ARADDR   ),
+  .dma_1_M_AXI_ARLEN   ( cluster_1_dma_1_M_AXI_ARLEN    ),
+  .dma_1_M_AXI_ARSIZE  ( cluster_1_dma_1_M_AXI_ARSIZE   ),
+  .dma_1_M_AXI_ARBURST ( cluster_1_dma_1_M_AXI_ARBURST  ),
+  .dma_1_M_AXI_ARLOCK  ( cluster_1_dma_1_M_AXI_ARLOCK   ),
+  .dma_1_M_AXI_ARCACHE ( cluster_1_dma_1_M_AXI_ARCACHE  ),
+  .dma_1_M_AXI_ARPROT  ( cluster_1_dma_1_M_AXI_ARPROT   ),
+  .dma_1_M_AXI_ARQOS   ( cluster_1_dma_1_M_AXI_ARQOS    ),
+  .dma_1_M_AXI_ARUSER  ( cluster_1_dma_1_M_AXI_ARUSER   ),
+  .dma_1_M_AXI_ARVALID ( cluster_1_dma_1_M_AXI_ARVALID  ),
+  .dma_1_M_AXI_ARREADY ( cluster_1_dma_1_M_AXI_ARREADY  ),
+  .dma_1_M_AXI_RID     ( cluster_1_dma_1_M_AXI_RID      ),
+  .dma_1_M_AXI_RDATA   ( cluster_1_dma_1_M_AXI_RDATA    ),
+  .dma_1_M_AXI_RRESP   ( cluster_1_dma_1_M_AXI_RRESP    ),
+  .dma_1_M_AXI_RLAST   ( cluster_1_dma_1_M_AXI_RLAST    ),
+  .dma_1_M_AXI_RUSER   ( cluster_1_dma_1_M_AXI_RUSER    ),
+  .dma_1_M_AXI_RVALID  ( cluster_1_dma_1_M_AXI_RVALID   ),
+  .dma_1_M_AXI_RREADY  ( cluster_1_dma_1_M_AXI_RREADY   )
+);
+
+npu_cluster_load_router #(
+  .INSN_BITS              ( INSN_BITS                 ),
+  .AXI_M_AXI_BURSTLENGTH  ( AXI_M_AXI_BURSTLENGTH     ),
+  .AXI_OUTSTANDING_DEPTH  ( AXI_OUTSTANDING_DEPTH     ),
+  .AXI_M_AXI_ID_WIDTH     ( AXI_M_AXI_ID_WIDTH        ),
+  .AXI_M_AXI_ADDR_WIDTH   ( AXI_M_AXI_ADDR_WIDTH      ),
+  .AXI_M_AXI_USER_WIDTH   ( AXI_M_AXI_USER_WIDTH      ),
+  .AXI_M_AXI_DATA_WIDTH   ( AXI_M_AXI_DATA_WIDTH      ),
+  .AXI_M_AXI_MIN_ID       ( 192                        ),
+  .MASTER_PERI_ADDR_WIDTH ( MASTER_PERI_ADDR_WIDTH    ),
+  .MASTER_PERI_BUSRSTS_WIDTH ( MASTER_PERI_BUSRSTS_WIDTH ),
+  .MASTER_PERI_DATA_WIDTH ( MASTER_PERI_DATA_WIDTH    ),
+  .MASTER_SRAM_ADDR_WIDTH ( MASTER_SRAM_ADDR_WIDTH    ),
+  .IFMAP_WIDTH            ( CLUSTER_IFMAP_WIDTH       ),
+  .QACT_WIDTH             ( CLUSTER_QACT_WIDTH        ),
+  .VCUCODE_WIDTH          ( CLUSTER_VCUCODE_WIDTH     ),
+  .VCUPARA_WIDTH          ( CLUSTER_VCUPARA_WIDTH     ),
+  .VCULUT_WIDTH           ( CLUSTER_VCULUT_WIDTH      ),
+  .VCURES_WIDTH           ( CLUSTER_VCURES_WIDTH      ),
+  .WEIGHT_WIDTH           ( WEIGHT_WIDTH              ),
+  .IFMAP_ADDR_BITS        ( CLUSTER_IFMAP_ADDR_BITS   ),
+  .QACT_ADDR_BITS         ( CLUSTER_QACT_ADDR_BITS    ),
+  .VCUCODE_ADDR_BITS      ( CLUSTER_VCUCODE_ADDR_BITS ),
+  .VCUPARA_ADDR_BITS      ( CLUSTER_VCUPARA_ADDR_BITS ),
+  .VCULUT_ADDR_BITS       ( CLUSTER_VCULUT_ADDR_BITS  ),
+  .VCURES_ADDR_BITS       ( CLUSTER_VCURES_ADDR_BITS  ),
+  .WEIGHT_ADDR_BITS       ( WEIGHT_ADDR_BITS          ),
+  .HIGHADDR_BITS          ( HIGHADDR_BITS             )
+) u_cluster_2_load_router(
+  .clk                 ( clk                            ),
+  .rst_n               ( rst_n                          ),
+  .logic_rst_n         ( cluster_2_load_dma_rst_n       ),
+  .axi4_clk            ( axi4_clk                       ),
+  .axi4_rst_n          ( axi4_rst_n                     ),
+  .load_highaddr       ( load_highaddr                  ),
+  .load_highaddr_sel   ( load_highaddr_sel              ),
+  .load_0_fifo_wen     ( load_4_fifo_wen               ),
+  .load_0_fifo_wdata   ( load_4_fifo_wdata             ),
+  .load_0_fifo_full    ( load_4_fifo_full              ),
+  .load_0_fifo_empty   ( load_4_fifo_empty             ),
+  .load_1_fifo_wen     ( load_5_fifo_wen               ),
+  .load_1_fifo_wdata   ( load_5_fifo_wdata             ),
+  .load_1_fifo_full    ( load_5_fifo_full              ),
+  .load_1_fifo_empty   ( load_5_fifo_empty             ),
+  .load_0_work_en      ( load_4_work_en                 ),
+  .load_1_work_en      ( load_5_work_en                 ),
+  .load_0_local_done   ( cluster_2_load_0_local_done_wire ),
+  .load_1_local_done   ( cluster_2_load_1_local_done_wire ),
+  .load_0_global_done  ( cluster_2_load_0_global_done   ),
+  .load_1_global_done  ( cluster_2_load_1_global_done   ),
+  .load_0_execute_time ( cluster_2_load_0_execute_time  ),
+  .load_1_execute_time ( cluster_2_load_1_execute_time  ),
+  .enable_prof_counter ( cluster_2_enable_prof_counter  ),
+  .ifmap_wvalid        ( cluster_2_dma_0_ifmap_wvalid   ),
+  .ifmap_waddr         ( cluster_2_dma_0_ifmap_waddr    ),
+  .ifmap_wdata         ( cluster_2_dma_0_ifmap_wdata    ),
+  .qact_wvalid         ( cluster_2_dma_0_qact_wvalid    ),
+  .qact_waddr          ( cluster_2_dma_0_qact_waddr     ),
+  .qact_wdata          ( cluster_2_dma_0_qact_wdata     ),
+  .vcucode_wvalid      ( cluster_2_dma_0_vcucode_wvalid ),
+  .vcucode_waddr       ( cluster_2_dma_0_vcucode_waddr  ),
+  .vcucode_wdata       ( cluster_2_dma_0_vcucode_wdata  ),
+  .vcupara_wvalid      ( cluster_2_dma_0_vcupara_wvalid ),
+  .vcupara_waddr       ( cluster_2_dma_0_vcupara_waddr  ),
+  .vcupara_wdata       ( cluster_2_dma_0_vcupara_wdata  ),
+  .vcures_wvalid       ( cluster_2_dma_0_vcures_wvalid  ),
+  .vcures_waddr        ( cluster_2_dma_0_vcures_waddr   ),
+  .vcures_wdata        ( cluster_2_dma_0_vcures_wdata   ),
+  .regfile_wvalid      ( cluster_2_load_regfile_wvalid  ),
+  .regfile_waddr       ( cluster_2_load_regfile_waddr   ),
+  .regfile_wdata       ( cluster_2_load_regfile_wdata   ),
+  .weight_0_wvalid     ( weight_dma_4_wvalid            ),
+  .weight_0_wdata      ( weight_dma_4_wdata             ),
+  .weight_1_wvalid     ( weight_dma_5_wvalid            ),
+  .weight_1_wdata      ( weight_dma_5_wdata             ),
+  .dma_0_M_AXI_ARID    ( cluster_2_dma_0_M_AXI_ARID     ),
+  .dma_0_M_AXI_ARADDR  ( cluster_2_dma_0_M_AXI_ARADDR   ),
+  .dma_0_M_AXI_ARLEN   ( cluster_2_dma_0_M_AXI_ARLEN    ),
+  .dma_0_M_AXI_ARSIZE  ( cluster_2_dma_0_M_AXI_ARSIZE   ),
+  .dma_0_M_AXI_ARBURST ( cluster_2_dma_0_M_AXI_ARBURST  ),
+  .dma_0_M_AXI_ARLOCK  ( cluster_2_dma_0_M_AXI_ARLOCK   ),
+  .dma_0_M_AXI_ARCACHE ( cluster_2_dma_0_M_AXI_ARCACHE  ),
+  .dma_0_M_AXI_ARPROT  ( cluster_2_dma_0_M_AXI_ARPROT   ),
+  .dma_0_M_AXI_ARQOS   ( cluster_2_dma_0_M_AXI_ARQOS    ),
+  .dma_0_M_AXI_ARUSER  ( cluster_2_dma_0_M_AXI_ARUSER   ),
+  .dma_0_M_AXI_ARVALID ( cluster_2_dma_0_M_AXI_ARVALID  ),
+  .dma_0_M_AXI_ARREADY ( cluster_2_dma_0_M_AXI_ARREADY  ),
+  .dma_0_M_AXI_RID     ( cluster_2_dma_0_M_AXI_RID      ),
+  .dma_0_M_AXI_RDATA   ( cluster_2_dma_0_M_AXI_RDATA    ),
+  .dma_0_M_AXI_RRESP   ( cluster_2_dma_0_M_AXI_RRESP    ),
+  .dma_0_M_AXI_RLAST   ( cluster_2_dma_0_M_AXI_RLAST    ),
+  .dma_0_M_AXI_RUSER   ( cluster_2_dma_0_M_AXI_RUSER    ),
+  .dma_0_M_AXI_RVALID  ( cluster_2_dma_0_M_AXI_RVALID   ),
+  .dma_0_M_AXI_RREADY  ( cluster_2_dma_0_M_AXI_RREADY   ),
+  .dma_1_M_AXI_ARID    ( cluster_2_dma_1_M_AXI_ARID     ),
+  .dma_1_M_AXI_ARADDR  ( cluster_2_dma_1_M_AXI_ARADDR   ),
+  .dma_1_M_AXI_ARLEN   ( cluster_2_dma_1_M_AXI_ARLEN    ),
+  .dma_1_M_AXI_ARSIZE  ( cluster_2_dma_1_M_AXI_ARSIZE   ),
+  .dma_1_M_AXI_ARBURST ( cluster_2_dma_1_M_AXI_ARBURST  ),
+  .dma_1_M_AXI_ARLOCK  ( cluster_2_dma_1_M_AXI_ARLOCK   ),
+  .dma_1_M_AXI_ARCACHE ( cluster_2_dma_1_M_AXI_ARCACHE  ),
+  .dma_1_M_AXI_ARPROT  ( cluster_2_dma_1_M_AXI_ARPROT   ),
+  .dma_1_M_AXI_ARQOS   ( cluster_2_dma_1_M_AXI_ARQOS    ),
+  .dma_1_M_AXI_ARUSER  ( cluster_2_dma_1_M_AXI_ARUSER   ),
+  .dma_1_M_AXI_ARVALID ( cluster_2_dma_1_M_AXI_ARVALID  ),
+  .dma_1_M_AXI_ARREADY ( cluster_2_dma_1_M_AXI_ARREADY  ),
+  .dma_1_M_AXI_RID     ( cluster_2_dma_1_M_AXI_RID      ),
+  .dma_1_M_AXI_RDATA   ( cluster_2_dma_1_M_AXI_RDATA    ),
+  .dma_1_M_AXI_RRESP   ( cluster_2_dma_1_M_AXI_RRESP    ),
+  .dma_1_M_AXI_RLAST   ( cluster_2_dma_1_M_AXI_RLAST    ),
+  .dma_1_M_AXI_RUSER   ( cluster_2_dma_1_M_AXI_RUSER    ),
+  .dma_1_M_AXI_RVALID  ( cluster_2_dma_1_M_AXI_RVALID   ),
+  .dma_1_M_AXI_RREADY  ( cluster_2_dma_1_M_AXI_RREADY   )
+);
+
+npu_cluster_load_router #(
+  .INSN_BITS              ( INSN_BITS                 ),
+  .AXI_M_AXI_BURSTLENGTH  ( AXI_M_AXI_BURSTLENGTH     ),
+  .AXI_OUTSTANDING_DEPTH  ( AXI_OUTSTANDING_DEPTH     ),
+  .AXI_M_AXI_ID_WIDTH     ( AXI_M_AXI_ID_WIDTH        ),
+  .AXI_M_AXI_ADDR_WIDTH   ( AXI_M_AXI_ADDR_WIDTH      ),
+  .AXI_M_AXI_USER_WIDTH   ( AXI_M_AXI_USER_WIDTH      ),
+  .AXI_M_AXI_DATA_WIDTH   ( AXI_M_AXI_DATA_WIDTH      ),
+  .AXI_M_AXI_MIN_ID       ( 256                        ),
+  .MASTER_PERI_ADDR_WIDTH ( MASTER_PERI_ADDR_WIDTH    ),
+  .MASTER_PERI_BUSRSTS_WIDTH ( MASTER_PERI_BUSRSTS_WIDTH ),
+  .MASTER_PERI_DATA_WIDTH ( MASTER_PERI_DATA_WIDTH    ),
+  .MASTER_SRAM_ADDR_WIDTH ( MASTER_SRAM_ADDR_WIDTH    ),
+  .IFMAP_WIDTH            ( CLUSTER_IFMAP_WIDTH       ),
+  .QACT_WIDTH             ( CLUSTER_QACT_WIDTH        ),
+  .VCUCODE_WIDTH          ( CLUSTER_VCUCODE_WIDTH     ),
+  .VCUPARA_WIDTH          ( CLUSTER_VCUPARA_WIDTH     ),
+  .VCULUT_WIDTH           ( CLUSTER_VCULUT_WIDTH      ),
+  .VCURES_WIDTH           ( CLUSTER_VCURES_WIDTH      ),
+  .WEIGHT_WIDTH           ( WEIGHT_WIDTH              ),
+  .IFMAP_ADDR_BITS        ( CLUSTER_IFMAP_ADDR_BITS   ),
+  .QACT_ADDR_BITS         ( CLUSTER_QACT_ADDR_BITS    ),
+  .VCUCODE_ADDR_BITS      ( CLUSTER_VCUCODE_ADDR_BITS ),
+  .VCUPARA_ADDR_BITS      ( CLUSTER_VCUPARA_ADDR_BITS ),
+  .VCULUT_ADDR_BITS       ( CLUSTER_VCULUT_ADDR_BITS  ),
+  .VCURES_ADDR_BITS       ( CLUSTER_VCURES_ADDR_BITS  ),
+  .WEIGHT_ADDR_BITS       ( WEIGHT_ADDR_BITS          ),
+  .HIGHADDR_BITS          ( HIGHADDR_BITS             )
+) u_cluster_3_load_router(
+  .clk                 ( clk                            ),
+  .rst_n               ( rst_n                          ),
+  .logic_rst_n         ( cluster_3_load_dma_rst_n       ),
+  .axi4_clk            ( axi4_clk                       ),
+  .axi4_rst_n          ( axi4_rst_n                     ),
+  .load_highaddr       ( load_highaddr                  ),
+  .load_highaddr_sel   ( load_highaddr_sel              ),
+  .load_0_fifo_wen     ( load_6_fifo_wen               ),
+  .load_0_fifo_wdata   ( load_6_fifo_wdata             ),
+  .load_0_fifo_full    ( load_6_fifo_full              ),
+  .load_0_fifo_empty   ( load_6_fifo_empty             ),
+  .load_1_fifo_wen     ( load_7_fifo_wen               ),
+  .load_1_fifo_wdata   ( load_7_fifo_wdata             ),
+  .load_1_fifo_full    ( load_7_fifo_full              ),
+  .load_1_fifo_empty   ( load_7_fifo_empty             ),
+  .load_0_work_en      ( load_6_work_en                 ),
+  .load_1_work_en      ( load_7_work_en                 ),
+  .load_0_local_done   ( cluster_3_load_0_local_done_wire ),
+  .load_1_local_done   ( cluster_3_load_1_local_done_wire ),
+  .load_0_global_done  ( cluster_3_load_0_global_done   ),
+  .load_1_global_done  ( cluster_3_load_1_global_done   ),
+  .load_0_execute_time ( cluster_3_load_0_execute_time  ),
+  .load_1_execute_time ( cluster_3_load_1_execute_time  ),
+  .enable_prof_counter ( cluster_3_enable_prof_counter  ),
+  .ifmap_wvalid        ( cluster_3_dma_0_ifmap_wvalid   ),
+  .ifmap_waddr         ( cluster_3_dma_0_ifmap_waddr    ),
+  .ifmap_wdata         ( cluster_3_dma_0_ifmap_wdata    ),
+  .qact_wvalid         ( cluster_3_dma_0_qact_wvalid    ),
+  .qact_waddr          ( cluster_3_dma_0_qact_waddr     ),
+  .qact_wdata          ( cluster_3_dma_0_qact_wdata     ),
+  .vcucode_wvalid      ( cluster_3_dma_0_vcucode_wvalid ),
+  .vcucode_waddr       ( cluster_3_dma_0_vcucode_waddr  ),
+  .vcucode_wdata       ( cluster_3_dma_0_vcucode_wdata  ),
+  .vcupara_wvalid      ( cluster_3_dma_0_vcupara_wvalid ),
+  .vcupara_waddr       ( cluster_3_dma_0_vcupara_waddr  ),
+  .vcupara_wdata       ( cluster_3_dma_0_vcupara_wdata  ),
+  .vcures_wvalid       ( cluster_3_dma_0_vcures_wvalid  ),
+  .vcures_waddr        ( cluster_3_dma_0_vcures_waddr   ),
+  .vcures_wdata        ( cluster_3_dma_0_vcures_wdata   ),
+  .regfile_wvalid      ( cluster_3_load_regfile_wvalid  ),
+  .regfile_waddr       ( cluster_3_load_regfile_waddr   ),
+  .regfile_wdata       ( cluster_3_load_regfile_wdata   ),
+  .weight_0_wvalid     ( weight_dma_6_wvalid            ),
+  .weight_0_wdata      ( weight_dma_6_wdata             ),
+  .weight_1_wvalid     ( weight_dma_7_wvalid            ),
+  .weight_1_wdata      ( weight_dma_7_wdata             ),
+  .dma_0_M_AXI_ARID    ( cluster_3_dma_0_M_AXI_ARID     ),
+  .dma_0_M_AXI_ARADDR  ( cluster_3_dma_0_M_AXI_ARADDR   ),
+  .dma_0_M_AXI_ARLEN   ( cluster_3_dma_0_M_AXI_ARLEN    ),
+  .dma_0_M_AXI_ARSIZE  ( cluster_3_dma_0_M_AXI_ARSIZE   ),
+  .dma_0_M_AXI_ARBURST ( cluster_3_dma_0_M_AXI_ARBURST  ),
+  .dma_0_M_AXI_ARLOCK  ( cluster_3_dma_0_M_AXI_ARLOCK   ),
+  .dma_0_M_AXI_ARCACHE ( cluster_3_dma_0_M_AXI_ARCACHE  ),
+  .dma_0_M_AXI_ARPROT  ( cluster_3_dma_0_M_AXI_ARPROT   ),
+  .dma_0_M_AXI_ARQOS   ( cluster_3_dma_0_M_AXI_ARQOS    ),
+  .dma_0_M_AXI_ARUSER  ( cluster_3_dma_0_M_AXI_ARUSER   ),
+  .dma_0_M_AXI_ARVALID ( cluster_3_dma_0_M_AXI_ARVALID  ),
+  .dma_0_M_AXI_ARREADY ( cluster_3_dma_0_M_AXI_ARREADY  ),
+  .dma_0_M_AXI_RID     ( cluster_3_dma_0_M_AXI_RID      ),
+  .dma_0_M_AXI_RDATA   ( cluster_3_dma_0_M_AXI_RDATA    ),
+  .dma_0_M_AXI_RRESP   ( cluster_3_dma_0_M_AXI_RRESP    ),
+  .dma_0_M_AXI_RLAST   ( cluster_3_dma_0_M_AXI_RLAST    ),
+  .dma_0_M_AXI_RUSER   ( cluster_3_dma_0_M_AXI_RUSER    ),
+  .dma_0_M_AXI_RVALID  ( cluster_3_dma_0_M_AXI_RVALID   ),
+  .dma_0_M_AXI_RREADY  ( cluster_3_dma_0_M_AXI_RREADY   ),
+  .dma_1_M_AXI_ARID    ( cluster_3_dma_1_M_AXI_ARID     ),
+  .dma_1_M_AXI_ARADDR  ( cluster_3_dma_1_M_AXI_ARADDR   ),
+  .dma_1_M_AXI_ARLEN   ( cluster_3_dma_1_M_AXI_ARLEN    ),
+  .dma_1_M_AXI_ARSIZE  ( cluster_3_dma_1_M_AXI_ARSIZE   ),
+  .dma_1_M_AXI_ARBURST ( cluster_3_dma_1_M_AXI_ARBURST  ),
+  .dma_1_M_AXI_ARLOCK  ( cluster_3_dma_1_M_AXI_ARLOCK   ),
+  .dma_1_M_AXI_ARCACHE ( cluster_3_dma_1_M_AXI_ARCACHE  ),
+  .dma_1_M_AXI_ARPROT  ( cluster_3_dma_1_M_AXI_ARPROT   ),
+  .dma_1_M_AXI_ARQOS   ( cluster_3_dma_1_M_AXI_ARQOS    ),
+  .dma_1_M_AXI_ARUSER  ( cluster_3_dma_1_M_AXI_ARUSER   ),
+  .dma_1_M_AXI_ARVALID ( cluster_3_dma_1_M_AXI_ARVALID  ),
+  .dma_1_M_AXI_ARREADY ( cluster_3_dma_1_M_AXI_ARREADY  ),
+  .dma_1_M_AXI_RID     ( cluster_3_dma_1_M_AXI_RID      ),
+  .dma_1_M_AXI_RDATA   ( cluster_3_dma_1_M_AXI_RDATA    ),
+  .dma_1_M_AXI_RRESP   ( cluster_3_dma_1_M_AXI_RRESP    ),
+  .dma_1_M_AXI_RLAST   ( cluster_3_dma_1_M_AXI_RLAST    ),
+  .dma_1_M_AXI_RUSER   ( cluster_3_dma_1_M_AXI_RUSER    ),
+  .dma_1_M_AXI_RVALID  ( cluster_3_dma_1_M_AXI_RVALID   ),
+  .dma_1_M_AXI_RREADY  ( cluster_3_dma_1_M_AXI_RREADY   )
+);
+
+/* -------------------------------------------------------------------------------------------------------- */
+/*                                             Shared Weight SRAM                                           */
+/* -------------------------------------------------------------------------------------------------------- */
+
+weight_ram #(
+  .WIDTH     ( WEIGHT_WIDTH      ),
+  .ADDR_BITS ( WEIGHT_ADDR_BITS  ),
+  .BANK      ( WEIGHT_BANK       )
+) u_weight_ram_0(
+  .clk          ( clk                  ),
+  .rst_n        ( rst_n                ),
+
+  .rvalid_0     ( weight_0_rvalid      ),
+  .raddr_0      ( weight_0_raddr       ),
+  .rdata_0      ( weight_0_rdata       ),
+
+  .dma_wvalid   ( weight_dma_0_wvalid  ),
+  .dma_wdata    ( weight_dma_0_wdata   ),
+  .dma_wvalid_1 ( weight_dma_1_wvalid  ),
+  .dma_wdata_1  ( weight_dma_1_wdata   ),
+  .dma_wvalid_2 ( weight_dma_2_wvalid ),
+  .dma_wdata_2  ( weight_dma_2_wdata  ),
+  .dma_wvalid_3 ( weight_dma_3_wvalid ),
+  .dma_wdata_3  ( weight_dma_3_wdata  ),
+  .dma_wvalid_4 ( weight_dma_4_wvalid ),
+  .dma_wdata_4  ( weight_dma_4_wdata  ),
+  .dma_wvalid_5 ( weight_dma_5_wvalid ),
+  .dma_wdata_5  ( weight_dma_5_wdata  ),
+  .dma_wvalid_6 ( weight_dma_6_wvalid ),
+  .dma_wdata_6  ( weight_dma_6_wdata  ),
+  .dma_wvalid_7 ( weight_dma_7_wvalid ),
+  .dma_wdata_7  ( weight_dma_7_wdata  )
 );
 
 /* -------------------------------------------------------------------------------------------------------- */
@@ -1554,6 +2284,9 @@ pcie_irq u_pcie_irq(
 /* -------------------------------------------------------------------------------------------------------- */
 
 assign cluster_0_wready = 1'b1;
+assign cluster_1_wready = 1'b1;
+assign cluster_2_wready = 1'b1;
+assign cluster_3_wready = 1'b1;
 
 regfile_top u_regfile_top(
   .clk                       ( clk                       ),
@@ -1653,20 +2386,32 @@ regfile_top u_regfile_top(
 /*                                               Debug Signal                                               */
 /* -------------------------------------------------------------------------------------------------------- */
 
-assign insn_fifo_empty_debug = {6'd0, vcu_1_fifo_empty,  vcu_0_fifo_empty,
-                                6'd0, pea_1_fifo_empty,  pea_0_fifo_empty,
-                                6'd0, store_1_fifo_empty,store_0_fifo_empty,
-                                6'd0, load_1_fifo_empty, load_0_fifo_empty};
+assign insn_fifo_empty_debug = {vcu_7_fifo_empty,   vcu_6_fifo_empty,   vcu_5_fifo_empty,   vcu_4_fifo_empty,
+                                vcu_3_fifo_empty,   vcu_2_fifo_empty,   vcu_1_fifo_empty,   vcu_0_fifo_empty,
+                                pea_7_fifo_empty,   pea_6_fifo_empty,   pea_5_fifo_empty,   pea_4_fifo_empty,
+                                pea_3_fifo_empty,   pea_2_fifo_empty,   pea_1_fifo_empty,   pea_0_fifo_empty,
+                                store_7_fifo_empty, store_6_fifo_empty, store_5_fifo_empty, store_4_fifo_empty,
+                                store_3_fifo_empty, store_2_fifo_empty, store_1_fifo_empty, store_0_fifo_empty,
+                                load_7_fifo_empty,  load_6_fifo_empty,  load_5_fifo_empty,  load_4_fifo_empty,
+                                load_3_fifo_empty,  load_2_fifo_empty,  load_1_fifo_empty,  load_0_fifo_empty};
 
-assign insn_fifo_full_debug = {6'd0, vcu_1_fifo_full,   vcu_0_fifo_full,
-                               6'd0, pea_1_fifo_full,   pea_0_fifo_full,
-                               6'd0, store_1_fifo_full, store_0_fifo_full,
-                               6'd0, load_1_fifo_full,  load_0_fifo_full};
+assign insn_fifo_full_debug = {vcu_7_fifo_full,   vcu_6_fifo_full,   vcu_5_fifo_full,   vcu_4_fifo_full,
+                               vcu_3_fifo_full,   vcu_2_fifo_full,   vcu_1_fifo_full,   vcu_0_fifo_full,
+                               pea_7_fifo_full,   pea_6_fifo_full,   pea_5_fifo_full,   pea_4_fifo_full,
+                               pea_3_fifo_full,   pea_2_fifo_full,   pea_1_fifo_full,   pea_0_fifo_full,
+                               store_7_fifo_full, store_6_fifo_full, store_5_fifo_full, store_4_fifo_full,
+                               store_3_fifo_full, store_2_fifo_full, store_1_fifo_full, store_0_fifo_full,
+                               load_7_fifo_full,  load_6_fifo_full,  load_5_fifo_full,  load_4_fifo_full,
+                               load_3_fifo_full,  load_2_fifo_full,  load_1_fifo_full,  load_0_fifo_full};
 
-assign collect_done = {6'd0, vcu_1_done, vcu_0_done,
-                       6'd0, pea_1_done, pea_0_done,
-                       6'd0, store_1_local_done, store_0_local_done,
-                       6'd0, load_1_local_done, load_0_local_done};
+assign collect_done = {vcu_7_done,         vcu_6_done,         vcu_5_done,         vcu_4_done,
+                       vcu_3_done,         vcu_2_done,         vcu_1_done,         vcu_0_done,
+                       pea_7_done,         pea_6_done,         pea_5_done,         pea_4_done,
+                       pea_3_done,         pea_2_done,         pea_1_done,         pea_0_done,
+                       store_7_local_done, store_6_local_done, store_5_local_done, store_4_local_done,
+                       store_3_local_done, store_2_local_done, store_1_local_done, store_0_local_done,
+                       load_7_local_done,  load_6_local_done,  load_5_local_done,  load_4_local_done,
+                       load_3_local_done,  load_2_local_done,  load_1_local_done,  load_0_local_done};
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin

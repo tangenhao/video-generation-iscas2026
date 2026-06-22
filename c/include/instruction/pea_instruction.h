@@ -55,8 +55,8 @@ typedef struct {
   uint64_t k_groups : 8;          //  42 + 8 = 50
   uint64_t ifmap_highaddr : 1;    // 50 + 1 = 51
   uint64_t weight_highaddr : 1;   // 51 + 1 = 52
-  uint64_t psum_write_flag : 1;   // 52 + 1 = 53
-  uint64_t psum_read_flag : 1;    // 53 + 1 = 54
+  uint64_t gemm_last_k_groups : 1;   // 52 + 1 = 53
+  uint64_t gemm_acc_clear : 1;    // 53 + 1 = 54
   uint64_t psum_number_low : 10;  // 54 + 10 = 64
   uint64_t psum_number_high : 2;  // 64 + 2 = 66
   uint64_t psum_accumulated : 1;  // 66 + 1 = 67
@@ -440,8 +440,8 @@ struct gemm_execute: public instruction {
                uint64_t k_groups,
                uint64_t ifmap_highaddr,
                uint64_t weight_highaddr,
-               uint64_t psum_read_flag,
-               uint64_t psum_write_flag,
+               uint64_t gemm_acc_clear,
+               uint64_t gemm_last_k_groups,
                uint64_t psum_number,
                uint64_t psum_accumulated)
   {
@@ -457,8 +457,8 @@ struct gemm_execute: public instruction {
     this->storage_t.k_groups         = k_groups;
     this->storage_t.ifmap_highaddr   = ifmap_highaddr;
     this->storage_t.weight_highaddr  = weight_highaddr;
-    this->storage_t.psum_read_flag   = psum_read_flag;
-    this->storage_t.psum_write_flag  = psum_write_flag;
+    this->storage_t.gemm_acc_clear   = gemm_acc_clear;
+    this->storage_t.gemm_last_k_groups  = gemm_last_k_groups;
     this->storage_t.psum_number_low  = (psum_number & 0x3FF);
     this->storage_t.psum_number_high = (psum_number >> 10);
     this->storage_t.psum_accumulated = psum_accumulated;
@@ -539,20 +539,20 @@ struct gemm_execute: public instruction {
 
   void set_psum_highaddr(uint64_t psum_highaddr)
   {
-    this->storage_t.psum_read_flag  = (psum_highaddr >> 1) & 0x1;
-    this->storage_t.psum_write_flag = psum_highaddr & 0x1;
+    this->storage_t.gemm_acc_clear  = (psum_highaddr >> 1) & 0x1;
+    this->storage_t.gemm_last_k_groups = psum_highaddr & 0x1;
     this->set_insn();
   }
 
-  void set_psum_read_flag(uint64_t psum_read_flag)
+  void set_psum_read_flag(uint64_t gemm_acc_clear)
   {
-    this->storage_t.psum_read_flag = psum_read_flag;
+    this->storage_t.gemm_acc_clear = gemm_acc_clear;
     this->set_insn();
   }
 
-  void set_psum_write_flag(uint64_t psum_write_flag)
+  void set_psum_write_flag(uint64_t gemm_last_k_groups)
   {
-    this->storage_t.psum_write_flag = psum_write_flag;
+    this->storage_t.gemm_last_k_groups = gemm_last_k_groups;
     this->set_insn();
   }
 
@@ -628,17 +628,17 @@ struct gemm_execute: public instruction {
 
   int64_t get_psum_highaddr()
   {
-    return (this->storage_t.psum_read_flag << 1) | this->storage_t.psum_write_flag;
+    return (this->storage_t.gemm_acc_clear << 1) | this->storage_t.gemm_last_k_groups;
   }
 
   int64_t get_psum_read_flag()
   {
-    return this->storage_t.psum_read_flag;
+    return this->storage_t.gemm_acc_clear;
   }
 
   int64_t get_psum_write_flag()
   {
-    return this->storage_t.psum_write_flag;
+    return this->storage_t.gemm_last_k_groups;
   }
 
   int64_t get_psum_number()

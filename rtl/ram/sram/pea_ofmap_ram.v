@@ -1,19 +1,19 @@
-module vcuadd_ram(
+module pea_ofmap_ram(
   clk, rst_n,
 
   rvalid_0, raddr_0, rdata_0,
 
-  dma_wvalid, dma_waddr, dma_wdata
+  wvalid, waddr, wdata
 );
 
 function integer clogb2 (input integer bit_depth);              
-begin     
+begin                                                           
 for(clogb2=0; bit_depth>0; clogb2=clogb2+1)                   
     bit_depth = bit_depth >> 1;                                 
-end     
+end                                                           
 endfunction 
 
-parameter WIDTH     = 512;
+parameter WIDTH     = 1024;
 parameter ADDR_BITS = 9;
 
 input                       clk;
@@ -23,37 +23,37 @@ input                       rvalid_0;
 input       [ADDR_BITS-1:0] raddr_0;
 output reg  [WIDTH-1:0]     rdata_0;
 
-input                       dma_wvalid;
-input       [ADDR_BITS-1:0] dma_waddr;
-input       [WIDTH-1:0]     dma_wdata;
+input                       wvalid;
+input       [ADDR_BITS-1:0] waddr;
+input       [WIDTH-1:0]     wdata;
 
 wire                           ren;
 wire [ADDR_BITS-1:0]           raddr;
 wire [WIDTH-1:0]               rdata;
 reg                            wen;
-reg  [ADDR_BITS-1:0]           waddr;
-reg  [WIDTH-1:0]               wdata;
+reg  [ADDR_BITS-1:0]           waddr_reg;
+reg  [WIDTH-1:0]               wdata_reg;
 
 reg                            ren_reg;
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
-    wen     <= 'd0;
-    waddr   <= 'd0;
-    wdata   <= 'd0;
+    wen         <= 'd0;
+    waddr_reg   <= 'd0;
+    wdata_reg   <= 'd0;
   end
   else begin
-    wen     <= dma_wvalid;
-    waddr   <= dma_waddr;
-    wdata   <= dma_wdata;
+    wen         <= wvalid;
+    waddr_reg   <= waddr;
+    wdata_reg   <= wdata;
   end
 end
 
-sram_512x144 u_ram_bank(
+sram_1024x144 u_ram_bank(
   .w_clk  ( clk           ),
   .w_en   ( wen           ),
-  .w_addr ( waddr         ),
-  .w_data ( wdata         ),
+  .w_addr ( waddr_reg     ),
+  .w_data ( wdata_reg     ),
   .r_clk  ( clk           ),
   .r_en   ( ren           ),
   .r_addr ( raddr         ),

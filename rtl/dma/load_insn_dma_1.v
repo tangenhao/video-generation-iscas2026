@@ -5,7 +5,7 @@ module load_insn_dma_1(
   peripheral_M_raddr, peripheral_M_rlen, peripheral_M_raddr_valid, peripheral_M_raddr_ready, 
   peripheral_M_rdata, peripheral_M_rdata_ready, peripheral_M_rdata_valid, 
 
-  weight_wvalid, weight_waddr, weight_wdata
+  weight_wvalid, weight_wdata
 );
 
 parameter integer LOAD_INSNBITS      = 128;
@@ -54,7 +54,7 @@ input [PERI_DATA_WIDTH-1:0]               peripheral_M_rdata;
 input                                     peripheral_M_rdata_ready;
 output wire                               peripheral_M_rdata_valid;
 
-output reg  [WEIGHT_ADDR_BITS-1:0]        weight_waddr;
+// output reg  [WEIGHT_ADDR_BITS-1:0]        weight_waddr;
 output reg  [WEIGHT_WIDTH-1:0]            weight_wdata;
 output reg                                weight_wvalid;
 
@@ -169,7 +169,7 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-assign sram_waddr               = sram_addr;
+// assign sram_waddr               = sram_addr;
 assign sram_wvalid              = local_fifo_ren & (!data_fifo_empty);
 assign peripheral_M_rdata_valid = !data_fifo_hfull;
 
@@ -417,41 +417,41 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    weight_bank_addr <= 'd0;
-  end
-  else begin
-    if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1) begin
-      weight_bank_addr <= 'd0;
-    end
-    else if (valid_data_out_288b) begin
-      weight_bank_addr <= weight_bank_addr + 1;
-    end
-    else begin
-      weight_bank_addr <= weight_bank_addr;
-    end
-  end
-end
+// always @(posedge clk or negedge rst_n) begin
+//   if (!rst_n) begin
+//     weight_bank_addr <= 'd0;
+//   end
+//   else begin
+//     if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1) begin
+//       weight_bank_addr <= 'd0;
+//     end
+//     else if (valid_data_out_288b) begin
+//       weight_bank_addr <= weight_bank_addr + 1;
+//     end
+//     else begin
+//       weight_bank_addr <= weight_bank_addr;
+//     end
+//   end
+// end
 
-always @(posedge clk or negedge rst_n) begin
-  if (!rst_n) begin
-    weight_low_addr <= 'd0;
-  end
-  else begin
-    if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1 && weight_low_addr == WEIGHT_DEPTH - 1) begin
-      weight_low_addr <= 'd0;
-    end
-    else if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1) begin
-      weight_low_addr <= weight_low_addr + 1;
-    end
-    else begin
-      weight_low_addr <= weight_low_addr;
-    end
-  end
-end
+// always @(posedge clk or negedge rst_n) begin
+//   if (!rst_n) begin
+//     weight_low_addr <= 'd0;
+//   end
+//   else begin
+//     if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1 && weight_low_addr == WEIGHT_DEPTH - 1) begin
+//       weight_low_addr <= 'd0;
+//     end
+//     else if (valid_data_out_288b && weight_bank_addr == WEIGHT_BANK - 1) begin
+//       weight_low_addr <= weight_low_addr + 1;
+//     end
+//     else begin
+//       weight_low_addr <= weight_low_addr;
+//     end
+//   end
+// end
 
-assign sram_addr = {1'b0, weight_bank_addr, weight_low_addr};
+// assign sram_addr = {1'b0, weight_bank_addr, weight_low_addr};
 
 reg one_burst_0_resp_done;
 wire real_sram_en;
@@ -622,25 +622,25 @@ gearbox_256_to_288 u_cb_pp_256_to_288(
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     weight_wvalid <= 1'b0;
-    weight_waddr  <= 'd0;
+    // weight_waddr  <= 'd0;
     weight_wdata  <= 'd0;
   end
   else begin
     if (write_high_addr == WEIGHT_ID) begin
       if (valid_data_out_288b) begin
         weight_wvalid <= 1'b1;
-        weight_waddr  <= sram_addr[WEIGHT_ADDR_BITS-1:0];
+        // weight_waddr  <= sram_addr[WEIGHT_ADDR_BITS-1:0];
         weight_wdata  <= data_out_288b;
       end
       else begin
         weight_wvalid <= 1'b0;
-        weight_waddr  <= weight_waddr;
+        // weight_waddr  <= weight_waddr;
         weight_wdata  <= weight_wdata;
       end
     end
     else begin
       weight_wvalid <= 1'b0;
-      weight_waddr  <= 'd0;
+      // weight_waddr  <= 'd0;
       weight_wdata  <= 'd0;
     end
   end

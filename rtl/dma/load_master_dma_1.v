@@ -3,7 +3,7 @@ module load_master_dma_1(
   work_en, insn, insn_read,
   local_done, global_done, 
 
-  weight_wvalid, weight_waddr, weight_wdata,
+  weight_wvalid, weight_wdata,
 
   highaddr, highaddr_sel,
 
@@ -66,7 +66,7 @@ input       [AXI_M_AXI_USER_WIDTH-1:0] axi4_full_M_AXI_RUSER;
 input                                  axi4_full_M_AXI_RVALID;
 output wire                            axi4_full_M_AXI_RREADY;
 
-output wire [WEIGHT_ADDR_BITS-1:0]        weight_waddr;
+// output wire [WEIGHT_ADDR_BITS-1:0]        weight_waddr;
 output wire [WEIGHT_WIDTH-1:0]            weight_wdata;
 output wire                               weight_wvalid;
 
@@ -117,7 +117,7 @@ load_insn_dma_1 #(
   .peripheral_M_raddr_ready ( peripheral_M_raddr_ready ),
 
   .weight_wvalid            ( weight_wvalid            ),
-  .weight_waddr             ( weight_waddr             ),
+  // .weight_waddr             ( weight_waddr             ),
   .weight_wdata             ( weight_wdata             )
 );
 

@@ -3,21 +3,11 @@ module npu_cluster(
   axi4_clk, axi4_rst_n,
 
   /* AXI-Master */
-  dma_0_M_AXI_ARID, dma_0_M_AXI_ARADDR, dma_0_M_AXI_ARLEN, 
-  dma_0_M_AXI_ARSIZE, dma_0_M_AXI_ARBURST, dma_0_M_AXI_ARLOCK, dma_0_M_AXI_ARCACHE, dma_0_M_AXI_ARPROT, dma_0_M_AXI_ARQOS, dma_0_M_AXI_ARUSER, 
-  dma_0_M_AXI_ARVALID, dma_0_M_AXI_ARREADY,
-  dma_0_M_AXI_RID, dma_0_M_AXI_RDATA, dma_0_M_AXI_RRESP, dma_0_M_AXI_RLAST, dma_0_M_AXI_RUSER, dma_0_M_AXI_RVALID, dma_0_M_AXI_RREADY,
-  
   dma_0_M_AXI_AWID, dma_0_M_AXI_AWADDR, dma_0_M_AXI_AWLEN,
   dma_0_M_AXI_AWSIZE, dma_0_M_AXI_AWBURST, dma_0_M_AXI_AWLOCK, dma_0_M_AXI_AWCACHE, dma_0_M_AXI_AWPROT, dma_0_M_AXI_AWQOS, dma_0_M_AXI_AWUSER,
   dma_0_M_AXI_AWVALID, dma_0_M_AXI_AWREADY,
   dma_0_M_AXI_WDATA, dma_0_M_AXI_WSTRB, dma_0_M_AXI_WLAST, dma_0_M_AXI_WUSER, dma_0_M_AXI_WVALID, dma_0_M_AXI_WREADY,
   dma_0_M_AXI_BID, dma_0_M_AXI_BRESP, dma_0_M_AXI_BUSER, dma_0_M_AXI_BVALID, dma_0_M_AXI_BREADY,
-  
-  dma_1_M_AXI_ARID, dma_1_M_AXI_ARADDR, dma_1_M_AXI_ARLEN, 
-  dma_1_M_AXI_ARSIZE, dma_1_M_AXI_ARBURST, dma_1_M_AXI_ARLOCK, dma_1_M_AXI_ARCACHE, dma_1_M_AXI_ARPROT, dma_1_M_AXI_ARQOS, dma_1_M_AXI_ARUSER, 
-  dma_1_M_AXI_ARVALID, dma_1_M_AXI_ARREADY,
-  dma_1_M_AXI_RID, dma_1_M_AXI_RDATA, dma_1_M_AXI_RRESP, dma_1_M_AXI_RLAST, dma_1_M_AXI_RUSER, dma_1_M_AXI_RVALID, dma_1_M_AXI_RREADY,
   
   dma_1_M_AXI_AWID, dma_1_M_AXI_AWADDR, dma_1_M_AXI_AWLEN,
   dma_1_M_AXI_AWSIZE, dma_1_M_AXI_AWBURST, dma_1_M_AXI_AWLOCK, dma_1_M_AXI_AWCACHE, dma_1_M_AXI_AWPROT, dma_1_M_AXI_AWQOS, dma_1_M_AXI_AWUSER,
@@ -30,8 +20,6 @@ module npu_cluster(
   slv_regfile_rvalid, slv_regfile_raddr, slv_regfile_rdata, slv_regfile_rready,
 
   /* insn_fifo */
-  load_0_fifo_wen, load_0_fifo_wdata, load_0_fifo_full, load_0_fifo_empty,
-  load_1_fifo_wen, load_1_fifo_wdata, load_1_fifo_full, load_1_fifo_empty,
   store_0_fifo_wen, store_0_fifo_wdata, store_0_fifo_full, store_0_fifo_empty,
   store_1_fifo_wen, store_1_fifo_wdata, store_1_fifo_full, store_1_fifo_empty,
   pea_0_fifo_wen, pea_0_fifo_wdata, pea_0_fifo_full, pea_0_fifo_empty,
@@ -45,6 +33,21 @@ module npu_cluster(
   /* done */
   load_0_local_done, load_1_local_done, store_0_local_done, store_1_local_done, pea_0_done, pea_1_done, vcu_0_done, vcu_1_done,
   global_done,
+
+  /* shared weight sram */
+  weight_sram_rvalid, weight_sram_raddr, weight_sram_rdata,
+
+  /* external load dma */
+  load_0_local_done_wire, load_1_local_done_wire,
+  load_0_global_done, load_1_global_done,
+  load_0_execute_time, load_1_execute_time,
+  load_dma_rst_n, enable_prof_counter,
+  dma_0_ifmap_sram_wvalid, dma_0_ifmap_sram_waddr, dma_0_ifmap_sram_wdata,
+  dma_0_qact_wvalid, dma_0_qact_waddr, dma_0_qact_wdata,
+  dma_0_vcucode_sram_wvalid, dma_0_vcucode_sram_waddr, dma_0_vcucode_sram_wdata,
+  dma_0_vcupara_sram_wvalid, dma_0_vcupara_sram_waddr, dma_0_vcupara_sram_wdata,
+  dma_0_vcures_sram_wvalid, dma_0_vcures_sram_waddr, dma_0_vcures_sram_wdata,
+  mst_regfile_wvalid, mst_regfile_waddr, mst_regfile_wdata,
 
   /* highaddr */
   load_highaddr, load_highaddr_sel,
@@ -76,16 +79,17 @@ parameter SLAVE_PERI_BUSRSTS_WIDTH  = 22;
 
 parameter WEIGHT_BANK             = 32;
 
-parameter IFMAP_WIDTH             = 576;  //2*288, double buffer for vcu
+parameter IFMAP_WIDTH             = 512;  //2*288, double buffer for vcu
 parameter WEIGHT_WIDTH            = 288;
 parameter VCUCODE_WIDTH           = 64;
-parameter VCUPARA_WIDTH           = 576;
+parameter VCUPARA_WIDTH           = 512;
 parameter VCULUT_WIDTH            = 64;
-parameter VCURES_WIDTH            = 576;
+parameter VCURES_WIDTH            = 512;
 parameter OFMAP_WIDTH             = 256;
-parameter PSUM_WIDTH              = 576;
+parameter PSUM_WIDTH              = 512;
 parameter QACT_WIDTH              = 288;
-parameter SCALE_WIDTH             = 576;
+parameter SCALE_WIDTH             = 512;
+parameter PEA_OFMAP_WIDTH         = 1024;
 
 parameter IFMAP_ADDR_BITS         = 9;   //bank:1,0bits; addr:8bits, 144 depth, highaddr:1bits
 parameter WEIGHT_ADDR_BITS        = 14;  //bank:32,5bits; addr:8bits, 144 depth, highaddr:1bits
@@ -97,6 +101,7 @@ parameter OFMAP_ADDR_BITS         = 8;  //bank:1,0bits; addr:7bits, 72 depth, hi
 parameter PSUM_ADDR_BITS          = 9;  //bank:1,0bits; addr:8bits, 144 depth, highaddr:1bits
 parameter QACT_ADDR_BITS          = 9;
 parameter SCALE_ADDR_BITS         = 9;
+parameter PEA_OFMAP_ADDR_BITS     = 9;
 
 parameter SYNCHRONIZE_FIFO_DEPTH = 128;
 parameter HIGHADDR_BITS          = 24;
@@ -138,26 +143,6 @@ input       [AXI_M_AXI_USER_WIDTH-1:0]   dma_0_M_AXI_BUSER;
 input                                    dma_0_M_AXI_BVALID;
 output wire                              dma_0_M_AXI_BREADY;
 
-output wire [AXI_M_AXI_ID_WIDTH-1:0]     dma_0_M_AXI_ARID;
-output wire [AXI_M_AXI_ADDR_WIDTH-1:0]   dma_0_M_AXI_ARADDR;
-output wire [7:0]                        dma_0_M_AXI_ARLEN;
-output wire [2:0]                        dma_0_M_AXI_ARSIZE;
-output wire [1:0]                        dma_0_M_AXI_ARBURST;
-output wire                              dma_0_M_AXI_ARLOCK;
-output wire [3:0]                        dma_0_M_AXI_ARCACHE;
-output wire [2:0]                        dma_0_M_AXI_ARPROT;
-output wire [3:0]                        dma_0_M_AXI_ARQOS;
-output wire [AXI_M_AXI_USER_WIDTH-1:0]   dma_0_M_AXI_ARUSER;
-output wire                              dma_0_M_AXI_ARVALID;
-input                                    dma_0_M_AXI_ARREADY;
-input       [AXI_M_AXI_ID_WIDTH-1:0]     dma_0_M_AXI_RID;
-input       [AXI_M_AXI_DATA_WIDTH-1:0]   dma_0_M_AXI_RDATA;
-input       [1:0]                        dma_0_M_AXI_RRESP;
-input                                    dma_0_M_AXI_RLAST;
-input       [AXI_M_AXI_USER_WIDTH-1:0]   dma_0_M_AXI_RUSER;
-input                                    dma_0_M_AXI_RVALID;
-output wire                              dma_0_M_AXI_RREADY;
-
 output wire [AXI_M_AXI_ID_WIDTH-1:0]     dma_1_M_AXI_AWID;
 output wire [AXI_M_AXI_ADDR_WIDTH-1:0]   dma_1_M_AXI_AWADDR;
 output wire [7:0]                        dma_1_M_AXI_AWLEN;
@@ -182,26 +167,6 @@ input       [AXI_M_AXI_USER_WIDTH-1:0]   dma_1_M_AXI_BUSER;
 input                                    dma_1_M_AXI_BVALID;
 output wire                              dma_1_M_AXI_BREADY;
 
-output wire [AXI_M_AXI_ID_WIDTH-1:0]     dma_1_M_AXI_ARID;
-output wire [AXI_M_AXI_ADDR_WIDTH-1:0]   dma_1_M_AXI_ARADDR;
-output wire [7:0]                        dma_1_M_AXI_ARLEN;
-output wire [2:0]                        dma_1_M_AXI_ARSIZE;
-output wire [1:0]                        dma_1_M_AXI_ARBURST;
-output wire                              dma_1_M_AXI_ARLOCK;
-output wire [3:0]                        dma_1_M_AXI_ARCACHE;
-output wire [2:0]                        dma_1_M_AXI_ARPROT;
-output wire [3:0]                        dma_1_M_AXI_ARQOS;
-output wire [AXI_M_AXI_USER_WIDTH-1:0]   dma_1_M_AXI_ARUSER;
-output wire                              dma_1_M_AXI_ARVALID;
-input                                    dma_1_M_AXI_ARREADY;
-input       [AXI_M_AXI_ID_WIDTH-1:0]     dma_1_M_AXI_RID;
-input       [AXI_M_AXI_DATA_WIDTH-1:0]   dma_1_M_AXI_RDATA;
-input       [1:0]                        dma_1_M_AXI_RRESP;
-input                                    dma_1_M_AXI_RLAST;
-input       [AXI_M_AXI_USER_WIDTH-1:0]   dma_1_M_AXI_RUSER;
-input                                    dma_1_M_AXI_RVALID;
-output wire                              dma_1_M_AXI_RREADY;
-
 input                                    cmd_rst;
 output reg                               global_done;
 
@@ -220,16 +185,6 @@ input                                    rst_n;
 
 input                                    axi4_clk;
 input                                    axi4_rst_n;
-
-input                                    load_0_fifo_wen;
-input       [INSN_BITS-1:0]              load_0_fifo_wdata;
-output wire                              load_0_fifo_full;
-output wire                              load_0_fifo_empty;
-
-input                                    load_1_fifo_wen;
-input       [INSN_BITS-1:0]              load_1_fifo_wdata;
-output wire                              load_1_fifo_full;
-output wire                              load_1_fifo_empty;
 
 input                                    store_0_fifo_wen;
 input       [INSN_BITS-1:0]              store_0_fifo_wdata;
@@ -283,6 +238,43 @@ input      [HIGHADDR_BITS-1:0]           load_highaddr;
 input                                    load_highaddr_sel;
 input      [HIGHADDR_BITS-1:0]           store_highaddr;
 input                                    store_highaddr_sel;
+
+output wire                              weight_sram_rvalid;
+output wire [WEIGHT_ADDR_BITS-1:0]       weight_sram_raddr;
+input       [WEIGHT_WIDTH*WEIGHT_BANK-1:0] weight_sram_rdata;
+
+input                                    load_0_local_done_wire;
+input                                    load_1_local_done_wire;
+input                                    load_0_global_done;
+input                                    load_1_global_done;
+input       [31:0]                       load_0_execute_time;
+input       [31:0]                       load_1_execute_time;
+output wire                              load_dma_rst_n;
+output wire                              enable_prof_counter;
+
+input                                    dma_0_ifmap_sram_wvalid;
+input       [IFMAP_ADDR_BITS-1:0]        dma_0_ifmap_sram_waddr;
+input       [IFMAP_WIDTH-1:0]            dma_0_ifmap_sram_wdata;
+
+input                                    dma_0_qact_wvalid;
+input       [QACT_ADDR_BITS-1:0]         dma_0_qact_waddr;
+input       [QACT_WIDTH-1:0]             dma_0_qact_wdata;
+
+input                                    dma_0_vcucode_sram_wvalid;
+input       [VCUCODE_ADDR_BITS:0]        dma_0_vcucode_sram_waddr;
+input       [VCUCODE_WIDTH-1:0]          dma_0_vcucode_sram_wdata;
+
+input                                    dma_0_vcupara_sram_wvalid;
+input       [VCUPARA_ADDR_BITS:0]        dma_0_vcupara_sram_waddr;
+input       [VCUPARA_WIDTH-1:0]          dma_0_vcupara_sram_wdata;
+
+input                                    dma_0_vcures_sram_wvalid;
+input       [VCURES_ADDR_BITS-1:0]       dma_0_vcures_sram_waddr;
+input       [VCURES_WIDTH-1:0]           dma_0_vcures_sram_wdata;
+
+input                                    mst_regfile_wvalid;
+input       [31:0]                       mst_regfile_waddr;
+input       [31:0]                       mst_regfile_wdata;
  
 /* -------------------------------------------------------------------------------------------------------- */
 /*                                              Define Signals                                              */
@@ -299,8 +291,6 @@ reg  pea_1_work_en_reg;
 reg  vcu_0_work_en_reg;
 reg  vcu_1_work_en_reg;
 
-wire load_0_local_done_wire;
-wire load_1_local_done_wire;
 wire store_0_local_done_wire;
 wire store_1_local_done_wire;
 wire pea_0_done_wire;
@@ -308,8 +298,6 @@ wire pea_1_done_wire;
 wire vcu_0_done_wire;
 wire vcu_1_done_wire;
 
-wire load_0_global_done;
-wire load_1_global_done;
 wire store_0_global_done;
 wire store_1_global_done;
 
@@ -320,55 +308,30 @@ reg store_1_global_done_reg;
 
 /* ----------------------------------------------- sram wire ---------------------------------------------- */
 
-wire                               dma_0_ifmap_sram_wvalid;
-wire [IFMAP_ADDR_BITS-1:0]         dma_0_ifmap_sram_waddr;
-wire [IFMAP_WIDTH-1:0]             dma_0_ifmap_sram_wdata;
-
-wire                               dma_0_vcucode_sram_wvalid;
-wire [VCUCODE_ADDR_BITS:0]         dma_0_vcucode_sram_waddr;
-wire [VCUCODE_WIDTH-1:0]           dma_0_vcucode_sram_wdata;
-
-wire                               dma_0_vcupara_sram_wvalid;
-wire [VCUPARA_ADDR_BITS:0]         dma_0_vcupara_sram_waddr;
-wire [VCUPARA_WIDTH-1:0]           dma_0_vcupara_sram_wdata;
-
-wire                               dma_0_vculut_sram_wvalid;
-wire [VCULUT_ADDR_BITS:0]          dma_0_vculut_sram_waddr;
-wire [VCULUT_WIDTH-1:0]            dma_0_vculut_sram_wdata;
-
-wire                               dma_0_vcures_sram_wvalid;
-wire [VCURES_ADDR_BITS-1:0]        dma_0_vcures_sram_waddr;
-wire [VCURES_WIDTH-1:0]            dma_0_vcures_sram_wdata;
-
 wire                               dma_0_ofmap_sram_rvalid;
 wire [OFMAP_ADDR_BITS-1:0]         dma_0_ofmap_sram_raddr;
 wire [OFMAP_WIDTH-1:0]             dma_0_ofmap_sram_rdata;
-
-wire [WEIGHT_ADDR_BITS-1:0]        dma_1_weight_sram_waddr;
-wire [WEIGHT_WIDTH-1:0]            dma_1_weight_sram_wdata;
-wire                               dma_1_weight_sram_wvalid;
 
 wire                               dma_1_ofmap_sram_rvalid;
 wire [OFMAP_ADDR_BITS-1:0]         dma_1_ofmap_sram_raddr;
 wire [OFMAP_WIDTH-1:0]             dma_1_ofmap_sram_rdata;
 
-/* pea0 to sram */
-wire                                weight_0_rvalid;
-wire [WEIGHT_ADDR_BITS-1:0]         weight_0_raddr;
-wire [WEIGHT_WIDTH*WEIGHT_BANK-1:0] weight_0_rdata;
-
 wire                               pea_qact_rvalid;
 wire [QACT_ADDR_BITS-1:0]          pea_qact_raddr;
 wire [QACT_WIDTH-1:0]              pea_qact_rdata;
 
-wire                               pea_scale_rvalid;
-wire [SCALE_ADDR_BITS-1:0]         pea_scale_raddr;
-wire [SCALE_WIDTH-1:0]             pea_scale_rdata;
+wire                               vcu_dequant_rvalid;
+wire [PEA_OFMAP_ADDR_BITS-1:0]     vcu_dequant_raddr;
+wire [PEA_OFMAP_WIDTH-1:0]         vcu_dequant_rdata;
+
+wire                               pea_ofmap_sram_wvalid;
+wire [PEA_OFMAP_ADDR_BITS-1:0]     pea_ofmap_sram_waddr;
+wire [PEA_OFMAP_WIDTH-1:0]         pea_ofmap_sram_wdata;
 
 /* vcu0 to sram */
 wire                               ifmap_0_rvalid;
 wire [IFMAP_ADDR_BITS-1:0]         ifmap_0_raddr;
-wire [IFMAP_WIDTH*2-1:0]           ifmap_0_rdata;
+wire [IFMAP_WIDTH-1:0]             ifmap_0_rdata;
 
 wire                               psum_vcu_0_rvalid;
 wire [PSUM_ADDR_BITS-1:0]          psum_vcu_0_raddr;
@@ -421,16 +384,11 @@ wire                               mst_regfile_rready;
 wire [31:0]                        mst_regfile_raddr;
 wire [31:0]                        mst_regfile_rdata;
 
-wire                               mst_regfile_wvalid;
 wire                               mst_regfile_wready;
-wire [31:0]                        mst_regfile_waddr;
-wire [31:0]                        mst_regfile_wdata;
 
 /* ---------------------------------------- control & debug signals --------------------------------------- */
 
 /* execute time signals */
-wire [31:0] load_0_execute_time;
-wire [31:0] load_1_execute_time;
 wire [31:0] store_0_execute_time;
 wire [31:0] store_1_execute_time;
 wire [31:0] pea_0_execute_time;
@@ -438,7 +396,6 @@ wire [31:0] pea_1_execute_time;
 wire [31:0] vcu_0_execute_time;
 wire [31:0] vcu_1_execute_time;
 wire [31:0] total_execute_time;
-wire        enable_prof_counter;
 
 /* control signals */
 wire [1:0] psum_load_valid_bits;
@@ -447,14 +404,6 @@ wire [1:0] vcures_load_valid_bits;
 wire [1:0] ifmap_mask_load_valid_bits;
 
 /* --------------------------------------- Instruction fifo signals --------------------------------------- */
-
-/* load 0 fifo signals */
-wire                 load_0_insn_read;
-wire [INSN_BITS-1:0] load_0_insn;
-
-/* load 1 signals */
-wire                 load_1_insn_read;
-wire [INSN_BITS-1:0] load_1_insn;
 
 /* store 0 fifo signals */
 wire                 store_0_insn_read;
@@ -516,161 +465,7 @@ rst_cluster  u_rst_cluster(
   .sram_rst_n         ( sram_rst_n            )
 );
 
-/* load 0 */
-load_master_dma_0 #(
-  .LOAD_INSNBITS          ( INSN_BITS                 ),
-  .PERI_ADDR_WIDTH        ( MASTER_PERI_ADDR_WIDTH    ),
-  .PERI_BUSRSTS_WIDTH     ( MASTER_PERI_BUSRSTS_WIDTH ),
-  .PERI_DATA_WIDTH        ( MASTER_PERI_DATA_WIDTH    ),
-  .AXI_M_AXI_ID_WIDTH     ( AXI_M_AXI_ID_WIDTH        ),
-  .AXI_M_AXI_ADDR_WIDTH   ( AXI_M_AXI_ADDR_WIDTH      ),
-  .AXI_M_AXI_USER_WIDTH   ( AXI_M_AXI_USER_WIDTH      ),
-  .AXI_M_AXI_DATA_WIDTH   ( AXI_M_AXI_DATA_WIDTH      ),
-  .AXI_M_AXI_BURSTLENGTH  ( AXI_M_AXI_BURSTLENGTH     ),
-  .AXI_OUTSTANDING_DEPTH  ( AXI_OUTSTANDING_DEPTH     ),
-  .SRAM_ADDR_WIDTH        ( MASTER_SRAM_ADDR_WIDTH    ),
-  .AXI_M_AXI_MIN_ID       ( AXI_M_AXI_MIN_ID          ),
-  .AXI_M_AXI_MAX_ID       ( AXI_M_AXI_MIN_ID + 16     ),
-
-  .IFMAP_WIDTH            ( IFMAP_WIDTH               ),
-  .VCUCODE_WIDTH          ( VCUCODE_WIDTH             ),
-  .VCUPARA_WIDTH          ( VCUPARA_WIDTH             ),
-  .VCULUT_WIDTH           ( VCULUT_WIDTH              ),
-  .VCURES_WIDTH           ( VCURES_WIDTH              ),
-  .IFMAP_ADDR_BITS        ( IFMAP_ADDR_BITS           ),
-  .VCUPARA_ADDR_BITS      ( VCUPARA_ADDR_BITS         ),
-  .VCURES_ADDR_BITS       ( VCURES_ADDR_BITS          ),
-  .VCUCODE_ADDR_BITS      ( VCUCODE_ADDR_BITS         ),
-  .VCULUT_ADDR_BITS       ( VCULUT_ADDR_BITS          )
-) u_load_master_0(
-  /* clk & reset */
-  .clk                        ( clk                    ),
-  .fifo_rst_n                 ( rst_n                  ),
-  .logic_rst_n                ( dma_rst_n              ),
-  .axi4_clk                   ( axi4_clk               ),
-  .axi4_rst_n                 ( axi4_rst_n             ),
-  
-  /* control signals */
-  .work_en                    ( load_0_work_en_reg     ),
-  .insn_read                  ( load_0_insn_read       ),
-  .insn                       ( load_0_insn            ),
-  .global_done                ( load_0_global_done     ),
-  .local_done                 ( load_0_local_done_wire ),
-  .highaddr                   ( load_highaddr_reg_3rd  ),
-  .highaddr_sel               ( load_highaddr_sel_3rd  ),
-  
-  /* sram signals */
-  .ifmap_wvalid               ( dma_0_ifmap_sram_wvalid ),
-  .ifmap_waddr                ( dma_0_ifmap_sram_waddr  ),
-  .ifmap_wdata                ( dma_0_ifmap_sram_wdata  ),
-
-  .vcucode_wvalid             ( dma_0_vcucode_sram_wvalid ),
-  .vcucode_waddr              ( dma_0_vcucode_sram_waddr  ),
-  .vcucode_wdata              ( dma_0_vcucode_sram_wdata  ),
-
-  .vcupara_wvalid             ( dma_0_vcupara_sram_wvalid ),
-  .vcupara_waddr              ( dma_0_vcupara_sram_waddr  ),
-  .vcupara_wdata              ( dma_0_vcupara_sram_wdata  ),
-
-  .vcures_wvalid              ( dma_0_vcures_sram_wvalid  ),
-  .vcures_waddr               ( dma_0_vcures_sram_waddr   ),
-  .vcures_wdata               ( dma_0_vcures_sram_wdata   ),
-
-  .regfile_wvalid             ( mst_regfile_wvalid ),
-  .regfile_waddr              ( mst_regfile_waddr  ),
-  .regfile_wdata              ( mst_regfile_wdata  ),
-
-  /* axi signals */
-  .axi4_full_M_AXI_ARREADY    ( dma_0_M_AXI_ARREADY    ),
-  .axi4_full_M_AXI_RID        ( dma_0_M_AXI_RID        ),
-  .axi4_full_M_AXI_RDATA      ( dma_0_M_AXI_RDATA      ),
-  .axi4_full_M_AXI_RRESP      ( dma_0_M_AXI_RRESP      ),
-  .axi4_full_M_AXI_RLAST      ( dma_0_M_AXI_RLAST      ),
-  .axi4_full_M_AXI_RUSER      ( dma_0_M_AXI_RUSER      ),
-  .axi4_full_M_AXI_RVALID     ( dma_0_M_AXI_RVALID     ),
-  .axi4_full_M_AXI_ARID       ( dma_0_M_AXI_ARID       ),
-  .axi4_full_M_AXI_ARADDR     ( dma_0_M_AXI_ARADDR     ),
-  .axi4_full_M_AXI_ARLEN      ( dma_0_M_AXI_ARLEN      ),
-  .axi4_full_M_AXI_ARSIZE     ( dma_0_M_AXI_ARSIZE     ),
-  .axi4_full_M_AXI_ARBURST    ( dma_0_M_AXI_ARBURST    ),
-  .axi4_full_M_AXI_ARLOCK     ( dma_0_M_AXI_ARLOCK     ),
-  .axi4_full_M_AXI_ARCACHE    ( dma_0_M_AXI_ARCACHE    ),
-  .axi4_full_M_AXI_ARPROT     ( dma_0_M_AXI_ARPROT     ),
-  .axi4_full_M_AXI_ARQOS      ( dma_0_M_AXI_ARQOS      ),
-  .axi4_full_M_AXI_ARUSER     ( dma_0_M_AXI_ARUSER     ),
-  .axi4_full_M_AXI_ARVALID    ( dma_0_M_AXI_ARVALID    ),
-  .axi4_full_M_AXI_RREADY     ( dma_0_M_AXI_RREADY     ),
-  
-  /* prof counter */
-  .enable_prof_counter        ( enable_prof_counter    ),
-  .execute_time               ( load_0_execute_time    )
-);
-
-/* load 1 */
-load_master_dma_1 #(
-  .LOAD_INSNBITS          ( INSN_BITS                 ),
-  .PERI_ADDR_WIDTH        ( MASTER_PERI_ADDR_WIDTH    ),
-  .PERI_BUSRSTS_WIDTH     ( MASTER_PERI_BUSRSTS_WIDTH ),
-  .PERI_DATA_WIDTH        ( MASTER_PERI_DATA_WIDTH    ),
-  .AXI_M_AXI_ID_WIDTH     ( AXI_M_AXI_ID_WIDTH        ),
-  .AXI_M_AXI_ADDR_WIDTH   ( AXI_M_AXI_ADDR_WIDTH      ),
-  .AXI_M_AXI_USER_WIDTH   ( AXI_M_AXI_USER_WIDTH      ),
-  .AXI_M_AXI_DATA_WIDTH   ( AXI_M_AXI_DATA_WIDTH      ),
-  .AXI_M_AXI_BURSTLENGTH  ( AXI_M_AXI_BURSTLENGTH     ),
-  .AXI_OUTSTANDING_DEPTH  ( AXI_OUTSTANDING_DEPTH     ),
-  .SRAM_ADDR_WIDTH        ( MASTER_SRAM_ADDR_WIDTH    ),
-  .AXI_M_AXI_MIN_ID       ( AXI_M_AXI_MIN_ID + 16     ),
-  .AXI_M_AXI_MAX_ID       ( AXI_M_AXI_MIN_ID + 32     ),
-
-  .WEIGHT_WIDTH           ( WEIGHT_WIDTH              ),
-  .WEIGHT_ADDR_BITS       ( WEIGHT_ADDR_BITS          )
-) u_load_master_1(
-  /* clk & reset */
-  .clk                        ( clk                    ),
-  .fifo_rst_n                 ( rst_n                  ),
-  .logic_rst_n                ( dma_rst_n              ),
-  .axi4_clk                   ( axi4_clk               ),
-  .axi4_rst_n                 ( axi4_rst_n             ),
-  
-  /* control signals */
-  .work_en                    ( load_1_work_en_reg     ),
-  .insn_read                  ( load_1_insn_read       ),
-  .insn                       ( load_1_insn            ),
-  .global_done                ( load_1_global_done     ),
-  .local_done                 ( load_1_local_done_wire ),
-  .highaddr                   ( 24'd0                  ),
-  .highaddr_sel               ( 1'b0                   ),
-  
-  /* sram signals */
-  .weight_wvalid              ( dma_1_weight_sram_wvalid ),
-  .weight_waddr               ( dma_1_weight_sram_waddr  ),
-  .weight_wdata               ( dma_1_weight_sram_wdata  ),
-
-  /* axi signals */
-  .axi4_full_M_AXI_ARREADY    ( dma_1_M_AXI_ARREADY    ),
-  .axi4_full_M_AXI_RID        ( dma_1_M_AXI_RID        ),
-  .axi4_full_M_AXI_RDATA      ( dma_1_M_AXI_RDATA      ),
-  .axi4_full_M_AXI_RRESP      ( dma_1_M_AXI_RRESP      ),
-  .axi4_full_M_AXI_RLAST      ( dma_1_M_AXI_RLAST      ),
-  .axi4_full_M_AXI_RUSER      ( dma_1_M_AXI_RUSER      ),
-  .axi4_full_M_AXI_RVALID     ( dma_1_M_AXI_RVALID     ),
-  .axi4_full_M_AXI_ARID       ( dma_1_M_AXI_ARID       ),
-  .axi4_full_M_AXI_ARADDR     ( dma_1_M_AXI_ARADDR     ),
-  .axi4_full_M_AXI_ARLEN      ( dma_1_M_AXI_ARLEN      ),
-  .axi4_full_M_AXI_ARSIZE     ( dma_1_M_AXI_ARSIZE     ),
-  .axi4_full_M_AXI_ARBURST    ( dma_1_M_AXI_ARBURST    ),
-  .axi4_full_M_AXI_ARLOCK     ( dma_1_M_AXI_ARLOCK     ),
-  .axi4_full_M_AXI_ARCACHE    ( dma_1_M_AXI_ARCACHE    ),
-  .axi4_full_M_AXI_ARPROT     ( dma_1_M_AXI_ARPROT     ),
-  .axi4_full_M_AXI_ARQOS      ( dma_1_M_AXI_ARQOS      ),
-  .axi4_full_M_AXI_ARUSER     ( dma_1_M_AXI_ARUSER     ),
-  .axi4_full_M_AXI_ARVALID    ( dma_1_M_AXI_ARVALID    ),
-  .axi4_full_M_AXI_RREADY     ( dma_1_M_AXI_RREADY     ),
-  
-  /* prof counter */
-  .enable_prof_counter        ( enable_prof_counter    ),
-  .execute_time               ( load_1_execute_time    )
-);
+assign load_dma_rst_n = dma_rst_n;
 
 /* store 0 */
 store_master_dma_0 #(
@@ -813,27 +608,13 @@ store_master_dma_1 #(
 );
 
 insn_fifo_wrapper #(
-  .INSN_WIDTH      ( INSN_BITS      ),
-  .INSN_FIFO_DEPTH ( INSN_FIFO_DEPTH )
+  .INSN_WIDTH      ( INSN_BITS       ),
+  .INSN_FIFO_DEPTH ( INSN_FIFO_DEPTH ),
+  .HAS_LOAD_FIFO   ( 0               )
 ) u_insn_fifo_wrapper(
   /* clk & reset */
   .clk                    ( clk                    ),
   .rst_n                  ( fifo_rst_n             ),
-  
-  /* fifo signals */
-  .load_0_fifo_wen        ( load_0_fifo_wen        ),
-  .load_0_fifo_wdata      ( load_0_fifo_wdata      ),
-  .load_0_fifo_ren        ( load_0_insn_read       ),
-  .load_0_fifo_rdata      ( load_0_insn            ),
-  .load_0_fifo_full       ( load_0_fifo_full       ),
-  .load_0_fifo_empty      ( load_0_fifo_empty      ),
-  
-  .load_1_fifo_wen        ( load_1_fifo_wen        ),
-  .load_1_fifo_wdata      ( load_1_fifo_wdata      ),
-  .load_1_fifo_ren        ( load_1_insn_read       ),
-  .load_1_fifo_rdata      ( load_1_insn            ),
-  .load_1_fifo_full       ( load_1_fifo_full       ),
-  .load_1_fifo_empty      ( load_1_fifo_empty      ),
   
   .store_0_fifo_wen       ( store_0_fifo_wen       ),
   .store_0_fifo_wdata     ( store_0_fifo_wdata     ),
@@ -891,13 +672,13 @@ pea u_pea_0(
   .ifmap_sram_raddr           ( pea_qact_raddr            ),
   .ifmap_sram_rdata           ( pea_qact_rdata            ),
 
-  .weight_sram_rvalid         ( weight_0_rvalid           ),
-  .weight_sram_raddr          ( weight_0_raddr            ),
-  .weight_sram_rdata          ( weight_0_rdata            ),
+  .weight_sram_rvalid         ( weight_sram_rvalid        ),
+  .weight_sram_raddr          ( weight_sram_raddr         ),
+  .weight_sram_rdata          ( weight_sram_rdata         ),
 
-  .scale_sram_rvalid          ( pea_scale_rvalid          ),
-  .scale_sram_raddr           ( pea_scale_raddr           ),
-  .scale_sram_rdata           ( pea_scale_rdata           ),
+  .ofmap_sram_wvalid          ( pea_ofmap_sram_wvalid     ),
+  .ofmap_sram_waddr           ( pea_ofmap_sram_waddr      ),
+  .ofmap_sram_wdata           ( pea_ofmap_sram_wdata      ),
 
   .enable_prof_counter        ( enable_prof_counter       ),
   .execute_time               ( pea_0_execute_time        )
@@ -922,6 +703,10 @@ vcu u_vcu_0(
   .ifmap_rvalid        ( ifmap_0_rvalid      ),
   .ifmap_raddr         ( ifmap_0_raddr       ),
   .ifmap_rdata         ( ifmap_0_rdata       ),
+
+  .dequant_rvalid      ( vcu_dequant_rvalid  ),
+  .dequant_raddr       ( vcu_dequant_raddr   ),
+  .dequant_rdata       ( vcu_dequant_rdata   ),
   
   .vcupara_rvalid      ( vcupara_0_rvalid    ),
   .vcupara_raddr       ( vcupara_0_raddr     ),
@@ -1009,23 +794,6 @@ regfile_cluster u_regfile_cluster(
 /* ------------------------------------------------- srams ------------------------------------------------ */
 
 //pea: int8
-weight_ram #(
-  .WIDTH      ( WEIGHT_WIDTH               ),     
-  .ADDR_BITS  ( WEIGHT_ADDR_BITS           )
-) u_weight_ram(
-  .clk        ( clk                      ),
-  .rst_n      ( rst_n                    ),
-
-  .rvalid_0   ( weight_0_rvalid          ),
-  .raddr_0    ( weight_0_raddr           ),
-  .rdata_0    ( weight_0_rdata           ),
-  
-  .dma_wvalid ( dma_1_weight_sram_wvalid ),
-  .dma_waddr  ( dma_1_weight_sram_waddr  ),
-  .dma_wdata  ( dma_1_weight_sram_wdata  )
-);
-
-//pea: int8
 qact_ram #(
   .WIDTH      ( QACT_WIDTH               ),     
   .ADDR_BITS  ( QACT_ADDR_BITS           )
@@ -1037,26 +805,30 @@ qact_ram #(
   .raddr_0    ( pea_qact_raddr          ),
   .rdata_0    ( pea_qact_rdata          ),
 
+  .dma_wvalid ( dma_0_qact_wvalid       ),
+  .dma_waddr  ( dma_0_qact_waddr        ),
+  .dma_wdata  ( dma_0_qact_wdata        ),
+
   .wvalid     ( vcu_qact_wvalid         ),
   .waddr      ( vcu_qact_waddr          ),
   .wdata      ( vcu_qact_wdata          )
 );
 
 //pea: fp16
-scale_ram #(
-  .WIDTH      ( SCALE_WIDTH              ),     
-  .ADDR_BITS  ( SCALE_ADDR_BITS          )
-) u_scale_ram(
+pea_ofmap_ram #(
+  .WIDTH      ( PEA_OFMAP_WIDTH         ),
+  .ADDR_BITS  ( PEA_OFMAP_ADDR_BITS     )
+) u_pea_ofmap_ram(
   .clk        ( clk                     ),
   .rst_n      ( rst_n                   ),
 
-  .rvalid_0   ( pea_scale_rvalid        ),
-  .raddr_0    ( pea_scale_raddr         ),
-  .rdata_0    ( pea_scale_rdata         ),
+  .rvalid_0   ( vcu_dequant_rvalid      ),
+  .raddr_0    ( vcu_dequant_raddr       ),
+  .rdata_0    ( vcu_dequant_rdata       ),
 
-  .wvalid     ( vcu_scale_wvalid        ),
-  .waddr      ( vcu_scale_waddr         ),
-  .wdata      ( vcu_scale_wdata         )
+  .wvalid     ( pea_ofmap_sram_wvalid   ),
+  .waddr      ( pea_ofmap_sram_waddr    ),
+  .wdata      ( pea_ofmap_sram_wdata    )
 );
 
 ofmap_ram u_ofmap_ram(

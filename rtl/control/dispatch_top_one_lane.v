@@ -1,39 +1,11 @@
-module dispatch_top(
+module dispatch_top_one_lane(
   clk, fifo_rst_n, logic_rst_n,
 
   synchronize_fifo_full, synchronize_fifo_wen, synchronize_fifo_wdata,
   load_0_fifo_full, load_0_fifo_wen, load_0_fifo_wdata,
-  load_1_fifo_full, load_1_fifo_wen, load_1_fifo_wdata,
-  load_2_fifo_full, load_2_fifo_wen, load_2_fifo_wdata,
-  load_3_fifo_full, load_3_fifo_wen, load_3_fifo_wdata,
-  load_4_fifo_full, load_4_fifo_wen, load_4_fifo_wdata,
-  load_5_fifo_full, load_5_fifo_wen, load_5_fifo_wdata,
-  load_6_fifo_full, load_6_fifo_wen, load_6_fifo_wdata,
-  load_7_fifo_full, load_7_fifo_wen, load_7_fifo_wdata,
   store_0_fifo_full, store_0_fifo_wen, store_0_fifo_wdata,
-  store_1_fifo_full, store_1_fifo_wen, store_1_fifo_wdata,
-  store_2_fifo_full, store_2_fifo_wen, store_2_fifo_wdata,
-  store_3_fifo_full, store_3_fifo_wen, store_3_fifo_wdata,
-  store_4_fifo_full, store_4_fifo_wen, store_4_fifo_wdata,
-  store_5_fifo_full, store_5_fifo_wen, store_5_fifo_wdata,
-  store_6_fifo_full, store_6_fifo_wen, store_6_fifo_wdata,
-  store_7_fifo_full, store_7_fifo_wen, store_7_fifo_wdata,
   pea_0_fifo_full, pea_0_fifo_wen, pea_0_fifo_wdata,
-  pea_1_fifo_full, pea_1_fifo_wen, pea_1_fifo_wdata,
-  pea_2_fifo_full, pea_2_fifo_wen, pea_2_fifo_wdata,
-  pea_3_fifo_full, pea_3_fifo_wen, pea_3_fifo_wdata,
-  pea_4_fifo_full, pea_4_fifo_wen, pea_4_fifo_wdata,
-  pea_5_fifo_full, pea_5_fifo_wen, pea_5_fifo_wdata,
-  pea_6_fifo_full, pea_6_fifo_wen, pea_6_fifo_wdata,
-  pea_7_fifo_full, pea_7_fifo_wen, pea_7_fifo_wdata,
   vcu_0_fifo_full, vcu_0_fifo_wen, vcu_0_fifo_wdata,
-  vcu_1_fifo_full, vcu_1_fifo_wen, vcu_1_fifo_wdata,
-  vcu_2_fifo_full, vcu_2_fifo_wen, vcu_2_fifo_wdata,
-  vcu_3_fifo_full, vcu_3_fifo_wen, vcu_3_fifo_wdata,
-  vcu_4_fifo_full, vcu_4_fifo_wen, vcu_4_fifo_wdata,
-  vcu_5_fifo_full, vcu_5_fifo_wen, vcu_5_fifo_wdata,
-  vcu_6_fifo_full, vcu_6_fifo_wen, vcu_6_fifo_wdata,
-  vcu_7_fifo_full, vcu_7_fifo_wen, vcu_7_fifo_wdata,
 
   insn_number, insn_addr, insn_burstlen, config_start, cmd_start,
   dispatch_empty, insn_done,
@@ -137,129 +109,17 @@ output wire                  load_0_fifo_wen;
 output wire [INSN_WIDTH-1:0] load_0_fifo_wdata;
 input                        load_0_fifo_full;
 
-output wire                  load_1_fifo_wen;
-output wire [INSN_WIDTH-1:0] load_1_fifo_wdata;
-input                        load_1_fifo_full;
-
-output wire                  load_2_fifo_wen;
-output wire [INSN_WIDTH-1:0] load_2_fifo_wdata;
-input                        load_2_fifo_full;
-
-output wire                  load_3_fifo_wen;
-output wire [INSN_WIDTH-1:0] load_3_fifo_wdata;
-input                        load_3_fifo_full;
-
-output wire                  load_4_fifo_wen;
-output wire [INSN_WIDTH-1:0] load_4_fifo_wdata;
-input                        load_4_fifo_full;
-
-output wire                  load_5_fifo_wen;
-output wire [INSN_WIDTH-1:0] load_5_fifo_wdata;
-input                        load_5_fifo_full;
-
-output wire                  load_6_fifo_wen;
-output wire [INSN_WIDTH-1:0] load_6_fifo_wdata;
-input                        load_6_fifo_full;
-
-output wire                  load_7_fifo_wen;
-output wire [INSN_WIDTH-1:0] load_7_fifo_wdata;
-input                        load_7_fifo_full;
-
 output wire                  pea_0_fifo_wen;
 output wire [INSN_WIDTH-1:0] pea_0_fifo_wdata;
 input                        pea_0_fifo_full;
-
-output wire                  pea_1_fifo_wen;
-output wire [INSN_WIDTH-1:0] pea_1_fifo_wdata;
-input                        pea_1_fifo_full;
-
-output wire                  pea_2_fifo_wen;
-output wire [INSN_WIDTH-1:0] pea_2_fifo_wdata;
-input                        pea_2_fifo_full;
-
-output wire                  pea_3_fifo_wen;
-output wire [INSN_WIDTH-1:0] pea_3_fifo_wdata;
-input                        pea_3_fifo_full;
-
-output wire                  pea_4_fifo_wen;
-output wire [INSN_WIDTH-1:0] pea_4_fifo_wdata;
-input                        pea_4_fifo_full;
-
-output wire                  pea_5_fifo_wen;
-output wire [INSN_WIDTH-1:0] pea_5_fifo_wdata;
-input                        pea_5_fifo_full;
-
-output wire                  pea_6_fifo_wen;
-output wire [INSN_WIDTH-1:0] pea_6_fifo_wdata;
-input                        pea_6_fifo_full;
-
-output wire                  pea_7_fifo_wen;
-output wire [INSN_WIDTH-1:0] pea_7_fifo_wdata;
-input                        pea_7_fifo_full;
 
 output wire                  vcu_0_fifo_wen;
 output wire [INSN_WIDTH-1:0] vcu_0_fifo_wdata;
 input                        vcu_0_fifo_full;
 
-output wire                  vcu_1_fifo_wen;
-output wire [INSN_WIDTH-1:0] vcu_1_fifo_wdata;
-input                        vcu_1_fifo_full;
-
-output wire                  vcu_2_fifo_wen;
-output wire [INSN_WIDTH-1:0] vcu_2_fifo_wdata;
-input                        vcu_2_fifo_full;
-
-output wire                  vcu_3_fifo_wen;
-output wire [INSN_WIDTH-1:0] vcu_3_fifo_wdata;
-input                        vcu_3_fifo_full;
-
-output wire                  vcu_4_fifo_wen;
-output wire [INSN_WIDTH-1:0] vcu_4_fifo_wdata;
-input                        vcu_4_fifo_full;
-
-output wire                  vcu_5_fifo_wen;
-output wire [INSN_WIDTH-1:0] vcu_5_fifo_wdata;
-input                        vcu_5_fifo_full;
-
-output wire                  vcu_6_fifo_wen;
-output wire [INSN_WIDTH-1:0] vcu_6_fifo_wdata;
-input                        vcu_6_fifo_full;
-
-output wire                  vcu_7_fifo_wen;
-output wire [INSN_WIDTH-1:0] vcu_7_fifo_wdata;
-input                        vcu_7_fifo_full;
-
 output wire                  store_0_fifo_wen;
 output wire [INSN_WIDTH-1:0] store_0_fifo_wdata;
 input                        store_0_fifo_full;
-
-output wire                  store_1_fifo_wen;
-input                        store_1_fifo_full;
-output wire [INSN_WIDTH-1:0] store_1_fifo_wdata;
-
-output wire                  store_2_fifo_wen;
-input                        store_2_fifo_full;
-output wire [INSN_WIDTH-1:0] store_2_fifo_wdata;
-
-output wire                  store_3_fifo_wen;
-input                        store_3_fifo_full;
-output wire [INSN_WIDTH-1:0] store_3_fifo_wdata;
-
-output wire                  store_4_fifo_wen;
-input                        store_4_fifo_full;
-output wire [INSN_WIDTH-1:0] store_4_fifo_wdata;
-
-output wire                  store_5_fifo_wen;
-input                        store_5_fifo_full;
-output wire [INSN_WIDTH-1:0] store_5_fifo_wdata;
-
-output wire                  store_6_fifo_wen;
-input                        store_6_fifo_full;
-output wire [INSN_WIDTH-1:0] store_6_fifo_wdata;
-
-output wire                  store_7_fifo_wen;
-input                        store_7_fifo_full;
-output wire [INSN_WIDTH-1:0] store_7_fifo_wdata;
 
 wire [INSN_R_ADDR_WIDTH-1:0]    raddr_M_fifo_addr;
 wire [INSN_R_BUSRSTS_WIDTH-1:0] raddr_M_fifo_len;
@@ -314,37 +174,9 @@ dispatch #(
   .insn_M_rdata_ready     ( peripheral_M_rdata_ready ),
   .synchronize_fifo_full  ( synchronize_fifo_full    ),
   .load_0_fifo_full       ( load_0_fifo_full         ),
-  .load_1_fifo_full       ( load_1_fifo_full         ),
-  .load_2_fifo_full       ( load_2_fifo_full         ),
-  .load_3_fifo_full       ( load_3_fifo_full         ),
-  .load_4_fifo_full       ( load_4_fifo_full         ),
-  .load_5_fifo_full       ( load_5_fifo_full         ),
-  .load_6_fifo_full       ( load_6_fifo_full         ),
-  .load_7_fifo_full       ( load_7_fifo_full         ),
   .pea_0_fifo_full        ( pea_0_fifo_full          ),
-  .pea_1_fifo_full        ( pea_1_fifo_full          ),
-  .pea_2_fifo_full        ( pea_2_fifo_full          ),
-  .pea_3_fifo_full        ( pea_3_fifo_full          ),
-  .pea_4_fifo_full        ( pea_4_fifo_full          ),
-  .pea_5_fifo_full        ( pea_5_fifo_full          ),
-  .pea_6_fifo_full        ( pea_6_fifo_full          ),
-  .pea_7_fifo_full        ( pea_7_fifo_full          ),
   .vcu_0_fifo_full        ( vcu_0_fifo_full          ),
-  .vcu_1_fifo_full        ( vcu_1_fifo_full          ),
-  .vcu_2_fifo_full        ( vcu_2_fifo_full          ),
-  .vcu_3_fifo_full        ( vcu_3_fifo_full          ),
-  .vcu_4_fifo_full        ( vcu_4_fifo_full          ),
-  .vcu_5_fifo_full        ( vcu_5_fifo_full          ),
-  .vcu_6_fifo_full        ( vcu_6_fifo_full          ),
-  .vcu_7_fifo_full        ( vcu_7_fifo_full          ),
   .store_0_fifo_full      ( store_0_fifo_full        ),
-  .store_1_fifo_full      ( store_1_fifo_full        ),
-  .store_2_fifo_full      ( store_2_fifo_full        ),
-  .store_3_fifo_full      ( store_3_fifo_full        ),
-  .store_4_fifo_full      ( store_4_fifo_full        ),
-  .store_5_fifo_full      ( store_5_fifo_full        ),
-  .store_6_fifo_full      ( store_6_fifo_full        ),
-  .store_7_fifo_full      ( store_7_fifo_full        ),
   .insn_number            ( insn_number              ),
   .insn_addr              ( insn_addr                ),
   .insn_burstlen          ( insn_burstlen            ),
@@ -357,68 +189,12 @@ dispatch #(
   .synchronize_fifo_wdata ( synchronize_fifo_wdata   ),
   .load_0_fifo_wen        ( load_0_fifo_wen          ),
   .load_0_fifo_wdata      ( load_0_fifo_wdata        ),
-  .load_1_fifo_wen        ( load_1_fifo_wen          ),
-  .load_1_fifo_wdata      ( load_1_fifo_wdata        ),
-  .load_2_fifo_wen        ( load_2_fifo_wen          ),
-  .load_2_fifo_wdata      ( load_2_fifo_wdata        ),
-  .load_3_fifo_wen        ( load_3_fifo_wen          ),
-  .load_3_fifo_wdata      ( load_3_fifo_wdata        ),
-  .load_4_fifo_wen        ( load_4_fifo_wen          ),
-  .load_4_fifo_wdata      ( load_4_fifo_wdata        ),
-  .load_5_fifo_wen        ( load_5_fifo_wen          ),
-  .load_5_fifo_wdata      ( load_5_fifo_wdata        ),
-  .load_6_fifo_wen        ( load_6_fifo_wen          ),
-  .load_6_fifo_wdata      ( load_6_fifo_wdata        ),
-  .load_7_fifo_wen        ( load_7_fifo_wen          ),
-  .load_7_fifo_wdata      ( load_7_fifo_wdata        ),
   .pea_0_fifo_wen         ( pea_0_fifo_wen           ),
-  .pea_1_fifo_wen         ( pea_1_fifo_wen           ),
-  .pea_2_fifo_wen         ( pea_2_fifo_wen           ),
-  .pea_3_fifo_wen         ( pea_3_fifo_wen           ),
-  .pea_4_fifo_wen         ( pea_4_fifo_wen           ),
-  .pea_5_fifo_wen         ( pea_5_fifo_wen           ),
-  .pea_6_fifo_wen         ( pea_6_fifo_wen           ),
-  .pea_7_fifo_wen         ( pea_7_fifo_wen           ),
   .pea_0_fifo_wdata       ( pea_0_fifo_wdata         ),
-  .pea_1_fifo_wdata       ( pea_1_fifo_wdata         ),
-  .pea_2_fifo_wdata       ( pea_2_fifo_wdata         ),
-  .pea_3_fifo_wdata       ( pea_3_fifo_wdata         ),
-  .pea_4_fifo_wdata       ( pea_4_fifo_wdata         ),
-  .pea_5_fifo_wdata       ( pea_5_fifo_wdata         ),
-  .pea_6_fifo_wdata       ( pea_6_fifo_wdata         ),
-  .pea_7_fifo_wdata       ( pea_7_fifo_wdata         ),
   .vcu_0_fifo_wen         ( vcu_0_fifo_wen           ),
-  .vcu_1_fifo_wen         ( vcu_1_fifo_wen           ),
-  .vcu_2_fifo_wen         ( vcu_2_fifo_wen           ),
-  .vcu_3_fifo_wen         ( vcu_3_fifo_wen           ),
-  .vcu_4_fifo_wen         ( vcu_4_fifo_wen           ),
-  .vcu_5_fifo_wen         ( vcu_5_fifo_wen           ),
-  .vcu_6_fifo_wen         ( vcu_6_fifo_wen           ),
-  .vcu_7_fifo_wen         ( vcu_7_fifo_wen           ),
   .vcu_0_fifo_wdata       ( vcu_0_fifo_wdata         ),
-  .vcu_1_fifo_wdata       ( vcu_1_fifo_wdata         ),
-  .vcu_2_fifo_wdata       ( vcu_2_fifo_wdata         ),
-  .vcu_3_fifo_wdata       ( vcu_3_fifo_wdata         ),
-  .vcu_4_fifo_wdata       ( vcu_4_fifo_wdata         ),
-  .vcu_5_fifo_wdata       ( vcu_5_fifo_wdata         ),
-  .vcu_6_fifo_wdata       ( vcu_6_fifo_wdata         ),
-  .vcu_7_fifo_wdata       ( vcu_7_fifo_wdata         ),
   .store_0_fifo_wen       ( store_0_fifo_wen         ),
   .store_0_fifo_wdata     ( store_0_fifo_wdata       ),
-  .store_1_fifo_wen       ( store_1_fifo_wen         ),
-  .store_1_fifo_wdata     ( store_1_fifo_wdata       ),
-  .store_2_fifo_wen       ( store_2_fifo_wen         ),
-  .store_2_fifo_wdata     ( store_2_fifo_wdata       ),
-  .store_3_fifo_wen       ( store_3_fifo_wen         ),
-  .store_3_fifo_wdata     ( store_3_fifo_wdata       ),
-  .store_4_fifo_wen       ( store_4_fifo_wen         ),
-  .store_4_fifo_wdata     ( store_4_fifo_wdata       ),
-  .store_5_fifo_wen       ( store_5_fifo_wen         ),
-  .store_5_fifo_wdata     ( store_5_fifo_wdata       ),
-  .store_6_fifo_wen       ( store_6_fifo_wen         ),
-  .store_6_fifo_wdata     ( store_6_fifo_wdata       ),
-  .store_7_fifo_wen       ( store_7_fifo_wen         ),
-  .store_7_fifo_wdata     ( store_7_fifo_wdata       ),
   .dispatch_empty         ( dispatch_empty           ),
   .insn_done              ( insn_done                )
 );

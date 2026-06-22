@@ -3,7 +3,7 @@
 #include "compute_model/common/fp16.h"
 #include "compute_model/common/tensor.h"
 #include "compute_model/function/tensor_function.h"
-#include "pea/pea_insn.h"
+// #include "pea/pea_insn.h"
 #include "vcu/vcu_insn.h"
 #include "vcu/vcu_opcode.h"
 #include "write_reg.h"

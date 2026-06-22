@@ -6,9 +6,37 @@ module dispatch(
 
   synchronize_fifo_full, synchronize_fifo_wen, synchronize_fifo_wdata,
   load_0_fifo_full, load_0_fifo_wen, load_0_fifo_wdata,
+  load_1_fifo_full, load_1_fifo_wen, load_1_fifo_wdata,
+  load_2_fifo_full, load_2_fifo_wen, load_2_fifo_wdata,
+  load_3_fifo_full, load_3_fifo_wen, load_3_fifo_wdata,
+  load_4_fifo_full, load_4_fifo_wen, load_4_fifo_wdata,
+  load_5_fifo_full, load_5_fifo_wen, load_5_fifo_wdata,
+  load_6_fifo_full, load_6_fifo_wen, load_6_fifo_wdata,
+  load_7_fifo_full, load_7_fifo_wen, load_7_fifo_wdata,
   store_0_fifo_full, store_0_fifo_wen, store_0_fifo_wdata,
+  store_1_fifo_full, store_1_fifo_wen, store_1_fifo_wdata,
+  store_2_fifo_full, store_2_fifo_wen, store_2_fifo_wdata,
+  store_3_fifo_full, store_3_fifo_wen, store_3_fifo_wdata,
+  store_4_fifo_full, store_4_fifo_wen, store_4_fifo_wdata,
+  store_5_fifo_full, store_5_fifo_wen, store_5_fifo_wdata,
+  store_6_fifo_full, store_6_fifo_wen, store_6_fifo_wdata,
+  store_7_fifo_full, store_7_fifo_wen, store_7_fifo_wdata,
   pea_0_fifo_full, pea_0_fifo_wen, pea_0_fifo_wdata,
+  pea_1_fifo_full, pea_1_fifo_wen, pea_1_fifo_wdata,
+  pea_2_fifo_full, pea_2_fifo_wen, pea_2_fifo_wdata,
+  pea_3_fifo_full, pea_3_fifo_wen, pea_3_fifo_wdata,
+  pea_4_fifo_full, pea_4_fifo_wen, pea_4_fifo_wdata,
+  pea_5_fifo_full, pea_5_fifo_wen, pea_5_fifo_wdata,
+  pea_6_fifo_full, pea_6_fifo_wen, pea_6_fifo_wdata,
+  pea_7_fifo_full, pea_7_fifo_wen, pea_7_fifo_wdata,
   vcu_0_fifo_full, vcu_0_fifo_wen, vcu_0_fifo_wdata,
+  vcu_1_fifo_full, vcu_1_fifo_wen, vcu_1_fifo_wdata,
+  vcu_2_fifo_full, vcu_2_fifo_wen, vcu_2_fifo_wdata,
+  vcu_3_fifo_full, vcu_3_fifo_wen, vcu_3_fifo_wdata,
+  vcu_4_fifo_full, vcu_4_fifo_wen, vcu_4_fifo_wdata,
+  vcu_5_fifo_full, vcu_5_fifo_wen, vcu_5_fifo_wdata,
+  vcu_6_fifo_full, vcu_6_fifo_wen, vcu_6_fifo_wdata,
+  vcu_7_fifo_full, vcu_7_fifo_wen, vcu_7_fifo_wdata,
 
   insn_number, insn_addr, insn_burstlen, config_start, cmd_start,
   dispatch_empty, insn_done
@@ -47,15 +75,99 @@ output wire [INSN_WIDTH-1:0]           synchronize_fifo_wdata;
 input                                  load_0_fifo_full;
 output wire                            load_0_fifo_wen;
 output wire [INSN_WIDTH-1:0]           load_0_fifo_wdata;
+input                                  load_1_fifo_full;
+output wire                            load_1_fifo_wen;
+output wire [INSN_WIDTH-1:0]           load_1_fifo_wdata;
+input                                  load_2_fifo_full;
+output wire                            load_2_fifo_wen;
+output wire [INSN_WIDTH-1:0]           load_2_fifo_wdata;
+input                                  load_3_fifo_full;
+output wire                            load_3_fifo_wen;
+output wire [INSN_WIDTH-1:0]           load_3_fifo_wdata;
+input                                  load_4_fifo_full;
+output wire                            load_4_fifo_wen;
+output wire [INSN_WIDTH-1:0]           load_4_fifo_wdata;
+input                                  load_5_fifo_full;
+output wire                            load_5_fifo_wen;
+output wire [INSN_WIDTH-1:0]           load_5_fifo_wdata;
+input                                  load_6_fifo_full;
+output wire                            load_6_fifo_wen;
+output wire [INSN_WIDTH-1:0]           load_6_fifo_wdata;
+input                                  load_7_fifo_full;
+output wire                            load_7_fifo_wen;
+output wire [INSN_WIDTH-1:0]           load_7_fifo_wdata;
 input                                  pea_0_fifo_full;
+input                                  pea_1_fifo_full;
+input                                  pea_2_fifo_full;
+input                                  pea_3_fifo_full;
+input                                  pea_4_fifo_full;
+input                                  pea_5_fifo_full;
+input                                  pea_6_fifo_full;
+input                                  pea_7_fifo_full;
 output wire                            pea_0_fifo_wen;
+output wire                            pea_1_fifo_wen;
+output wire                            pea_2_fifo_wen;
+output wire                            pea_3_fifo_wen;
+output wire                            pea_4_fifo_wen;
+output wire                            pea_5_fifo_wen;
+output wire                            pea_6_fifo_wen;
+output wire                            pea_7_fifo_wen;
 output wire [INSN_WIDTH-1:0]           pea_0_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           pea_1_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           pea_2_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           pea_3_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           pea_4_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           pea_5_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           pea_6_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           pea_7_fifo_wdata;
 input                                  vcu_0_fifo_full;
+input                                  vcu_1_fifo_full;
+input                                  vcu_2_fifo_full;
+input                                  vcu_3_fifo_full;
+input                                  vcu_4_fifo_full;
+input                                  vcu_5_fifo_full;
+input                                  vcu_6_fifo_full;
+input                                  vcu_7_fifo_full;
 output wire                            vcu_0_fifo_wen;
+output wire                            vcu_1_fifo_wen;
+output wire                            vcu_2_fifo_wen;
+output wire                            vcu_3_fifo_wen;
+output wire                            vcu_4_fifo_wen;
+output wire                            vcu_5_fifo_wen;
+output wire                            vcu_6_fifo_wen;
+output wire                            vcu_7_fifo_wen;
 output wire [INSN_WIDTH-1:0]           vcu_0_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           vcu_1_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           vcu_2_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           vcu_3_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           vcu_4_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           vcu_5_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           vcu_6_fifo_wdata;
+output wire [INSN_WIDTH-1:0]           vcu_7_fifo_wdata;
 input                                  store_0_fifo_full;
 output wire                            store_0_fifo_wen;
 output wire [INSN_WIDTH-1:0]           store_0_fifo_wdata;
+input                                  store_1_fifo_full;
+output wire                            store_1_fifo_wen;
+output wire [INSN_WIDTH-1:0]           store_1_fifo_wdata;
+input                                  store_2_fifo_full;
+output wire                            store_2_fifo_wen;
+output wire [INSN_WIDTH-1:0]           store_2_fifo_wdata;
+input                                  store_3_fifo_full;
+output wire                            store_3_fifo_wen;
+output wire [INSN_WIDTH-1:0]           store_3_fifo_wdata;
+input                                  store_4_fifo_full;
+output wire                            store_4_fifo_wen;
+output wire [INSN_WIDTH-1:0]           store_4_fifo_wdata;
+input                                  store_5_fifo_full;
+output wire                            store_5_fifo_wen;
+output wire [INSN_WIDTH-1:0]           store_5_fifo_wdata;
+input                                  store_6_fifo_full;
+output wire                            store_6_fifo_wen;
+output wire [INSN_WIDTH-1:0]           store_6_fifo_wdata;
+input                                  store_7_fifo_full;
+output wire                            store_7_fifo_wen;
+output wire [INSN_WIDTH-1:0]           store_7_fifo_wdata;
 
 input [31:0]                           insn_number;
 input [63:0]                           insn_addr;
@@ -72,17 +184,122 @@ reg [INSN_WIDTH-1:0] synchronize_fifo_wdata_reg;
 reg                  load_0_fifo_wen_reg;
 reg [INSN_WIDTH-1:0] load_0_fifo_wdata_reg;
 
+reg                  load_1_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] load_1_fifo_wdata_reg;
+
+reg                  load_2_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] load_2_fifo_wdata_reg;
+
+reg                  load_3_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] load_3_fifo_wdata_reg;
+
+reg                  load_4_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] load_4_fifo_wdata_reg;
+
+reg                  load_5_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] load_5_fifo_wdata_reg;
+
+reg                  load_6_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] load_6_fifo_wdata_reg;
+
+reg                  load_7_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] load_7_fifo_wdata_reg;
+
 reg                  pea_0_fifo_wen_reg;
 reg [INSN_WIDTH-1:0] pea_0_fifo_wdata_reg;
+
+reg                  pea_1_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] pea_1_fifo_wdata_reg;
+
+reg                  pea_2_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] pea_2_fifo_wdata_reg;
+
+reg                  pea_3_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] pea_3_fifo_wdata_reg;
+
+reg                  pea_4_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] pea_4_fifo_wdata_reg;
+
+reg                  pea_5_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] pea_5_fifo_wdata_reg;
+
+reg                  pea_6_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] pea_6_fifo_wdata_reg;
+
+reg                  pea_7_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] pea_7_fifo_wdata_reg;
 
 reg                  vcu_0_fifo_wen_reg;
 reg [INSN_WIDTH-1:0] vcu_0_fifo_wdata_reg;
 
+reg                  vcu_1_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] vcu_1_fifo_wdata_reg;
+
+reg                  vcu_2_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] vcu_2_fifo_wdata_reg;
+
+reg                  vcu_3_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] vcu_3_fifo_wdata_reg;
+
+reg                  vcu_4_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] vcu_4_fifo_wdata_reg;
+
+reg                  vcu_5_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] vcu_5_fifo_wdata_reg;
+
+reg                  vcu_6_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] vcu_6_fifo_wdata_reg;
+
+reg                  vcu_7_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] vcu_7_fifo_wdata_reg;
+
 reg                  store_0_fifo_wen_reg;
 reg [INSN_WIDTH-1:0] store_0_fifo_wdata_reg;
 
+reg                  store_1_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] store_1_fifo_wdata_reg;
+
+reg                  store_2_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] store_2_fifo_wdata_reg;
+
+reg                  store_3_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] store_3_fifo_wdata_reg;
+
+reg                  store_4_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] store_4_fifo_wdata_reg;
+
+reg                  store_5_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] store_5_fifo_wdata_reg;
+
+reg                  store_6_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] store_6_fifo_wdata_reg;
+
+reg                  store_7_fifo_wen_reg;
+reg [INSN_WIDTH-1:0] store_7_fifo_wdata_reg;
+
 assign store_0_fifo_wen   = store_0_fifo_wen_reg;
 assign store_0_fifo_wdata = store_0_fifo_wdata_reg;
+
+assign store_1_fifo_wen   = store_1_fifo_wen_reg;
+assign store_1_fifo_wdata = store_1_fifo_wdata_reg;
+
+assign store_2_fifo_wen   = store_2_fifo_wen_reg;
+assign store_2_fifo_wdata = store_2_fifo_wdata_reg;
+
+assign store_3_fifo_wen   = store_3_fifo_wen_reg;
+assign store_3_fifo_wdata = store_3_fifo_wdata_reg;
+
+assign store_4_fifo_wen   = store_4_fifo_wen_reg;
+assign store_4_fifo_wdata = store_4_fifo_wdata_reg;
+
+assign store_5_fifo_wen   = store_5_fifo_wen_reg;
+assign store_5_fifo_wdata = store_5_fifo_wdata_reg;
+
+assign store_6_fifo_wen   = store_6_fifo_wen_reg;
+assign store_6_fifo_wdata = store_6_fifo_wdata_reg;
+
+assign store_7_fifo_wen   = store_7_fifo_wen_reg;
+assign store_7_fifo_wdata = store_7_fifo_wdata_reg;
 
 assign synchronize_fifo_wen   = synchronize_fifo_wen_reg;
 assign synchronize_fifo_wdata = synchronize_fifo_wdata_reg;
@@ -90,12 +307,62 @@ assign synchronize_fifo_wdata = synchronize_fifo_wdata_reg;
 assign load_0_fifo_wen   = load_0_fifo_wen_reg;
 assign load_0_fifo_wdata = load_0_fifo_wdata_reg;
 
+assign load_1_fifo_wen   = load_1_fifo_wen_reg;
+assign load_1_fifo_wdata = load_1_fifo_wdata_reg;
+
+assign load_2_fifo_wen   = load_2_fifo_wen_reg;
+assign load_2_fifo_wdata = load_2_fifo_wdata_reg;
+
+assign load_3_fifo_wen   = load_3_fifo_wen_reg;
+assign load_3_fifo_wdata = load_3_fifo_wdata_reg;
+
+assign load_4_fifo_wen   = load_4_fifo_wen_reg;
+assign load_4_fifo_wdata = load_4_fifo_wdata_reg;
+
+assign load_5_fifo_wen   = load_5_fifo_wen_reg;
+assign load_5_fifo_wdata = load_5_fifo_wdata_reg;
+
+assign load_6_fifo_wen   = load_6_fifo_wen_reg;
+assign load_6_fifo_wdata = load_6_fifo_wdata_reg;
+
+assign load_7_fifo_wen   = load_7_fifo_wen_reg;
+assign load_7_fifo_wdata = load_7_fifo_wdata_reg;
+
 assign pea_0_fifo_wen = pea_0_fifo_wen_reg;
+assign pea_1_fifo_wen = pea_1_fifo_wen_reg;
+assign pea_2_fifo_wen = pea_2_fifo_wen_reg;
+assign pea_3_fifo_wen = pea_3_fifo_wen_reg;
+assign pea_4_fifo_wen = pea_4_fifo_wen_reg;
+assign pea_5_fifo_wen = pea_5_fifo_wen_reg;
+assign pea_6_fifo_wen = pea_6_fifo_wen_reg;
+assign pea_7_fifo_wen = pea_7_fifo_wen_reg;
+
 assign vcu_0_fifo_wen = vcu_0_fifo_wen_reg;
+assign vcu_1_fifo_wen = vcu_1_fifo_wen_reg;
+assign vcu_2_fifo_wen = vcu_2_fifo_wen_reg;
+assign vcu_3_fifo_wen = vcu_3_fifo_wen_reg;
+assign vcu_4_fifo_wen = vcu_4_fifo_wen_reg;
+assign vcu_5_fifo_wen = vcu_5_fifo_wen_reg;
+assign vcu_6_fifo_wen = vcu_6_fifo_wen_reg;
+assign vcu_7_fifo_wen = vcu_7_fifo_wen_reg;
 
 assign pea_0_fifo_wdata = pea_0_fifo_wdata_reg;
-assign vcu_0_fifo_wdata = vcu_0_fifo_wdata_reg;
+assign pea_1_fifo_wdata = pea_1_fifo_wdata_reg;
+assign pea_2_fifo_wdata = pea_2_fifo_wdata_reg;
+assign pea_3_fifo_wdata = pea_3_fifo_wdata_reg;
+assign pea_4_fifo_wdata = pea_4_fifo_wdata_reg;
+assign pea_5_fifo_wdata = pea_5_fifo_wdata_reg;
+assign pea_6_fifo_wdata = pea_6_fifo_wdata_reg;
+assign pea_7_fifo_wdata = pea_7_fifo_wdata_reg;
 
+assign vcu_0_fifo_wdata = vcu_0_fifo_wdata_reg;
+assign vcu_1_fifo_wdata = vcu_1_fifo_wdata_reg;
+assign vcu_2_fifo_wdata = vcu_2_fifo_wdata_reg;
+assign vcu_3_fifo_wdata = vcu_3_fifo_wdata_reg;
+assign vcu_4_fifo_wdata = vcu_4_fifo_wdata_reg;
+assign vcu_5_fifo_wdata = vcu_5_fifo_wdata_reg;
+assign vcu_6_fifo_wdata = vcu_6_fifo_wdata_reg;
+assign vcu_7_fifo_wdata = vcu_7_fifo_wdata_reg;
 
 localparam integer INSN_FIFO_ADDRBIT = clogb2(INSN_FIFO_DEPTH-1);
 
@@ -140,10 +407,37 @@ assign dispatch_empty = insn_nonew;
 
 assign orient_fifo_wen = insn_buffer_valid & ((insn_buffer_wire[insn_buffer_index][5:0] == 6'b000000)? ((!synchronize_fifo_full) ? 1'b1 : 1'b0) : 
                                               (insn_buffer_wire[insn_buffer_index][5:0] == 6'b000001)? ((!load_0_fifo_full) ? 1'b1 : 1'b0) : 
-                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b000010)? ((!load_0_fifo_full) ? 1'b1 : 1'b0) : 
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b000010)? ((!load_1_fifo_full) ? 1'b1 : 1'b0) : 
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b000011)? ((!load_2_fifo_full) ? 1'b1 : 1'b0) : 
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b000100)? ((!load_3_fifo_full) ? 1'b1 : 1'b0) : 
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b000101)? ((!load_4_fifo_full) ? 1'b1 : 1'b0) : 
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b000110)? ((!load_5_fifo_full) ? 1'b1 : 1'b0) : 
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b000111)? ((!load_6_fifo_full) ? 1'b1 : 1'b0) : 
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b001000)? ((!load_7_fifo_full) ? 1'b1 : 1'b0) : 
                                               (insn_buffer_wire[insn_buffer_index][5:0] == 6'b001001)? ((!store_0_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b001010)? ((!store_1_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b001011)? ((!store_2_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b001100)? ((!store_3_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b001101)? ((!store_4_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b001110)? ((!store_5_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b001111)? ((!store_6_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b010000)? ((!store_7_fifo_full) ? 1'b1 : 1'b0) :
                                               (insn_buffer_wire[insn_buffer_index][5:0] == 6'b010001)? ((!pea_0_fifo_full) ? 1'b1 : 1'b0) :
-                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011001)? ((!vcu_0_fifo_full) ? 1'b1 : 1'b0) : 1'b0);
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b010010)? ((!pea_1_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b010011)? ((!pea_2_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b010100)? ((!pea_3_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b010101)? ((!pea_4_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b010110)? ((!pea_5_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b010111)? ((!pea_6_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011000)? ((!pea_7_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011001)? ((!vcu_0_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011010)? ((!vcu_1_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011011)? ((!vcu_2_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011100)? ((!vcu_3_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011101)? ((!vcu_4_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011110)? ((!vcu_5_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b011111)? ((!vcu_6_fifo_full) ? 1'b1 : 1'b0) :
+                                              (insn_buffer_wire[insn_buffer_index][5:0] == 6'b100000)? ((!vcu_7_fifo_full) ? 1'b1 : 1'b0) : 1'b0);
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
@@ -315,10 +609,18 @@ always @(posedge clk or negedge rst_n) begin
     load_0_fifo_wen_reg        <= 1'b0;
     store_0_fifo_wdata_reg     <= 512'b0;
     store_0_fifo_wen_reg       <= 1'b0;
+    load_1_fifo_wdata_reg      <= 512'b0;
+    load_1_fifo_wen_reg        <= 1'b0;
+    store_1_fifo_wdata_reg     <= 512'b0;
+    store_1_fifo_wen_reg       <= 1'b0;
     pea_0_fifo_wdata_reg       <= 512'b0;
     pea_0_fifo_wen_reg         <= 1'b0;
+    pea_1_fifo_wdata_reg       <= 512'b0;
+    pea_1_fifo_wen_reg         <= 1'b0;
     vcu_0_fifo_wdata_reg       <= 512'b0;
     vcu_0_fifo_wen_reg         <= 1'b0;
+    vcu_1_fifo_wdata_reg       <= 512'b0;
+    vcu_1_fifo_wen_reg         <= 1'b0;
     insn_nonew                 <= 1'b0;
     insn_buffer_index          <= 0;
   end
@@ -337,12 +639,68 @@ always @(posedge clk or negedge rst_n) begin
           end
           load_0_fifo_wen_reg    <= 0;
           load_0_fifo_wdata_reg  <= 0;
+          load_1_fifo_wen_reg    <= 0;
+          load_1_fifo_wdata_reg  <= 0;
+          load_2_fifo_wen_reg    <= 0;
+          load_2_fifo_wdata_reg  <= 0;
+          load_3_fifo_wen_reg    <= 0;
+          load_3_fifo_wdata_reg  <= 0;
+          load_4_fifo_wen_reg    <= 0;
+          load_4_fifo_wdata_reg  <= 0;
+          load_5_fifo_wen_reg    <= 0;
+          load_5_fifo_wdata_reg  <= 0;
+          load_6_fifo_wen_reg    <= 0;
+          load_6_fifo_wdata_reg  <= 0;
+          load_7_fifo_wen_reg    <= 0;
+          load_7_fifo_wdata_reg  <= 0;
           store_0_fifo_wen_reg   <= 0;
           store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 0;
+          store_7_fifo_wdata_reg <= 0;
           pea_0_fifo_wen_reg     <= 0;
           pea_0_fifo_wdata_reg   <= 0;
+          pea_1_fifo_wen_reg     <= 0;
+          pea_1_fifo_wdata_reg   <= 0;
+          pea_2_fifo_wen_reg     <= 0;
+          pea_2_fifo_wdata_reg   <= 0;
+          pea_3_fifo_wen_reg     <= 0;
+          pea_3_fifo_wdata_reg   <= 0;
+          pea_4_fifo_wen_reg     <= 0;
+          pea_4_fifo_wdata_reg   <= 0;
+          pea_5_fifo_wen_reg     <= 0;
+          pea_5_fifo_wdata_reg   <= 0;
+          pea_6_fifo_wen_reg     <= 0;
+          pea_6_fifo_wdata_reg   <= 0;
+          pea_7_fifo_wen_reg     <= 0;
+          pea_7_fifo_wdata_reg   <= 0;
           vcu_0_fifo_wen_reg     <= 0;
           vcu_0_fifo_wdata_reg   <= 0;
+          vcu_1_fifo_wen_reg     <= 0;
+          vcu_1_fifo_wdata_reg   <= 0;
+          vcu_2_fifo_wen_reg     <= 0;
+          vcu_2_fifo_wdata_reg   <= 0;
+          vcu_3_fifo_wen_reg     <= 0;
+          vcu_3_fifo_wdata_reg   <= 0;
+          vcu_4_fifo_wen_reg     <= 0;
+          vcu_4_fifo_wdata_reg   <= 0;
+          vcu_5_fifo_wen_reg     <= 0;
+          vcu_5_fifo_wdata_reg   <= 0;
+          vcu_6_fifo_wen_reg     <= 0;
+          vcu_6_fifo_wdata_reg   <= 0;
+          vcu_7_fifo_wen_reg     <= 0;
+          vcu_7_fifo_wdata_reg   <= 0;
         end
         6'b000001: begin
           if (!load_0_fifo_full) begin
@@ -356,31 +714,593 @@ always @(posedge clk or negedge rst_n) begin
           end
           synchronize_fifo_wen_reg   <= 0;
           synchronize_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
           store_0_fifo_wen_reg       <= 0;
           store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
           pea_0_fifo_wen_reg         <= 0;
           pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
           vcu_0_fifo_wen_reg         <= 0;
           vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
         end
         6'b000010: begin
-          if (!load_0_fifo_full) begin
-            load_0_fifo_wen_reg   <= 1'b1;
-            load_0_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+          if (!load_1_fifo_full) begin
+            load_1_fifo_wen_reg   <= 1'b1;
+            load_1_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
             insn_buffer_index <= insn_buffer_index + 1;
           end
           else begin
-            load_0_fifo_wen_reg   <= 1'b0;
-            load_0_fifo_wdata_reg <= 0;
+            load_1_fifo_wen_reg   <= 1'b0;
+            load_1_fifo_wdata_reg <= 0;
           end
           synchronize_fifo_wen_reg   <= 0;
           synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
           store_0_fifo_wen_reg       <= 0;
           store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
           pea_0_fifo_wen_reg         <= 0;
           pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
           vcu_0_fifo_wen_reg         <= 0;
           vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b000011: begin
+          if (!load_2_fifo_full) begin
+            load_2_fifo_wen_reg   <= 1'b1;
+            load_2_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            load_2_fifo_wen_reg   <= 1'b0;
+            load_2_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b000100: begin
+          if (!load_3_fifo_full) begin
+            load_3_fifo_wen_reg   <= 1'b1;
+            load_3_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            load_3_fifo_wen_reg   <= 1'b0;
+            load_3_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b000101: begin
+          if (!load_4_fifo_full) begin
+            load_4_fifo_wen_reg   <= 1'b1;
+            load_4_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            load_4_fifo_wen_reg   <= 1'b0;
+            load_4_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b000110: begin
+          if (!load_5_fifo_full) begin
+            load_5_fifo_wen_reg   <= 1'b1;
+            load_5_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            load_5_fifo_wen_reg   <= 1'b0;
+            load_5_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 0;
+          load_4_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 0;
+          load_6_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 0;
+          load_7_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 1'b0;
+          store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 1'b0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 1'b0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 1'b0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 1'b0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 1'b0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 1'b0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 1'b0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b000111: begin
+          if (!load_6_fifo_full) begin
+            load_6_fifo_wen_reg   <= 1'b1;
+            load_6_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            load_6_fifo_wen_reg   <= 1'b0;
+            load_6_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 0;
+          load_5_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 0;
+          load_7_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 1'b0;
+          store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 1'b0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 1'b0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 1'b0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 1'b0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 1'b0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 1'b0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 1'b0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b001000: begin
+          if (!load_7_fifo_full) begin
+            load_7_fifo_wen_reg   <= 1'b1;
+            load_7_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            load_7_fifo_wen_reg   <= 1'b0;
+            load_7_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 0;
+          load_5_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 0;
+          load_6_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 1'b0;
+          store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 1'b0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 1'b0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 1'b0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 1'b0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 1'b0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 1'b0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 1'b0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
         end
         6'b001001: begin
           if (!store_0_fifo_full) begin
@@ -396,10 +1316,591 @@ always @(posedge clk or negedge rst_n) begin
           synchronize_fifo_wdata_reg <= 0;
           load_0_fifo_wen_reg   <= 1'b0;
           load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 1'b0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 1'b0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 1'b0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 1'b0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 1'b0;
+          load_5_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 1'b0;
+          load_6_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 1'b0;
+          load_7_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 0;
+          store_7_fifo_wdata_reg <= 0;
           pea_0_fifo_wen_reg    <= 1'b0;
           pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
           vcu_0_fifo_wen_reg    <= 1'b0;
           vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b001010: begin
+          if (!store_1_fifo_full) begin
+            store_1_fifo_wen_reg   <= 1'b1;
+            store_1_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            store_1_fifo_wen_reg   <= 1'b0;
+            store_1_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 1'b0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 1'b0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 1'b0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 1'b0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 1'b0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 1'b0;
+          load_5_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 1'b0;
+          load_6_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 1'b0;
+          load_7_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 0;
+          store_0_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b001011: begin
+          if (!store_2_fifo_full) begin
+            store_2_fifo_wen_reg   <= 1'b1;
+            store_2_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            store_2_fifo_wen_reg   <= 1'b0;
+            store_2_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 1'b0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 1'b0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 1'b0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 1'b0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 1'b0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 1'b0;
+          load_5_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 1'b0;
+          load_6_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 1'b0;
+          load_7_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 0;
+          store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 0;
+          store_1_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b001100: begin
+          if (!store_3_fifo_full) begin
+            store_3_fifo_wen_reg   <= 1'b1;
+            store_3_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            store_3_fifo_wen_reg   <= 1'b0;
+            store_3_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 1'b0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 1'b0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 1'b0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 1'b0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 1'b0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 1'b0;
+          load_5_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 1'b0;
+          load_6_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 1'b0;
+          load_7_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 0;
+          store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 0;
+          store_2_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b001101: begin
+          if (!store_4_fifo_full) begin
+            store_4_fifo_wen_reg   <= 1'b1;
+            store_4_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            store_4_fifo_wen_reg   <= 1'b0;
+            store_4_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 1'b0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 1'b0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 1'b0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 1'b0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 1'b0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 1'b0;
+          load_5_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 1'b0;
+          load_6_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 1'b0;
+          load_7_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 0;
+          store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 0;
+          store_3_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 0;
+          store_5_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b001110: begin
+          if (!store_5_fifo_full) begin
+            store_5_fifo_wen_reg   <= 1'b1;
+            store_5_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            store_5_fifo_wen_reg   <= 1'b0;
+            store_5_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 1'b0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 1'b0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 1'b0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 1'b0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 1'b0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 1'b0;
+          load_5_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 1'b0;
+          load_6_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 1'b0;
+          load_7_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 0;
+          store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 0;
+          store_4_fifo_wdata_reg <= 0;
+          store_6_fifo_wen_reg   <= 0;
+          store_6_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b001111: begin
+          if (!store_6_fifo_full) begin
+            store_6_fifo_wen_reg   <= 1'b1;
+            store_6_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            store_6_fifo_wen_reg   <= 1'b0;
+            store_6_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 1'b0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg   <= 1'b0;
+          load_0_fifo_wdata_reg <= 0;
+          load_1_fifo_wen_reg   <= 1'b0;
+          load_1_fifo_wdata_reg <= 0;
+          load_2_fifo_wen_reg   <= 1'b0;
+          load_2_fifo_wdata_reg <= 0;
+          load_3_fifo_wen_reg   <= 1'b0;
+          load_3_fifo_wdata_reg <= 0;
+          load_4_fifo_wen_reg   <= 1'b0;
+          load_4_fifo_wdata_reg <= 0;
+          load_5_fifo_wen_reg   <= 1'b0;
+          load_5_fifo_wdata_reg <= 0;
+          load_6_fifo_wen_reg   <= 1'b0;
+          load_6_fifo_wdata_reg <= 0;
+          load_7_fifo_wen_reg   <= 1'b0;
+          load_7_fifo_wdata_reg <= 0;
+          store_0_fifo_wen_reg   <= 0;
+          store_0_fifo_wdata_reg <= 0;
+          store_1_fifo_wen_reg   <= 0;
+          store_1_fifo_wdata_reg <= 0;
+          store_2_fifo_wen_reg   <= 0;
+          store_2_fifo_wdata_reg <= 0;
+          store_3_fifo_wen_reg   <= 0;
+          store_3_fifo_wdata_reg <= 0;
+          store_4_fifo_wen_reg   <= 0;
+          store_4_fifo_wdata_reg <= 0;
+          store_5_fifo_wen_reg   <= 0;
+          store_5_fifo_wdata_reg <= 0;
+          store_7_fifo_wen_reg   <= 0;
+          store_7_fifo_wdata_reg <= 0;
+          pea_0_fifo_wen_reg    <= 1'b0;
+          pea_0_fifo_wdata_reg  <= 0;
+          pea_1_fifo_wen_reg    <= 1'b0;
+          pea_1_fifo_wdata_reg  <= 0;
+          pea_2_fifo_wen_reg    <= 1'b0;
+          pea_2_fifo_wdata_reg  <= 0;
+          pea_3_fifo_wen_reg    <= 1'b0;
+          pea_3_fifo_wdata_reg  <= 0;
+          pea_4_fifo_wen_reg    <= 1'b0;
+          pea_4_fifo_wdata_reg  <= 0;
+          pea_5_fifo_wen_reg    <= 1'b0;
+          pea_5_fifo_wdata_reg  <= 0;
+          pea_6_fifo_wen_reg    <= 1'b0;
+          pea_6_fifo_wdata_reg  <= 0;
+          pea_7_fifo_wen_reg    <= 1'b0;
+          pea_7_fifo_wdata_reg  <= 0;
+          vcu_0_fifo_wen_reg    <= 1'b0;
+          vcu_0_fifo_wdata_reg  <= 0;
+          vcu_1_fifo_wen_reg    <= 1'b0;
+          vcu_1_fifo_wdata_reg  <= 0;
+          vcu_2_fifo_wen_reg    <= 1'b0;
+          vcu_2_fifo_wdata_reg  <= 0;
+          vcu_3_fifo_wen_reg    <= 1'b0;
+          vcu_3_fifo_wdata_reg  <= 0;
+          vcu_4_fifo_wen_reg    <= 1'b0;
+          vcu_4_fifo_wdata_reg  <= 0;
+          vcu_5_fifo_wen_reg    <= 1'b0;
+          vcu_5_fifo_wdata_reg  <= 0;
+          vcu_6_fifo_wen_reg    <= 1'b0;
+          vcu_6_fifo_wdata_reg  <= 0;
+          vcu_7_fifo_wen_reg    <= 1'b0;
+          vcu_7_fifo_wdata_reg  <= 0;
+        end
+        6'b010000: begin
+          if (!store_7_fifo_full) begin
+            store_7_fifo_wen_reg   <= 1'b1;
+            store_7_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            store_7_fifo_wen_reg   <= 1'b0;
+            store_7_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
         end
         6'b010001: begin
           if (!pea_0_fifo_full) begin
@@ -415,10 +1916,591 @@ always @(posedge clk or negedge rst_n) begin
           synchronize_fifo_wdata_reg <= 0;
           load_0_fifo_wen_reg        <= 0;
           load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
           store_0_fifo_wen_reg       <= 0;
           store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
           vcu_0_fifo_wen_reg         <= 0;
           vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b010010: begin
+          if (!pea_1_fifo_full) begin
+            pea_1_fifo_wen_reg   <= 1'b1;
+            pea_1_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            pea_1_fifo_wen_reg   <= 1'b0;
+            pea_1_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b010011: begin
+          if (!pea_2_fifo_full) begin
+            pea_2_fifo_wen_reg   <= 1'b1;
+            pea_2_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            pea_2_fifo_wen_reg   <= 1'b0;
+            pea_2_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b010100: begin
+          if (!pea_3_fifo_full) begin
+            pea_3_fifo_wen_reg   <= 1'b1;
+            pea_3_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            pea_3_fifo_wen_reg   <= 1'b0;
+            pea_3_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b010101: begin
+          if (!pea_4_fifo_full) begin
+            pea_4_fifo_wen_reg   <= 1'b1;
+            pea_4_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            pea_4_fifo_wen_reg   <= 1'b0;
+            pea_4_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b010110: begin
+          if (!pea_5_fifo_full) begin
+            pea_5_fifo_wen_reg   <= 1'b1;
+            pea_5_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            pea_5_fifo_wen_reg   <= 1'b0;
+            pea_5_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b010111: begin
+          if (!pea_6_fifo_full) begin
+            pea_6_fifo_wen_reg   <= 1'b1;
+            pea_6_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            pea_6_fifo_wen_reg   <= 1'b0;
+            pea_6_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b011000: begin
+          if (!pea_7_fifo_full) begin
+            pea_7_fifo_wen_reg   <= 1'b1;
+            pea_7_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            pea_7_fifo_wen_reg   <= 1'b0;
+            pea_7_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
         end
         6'b011001: begin
           if (!vcu_0_fifo_full) begin
@@ -434,24 +2516,661 @@ always @(posedge clk or negedge rst_n) begin
           synchronize_fifo_wdata_reg <= 0;
           load_0_fifo_wen_reg        <= 0;
           load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
           store_0_fifo_wen_reg       <= 0;
           store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
           pea_0_fifo_wen_reg         <= 0;
           pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
         end
-        
+        6'b011010: begin
+          if (!vcu_1_fifo_full) begin
+            vcu_1_fifo_wen_reg   <= 1'b1;
+            vcu_1_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            vcu_1_fifo_wen_reg   <= 1'b0;
+            vcu_1_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b011011: begin
+          if (!vcu_2_fifo_full) begin
+            vcu_2_fifo_wen_reg   <= 1'b1;
+            vcu_2_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            vcu_2_fifo_wen_reg   <= 1'b0;
+            vcu_2_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b011100: begin
+          if (!vcu_3_fifo_full) begin
+            vcu_3_fifo_wen_reg   <= 1'b1;
+            vcu_3_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            vcu_3_fifo_wen_reg   <= 1'b0;
+            vcu_3_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b011101: begin
+          if (!vcu_4_fifo_full) begin
+            vcu_4_fifo_wen_reg   <= 1'b1;
+            vcu_4_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            vcu_4_fifo_wen_reg   <= 1'b0;
+            vcu_4_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b011110: begin
+          if (!vcu_5_fifo_full) begin
+            vcu_5_fifo_wen_reg   <= 1'b1;
+            vcu_5_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            vcu_5_fifo_wen_reg   <= 1'b0;
+            vcu_5_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b011111: begin
+          if (!vcu_6_fifo_full) begin
+            vcu_6_fifo_wen_reg   <= 1'b1;
+            vcu_6_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            vcu_6_fifo_wen_reg   <= 1'b0;
+            vcu_6_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+        end
+        6'b100000: begin
+          if (!vcu_7_fifo_full) begin
+            vcu_7_fifo_wen_reg   <= 1'b1;
+            vcu_7_fifo_wdata_reg <= insn_buffer_wire[insn_buffer_index];
+            insn_buffer_index <= insn_buffer_index + 1;
+          end
+          else begin
+            vcu_7_fifo_wen_reg   <= 1'b0;
+            vcu_7_fifo_wdata_reg <= 0;
+          end
+          synchronize_fifo_wen_reg   <= 0;
+          synchronize_fifo_wdata_reg <= 0;
+          load_0_fifo_wen_reg        <= 0;
+          load_0_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          store_0_fifo_wen_reg       <= 0;
+          store_0_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          pea_0_fifo_wen_reg         <= 0;
+          pea_0_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          vcu_0_fifo_wen_reg         <= 0;
+          vcu_0_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+        end
         6'b100001: begin
           insn_nonew <= 1'b1;
           synchronize_fifo_wdata_reg <= 0;
           synchronize_fifo_wen_reg   <= 0;
           load_0_fifo_wdata_reg      <= 0;
           load_0_fifo_wen_reg        <= 0;
+          load_1_fifo_wdata_reg      <= 0;
+          load_1_fifo_wen_reg        <= 0;
+          load_2_fifo_wdata_reg      <= 0;
+          load_2_fifo_wen_reg        <= 0;
+          load_3_fifo_wdata_reg      <= 0;
+          load_3_fifo_wen_reg        <= 0;
+          load_4_fifo_wdata_reg      <= 0;
+          load_4_fifo_wen_reg        <= 0;
+          load_5_fifo_wdata_reg      <= 0;
+          load_5_fifo_wen_reg        <= 0;
+          load_6_fifo_wdata_reg      <= 0;
+          load_6_fifo_wen_reg        <= 0;
+          load_7_fifo_wdata_reg      <= 0;
+          load_7_fifo_wen_reg        <= 0;
           store_0_fifo_wdata_reg     <= 0;
           store_0_fifo_wen_reg       <= 0;
+          store_1_fifo_wdata_reg     <= 0;
+          store_1_fifo_wen_reg       <= 0;
+          store_2_fifo_wdata_reg     <= 0;
+          store_2_fifo_wen_reg       <= 0;
+          store_3_fifo_wdata_reg     <= 0;
+          store_3_fifo_wen_reg       <= 0;
+          store_4_fifo_wdata_reg     <= 0;
+          store_4_fifo_wen_reg       <= 0;
+          store_5_fifo_wdata_reg     <= 0;
+          store_5_fifo_wen_reg       <= 0;
+          store_6_fifo_wdata_reg     <= 0;
+          store_6_fifo_wen_reg       <= 0;
+          store_7_fifo_wdata_reg     <= 0;
+          store_7_fifo_wen_reg       <= 0;
           pea_0_fifo_wdata_reg       <= 0;
           pea_0_fifo_wen_reg         <= 0;
+          pea_1_fifo_wdata_reg       <= 0;
+          pea_1_fifo_wen_reg         <= 0;
+          pea_2_fifo_wdata_reg       <= 0;
+          pea_2_fifo_wen_reg         <= 0;
+          pea_3_fifo_wdata_reg       <= 0;
+          pea_3_fifo_wen_reg         <= 0;
+          pea_4_fifo_wdata_reg       <= 0;
+          pea_4_fifo_wen_reg         <= 0;
+          pea_5_fifo_wdata_reg       <= 0;
+          pea_5_fifo_wen_reg         <= 0;
+          pea_6_fifo_wdata_reg       <= 0;
+          pea_6_fifo_wen_reg         <= 0;
+          pea_7_fifo_wdata_reg       <= 0;
+          pea_7_fifo_wen_reg         <= 0;
           vcu_0_fifo_wdata_reg       <= 0;
           vcu_0_fifo_wen_reg         <= 0;
+          vcu_1_fifo_wdata_reg       <= 0;
+          vcu_1_fifo_wen_reg         <= 0;
+          vcu_2_fifo_wdata_reg       <= 0;
+          vcu_2_fifo_wen_reg         <= 0;
+          vcu_3_fifo_wdata_reg       <= 0;
+          vcu_3_fifo_wen_reg         <= 0;
+          vcu_4_fifo_wdata_reg       <= 0;
+          vcu_4_fifo_wen_reg         <= 0;
+          vcu_5_fifo_wdata_reg       <= 0;
+          vcu_5_fifo_wen_reg         <= 0;
+          vcu_6_fifo_wdata_reg       <= 0;
+          vcu_6_fifo_wen_reg         <= 0;
+          vcu_7_fifo_wdata_reg       <= 0;
+          vcu_7_fifo_wen_reg         <= 0;
+          insn_nonew                 <= 0;
         end
       endcase
     end
@@ -460,12 +3179,68 @@ always @(posedge clk or negedge rst_n) begin
       synchronize_fifo_wen_reg   <= 0;
       load_0_fifo_wdata_reg      <= 0;
       load_0_fifo_wen_reg        <= 0;
+      load_1_fifo_wdata_reg      <= 0;
+      load_1_fifo_wen_reg        <= 0;
+      load_2_fifo_wdata_reg      <= 0;
+      load_2_fifo_wen_reg        <= 0;
+      load_3_fifo_wdata_reg      <= 0;
+      load_3_fifo_wen_reg        <= 0;
+      load_4_fifo_wdata_reg      <= 0;
+      load_4_fifo_wen_reg        <= 0;
+      load_5_fifo_wdata_reg      <= 0;
+      load_5_fifo_wen_reg        <= 0;
+      load_6_fifo_wdata_reg      <= 0;
+      load_6_fifo_wen_reg        <= 0;
+      load_7_fifo_wdata_reg      <= 0;
+      load_7_fifo_wen_reg        <= 0;
       store_0_fifo_wdata_reg     <= 0;
       store_0_fifo_wen_reg       <= 0;
+      store_1_fifo_wdata_reg     <= 0;
+      store_1_fifo_wen_reg       <= 0;
+      store_2_fifo_wdata_reg     <= 0;
+      store_2_fifo_wen_reg       <= 0;
+      store_3_fifo_wdata_reg     <= 0;
+      store_3_fifo_wen_reg       <= 0;
+      store_4_fifo_wdata_reg     <= 0;
+      store_4_fifo_wen_reg       <= 0;
+      store_5_fifo_wdata_reg     <= 0;
+      store_5_fifo_wen_reg       <= 0;
+      store_6_fifo_wdata_reg     <= 0;
+      store_6_fifo_wen_reg       <= 0;
+      store_7_fifo_wdata_reg     <= 0;
+      store_7_fifo_wen_reg       <= 0;
       pea_0_fifo_wdata_reg       <= 0;
       pea_0_fifo_wen_reg         <= 0;
+      pea_1_fifo_wdata_reg       <= 0;
+      pea_1_fifo_wen_reg         <= 0;
+      pea_2_fifo_wdata_reg       <= 0;
+      pea_2_fifo_wen_reg         <= 0;
+      pea_3_fifo_wdata_reg       <= 0;
+      pea_3_fifo_wen_reg         <= 0;
+      pea_4_fifo_wdata_reg       <= 0;
+      pea_4_fifo_wen_reg         <= 0;
+      pea_5_fifo_wdata_reg       <= 0;
+      pea_5_fifo_wen_reg         <= 0;
+      pea_6_fifo_wdata_reg       <= 0;
+      pea_6_fifo_wen_reg         <= 0;
+      pea_7_fifo_wdata_reg       <= 0;
+      pea_7_fifo_wen_reg         <= 0;
       vcu_0_fifo_wdata_reg       <= 0;
       vcu_0_fifo_wen_reg         <= 0;
+      vcu_1_fifo_wdata_reg       <= 0;
+      vcu_1_fifo_wen_reg         <= 0;
+      vcu_2_fifo_wdata_reg       <= 0;
+      vcu_2_fifo_wen_reg         <= 0;
+      vcu_3_fifo_wdata_reg       <= 0;
+      vcu_3_fifo_wen_reg         <= 0;
+      vcu_4_fifo_wdata_reg       <= 0;
+      vcu_4_fifo_wen_reg         <= 0;
+      vcu_5_fifo_wdata_reg       <= 0;
+      vcu_5_fifo_wen_reg         <= 0;
+      vcu_6_fifo_wdata_reg       <= 0;
+      vcu_6_fifo_wen_reg         <= 0;
+      vcu_7_fifo_wdata_reg       <= 0;
+      vcu_7_fifo_wen_reg         <= 0;
       insn_nonew                 <= 0;
     end
   end
@@ -493,5 +3268,6 @@ for (insn_buffer_var=0; insn_buffer_var<INSN_BUFFER_NUM; insn_buffer_var=insn_bu
 	assign insn_buffer_wire[insn_buffer_var] = insn_buffer_reg[(INSN_WIDTH*insn_buffer_var+INSN_WIDTH-1)-:INSN_WIDTH];
 end
 endgenerate
+
 
 endmodule

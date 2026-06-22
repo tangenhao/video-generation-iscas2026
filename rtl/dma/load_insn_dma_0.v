@@ -6,9 +6,11 @@ module load_insn_dma_0(
   peripheral_M_rdata, peripheral_M_rdata_ready, peripheral_M_rdata_valid, 
 
   ifmap_wvalid, ifmap_waddr, ifmap_wdata,
+  qact_wvalid, qact_waddr, qact_wdata,
   vcucode_wvalid, vcucode_waddr, vcucode_wdata,
   vcupara_wvalid, vcupara_waddr, vcupara_wdata,
   vcures_wvalid, vcures_waddr, vcures_wdata,
+  weight_wvalid, weight_wdata,
 
   regfile_wvalid, regfile_waddr, regfile_wdata
 );
@@ -38,13 +40,16 @@ localparam integer LOAD_INSN_OPCODE_ID      = 1;
 localparam integer LOAD_INSN_OPCODE_ID_BITS = 5;
 localparam integer LOAD_INSN_ID_BITS        = 2;
 
-parameter IFMAP_WIDTH             = 576;
+parameter IFMAP_WIDTH             = 512;
+parameter QACT_WIDTH              = 288;
 parameter VCUCODE_WIDTH           = 64;
-parameter VCUPARA_WIDTH           = 576;
+parameter VCUPARA_WIDTH           = 512;
 parameter VCULUT_WIDTH            = 64;
-parameter VCURES_WIDTH            = 576;
+parameter VCURES_WIDTH            = 512;
+parameter WEIGHT_WIDTH            = 288;
 
 parameter IFMAP_ADDR_BITS         = 9;  //bank:4,2bits; addr:6bits, 36 depth, highaddr:1bits
+parameter QACT_ADDR_BITS          = 9;  //bank:4,2bits; addr:6bits, 36 depth, highaddr:1bits
 parameter VCUPARA_ADDR_BITS       = 9;  //vector_mul, fp16
 parameter VCURES_ADDR_BITS        = 9;  //vector_add, fp16
 parameter VCUCODE_ADDR_BITS       = 7;
@@ -70,6 +75,10 @@ output reg  [IFMAP_ADDR_BITS-1:0]         ifmap_waddr;
 output reg  [IFMAP_WIDTH-1:0]             ifmap_wdata;
 output reg                                ifmap_wvalid;
 
+output reg  [QACT_ADDR_BITS-1:0]          qact_waddr;
+output reg  [QACT_WIDTH-1:0]              qact_wdata;
+output reg                                qact_wvalid;
+
 output reg  [VCUCODE_ADDR_BITS:0]         vcucode_waddr;
 output reg  [VCUCODE_WIDTH-1:0]           vcucode_wdata;
 output reg                                vcucode_wvalid;
@@ -81,6 +90,9 @@ output reg                                vcupara_wvalid;
 output reg  [VCURES_ADDR_BITS-1:0]        vcures_waddr;
 output reg  [VCURES_WIDTH-1:0]            vcures_wdata;
 output reg                                vcures_wvalid;
+
+output reg  [WEIGHT_WIDTH-1:0]            weight_wdata;
+output reg                                weight_wvalid;
 
 output reg  [31:0]                        regfile_waddr;
 output reg  [31:0]                        regfile_wdata;
@@ -184,6 +196,8 @@ assign peripheral_M_rdata_valid = !data_fifo_hfull;
 
 localparam REGFILE_ID       = 4'b0000;
 localparam IFMAP_ID         = 4'b0001;
+localparam WEIGHT_ID        = 4'b0011;
+localparam QACT_ID          = 4'b1100;
 localparam VCUCODE_ID       = 4'b1000;
 localparam VCULUT_ID        = 4'b1001;
 localparam VCUPARA_ID       = 4'b1010;
@@ -624,7 +638,7 @@ always @(posedge clk or negedge rst_n) begin
     if ((write_high_addr == IFMAP_ID) ||
         (write_high_addr == VCUPARA_ID) ||
         (write_high_addr == VCURES_ID)) begin
-      if (valid_data_out_288b) begin
+      if (sram_wvalid) begin
         two_cat_one_cnt <= two_cat_one_cnt + 1'b1;
       end
       else begin
@@ -703,7 +717,9 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-assign need_256_to_288_conversion = (write_high_addr == IFMAP_ID) || (write_high_addr == VCUPARA_ID) || (write_high_addr == VCURES_ID);
+// assign need_256_to_288_conversion = (write_high_addr == IFMAP_ID) || (write_high_addr == VCUPARA_ID) || (write_high_addr == VCURES_ID ) || (write_high_addr == QACT_ID) || (write_high_addr == WEIGHT_ID);
+
+assign need_256_to_288_conversion = (write_high_addr == QACT_ID) || (write_high_addr == WEIGHT_ID);
 
 gearbox_256_to_288 u_cb_pp_256_to_288(
   .clk              (clk                                      ),
@@ -725,17 +741,17 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == IFMAP_ID) begin
-      if (valid_data_out_288b) begin
+      if (sram_wvalid) begin
         case(two_cat_one_cnt)
           1'b0: begin
             ifmap_wvalid <= 1'b0;
             ifmap_waddr  <= sram_addr[IFMAP_ADDR_BITS:1];
-            ifmap_wdata  <= {data_out_288b, 288'd0};
+            ifmap_wdata  <= {sram_wdata, 256'd0};
           end
           1'b1: begin
             ifmap_wvalid <= 1'b1;
             ifmap_waddr  <= sram_addr[IFMAP_ADDR_BITS:1];
-            ifmap_wdata  <= {data_out_288b, ifmap_wdata[575:288]};
+            ifmap_wdata  <= {sram_wdata, ifmap_wdata[511:256]};
           end
         endcase
       end
@@ -749,6 +765,56 @@ always @(posedge clk or negedge rst_n) begin
       ifmap_wvalid <= 1'b0;
       ifmap_waddr  <= 'd0;
       ifmap_wdata  <= 'd0;
+    end
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    qact_wvalid <= 1'b0;
+    qact_waddr  <= 'd0;
+    qact_wdata  <= 'd0;
+  end
+  else begin
+    if (write_high_addr == QACT_ID) begin
+      if (valid_data_out_288b) begin
+        qact_wvalid <= 1'b1;
+        qact_waddr  <= sram_addr[QACT_ADDR_BITS-1:0];
+        qact_wdata  <= data_out_288b;
+      end
+      else begin
+        qact_wvalid <= 1'b0;
+        qact_waddr  <= qact_waddr;
+        qact_wdata  <= qact_wdata;
+      end
+    end
+    else begin
+      qact_wvalid <= 1'b0;
+      qact_waddr  <= 'd0;
+      qact_wdata  <= 'd0;
+    end
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    weight_wvalid <= 1'b0;
+    weight_wdata  <= 'd0;
+  end
+  else begin
+    if (write_high_addr == WEIGHT_ID) begin
+      if (valid_data_out_288b) begin
+        weight_wvalid <= 1'b1;
+        weight_wdata  <= data_out_288b;
+      end
+      else begin
+        weight_wvalid <= 1'b0;
+        weight_wdata  <= weight_wdata;
+      end
+    end
+    else begin
+      weight_wvalid <= 1'b0;
+      weight_wdata  <= 'd0;
     end
   end
 end
@@ -807,17 +873,17 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == VCURES_ID) begin
-      if (valid_data_out_288b) begin
+      if (sram_wvalid) begin
         case(two_cat_one_cnt)
           1'b0: begin
             vcures_wvalid <= 1'b0;
             vcures_waddr  <= sram_addr[VCURES_ADDR_BITS:1];
-            vcures_wdata  <= {data_out_288b, 288'd0};
+            vcures_wdata  <= {sram_wdata, 256'd0};
           end
           1'b1: begin
             vcures_wvalid <= 1'b1;
             vcures_waddr  <= sram_addr[VCURES_ADDR_BITS:1];
-            vcures_wdata  <= {data_out_288b, vcures_wdata[575:288]};
+            vcures_wdata  <= {sram_wdata, vcures_wdata[511:256]};
           end
         endcase
       end
@@ -843,17 +909,17 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == VCUPARA_ID) begin
-      if (valid_data_out_288b) begin
+      if (sram_wvalid) begin
         case(two_cat_one_cnt)
           1'b0: begin
             vcupara_wvalid <= 1'b0;
             vcupara_waddr  <= sram_addr[VCUPARA_ADDR_BITS:1];
-            vcupara_wdata  <= {data_out_288b, 288'd0};
+            vcupara_wdata  <= {sram_wdata, 256'd0};
           end
           1'b1: begin
             vcupara_wvalid <= 1'b1;
             vcupara_waddr  <= sram_addr[VCUPARA_ADDR_BITS:1];
-            vcupara_wdata  <= {data_out_288b, vcupara_wdata[575:288]};
+            vcupara_wdata  <= {sram_wdata, vcupara_wdata[511:256]};
           end
         endcase
       end

@@ -4,7 +4,7 @@
 #include "compute_model/common/tensor.h"
 #include "compute_model/function/reduce.h"
 #include "compute_model/function/tensor_function.h"
-#include "pea/pea_insn.h"
+// #include "pea/pea_insn.h"
 #include "vcu/vcu_insn.h"
 #include "vcu/vcu_opcode.h"
 #include "write_reg.h"
@@ -117,7 +117,7 @@ int main(int argc, const char** argv)
   int seq_len              = 1;
   int d_model              = 1152;
   int d_model_weight       = 1152;
-  int oc_group_size        = 36;
+  int oc_group_size        = 32;
   int oc_group             = d_model / oc_group_size;
   int oc_group_weight      = d_model_weight / oc_group_size;
 
@@ -310,23 +310,23 @@ int main(int argc, const char** argv)
 
   insn_series.push_back(insn::load_iteration_2<0>(opcode_ddr_base_addr, vcucode_ddr_lines - 1, 0, 0, 0, MASTER_VCUCODE_ADDR, 0));
 
-  auto seq_in_offset   = split_exp_fra(d_model * bytes_input);
-  auto seq_para_offset = split_exp_fra(d_model * bytes_input);
-  auto seq_out_offset  = split_exp_fra(d_model * bytes_output);
+  auto seq_in_offset   = split_exp_fra(seq_len * oc_group_size * bytes_input);
+  auto seq_para_offset = split_exp_fra(seq_len * oc_group_size * bytes_input);
+  auto seq_out_offset  = split_exp_fra(seq_len * oc_group_size * bytes_output);
 
   insn_series.push_back(insn::load_iteration_2<0>(data_in1_ddr_base_addr,
-                                                  d_model * bytes_input / 32 - 1,
+                                                  seq_len * bytes_input * oc_group_size / 32 - 1,
                                                   seq_in_offset.first,
                                                   seq_in_offset.second,
-                                                  seq_len - 1,
+                                                  oc_group - 1,
                                                   MASTER_IFMAP_ADDR,
                                                   0));
 
   insn_series.push_back(insn::load_iteration_2<0>(data_in2_ddr_base_addr,
-                                                  d_model * bytes_input / 32 - 1,
+                                                  seq_len * bytes_input * oc_group_size / 32 - 1,
                                                   seq_para_offset.first,
                                                   seq_para_offset.second,
-                                                  seq_len - 1,
+                                                  oc_group_weight - 1,
                                                   MASTER_VCUPARA_ADDR,
                                                   0));                                                
 
@@ -449,10 +449,10 @@ int main(int argc, const char** argv)
 
 
   insn_series.push_back(insn::store_iteration_2<0>(data_out_ddr_base_addr,
-                                                   d_model * bytes_output / 32 - 1,
+                                                   seq_len * bytes_output * oc_group_size / 32 - 1,
                                                    seq_out_offset.first,
                                                    seq_out_offset.second,
-                                                   seq_len - 1,
+                                                   oc_group - 1,
                                                    MASTER_OFMAP_ADDR,
                                                    1));
 

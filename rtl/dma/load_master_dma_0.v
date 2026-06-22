@@ -4,9 +4,11 @@ module load_master_dma_0(
   local_done, global_done, 
 
   ifmap_wvalid, ifmap_waddr, ifmap_wdata,
+  qact_wvalid, qact_waddr, qact_wdata,
   vcucode_wvalid, vcucode_waddr, vcucode_wdata,
   vcupara_wvalid, vcupara_waddr, vcupara_wdata,
   vcures_wvalid, vcures_waddr, vcures_wdata,
+  weight_wvalid, weight_wdata,
 
   regfile_wvalid, regfile_waddr, regfile_wdata,
 
@@ -38,12 +40,15 @@ parameter AXI_M_AXI_MIN_ID       = 0;
 parameter AXI_M_AXI_MAX_ID       = 15;
 
 parameter IFMAP_WIDTH             = 576;
+parameter WEIGHT_WIDTH            = 288;
+parameter QACT_WIDTH              = 288;
 parameter VCUCODE_WIDTH           = 64;
 parameter VCUPARA_WIDTH           = 576;
 parameter VCULUT_WIDTH            = 64;
 parameter VCURES_WIDTH            = 576;
 
 parameter IFMAP_ADDR_BITS         = 9;  //bank:4,2bits; addr:6bits, 36 depth, highaddr:1bits
+parameter QACT_ADDR_BITS          = 9;  //bank:4,2bits; addr:6bits, 36 depth, highaddr:1bits
 parameter VCUPARA_ADDR_BITS       = 9;  //vector_mul, fp16
 parameter VCURES_ADDR_BITS        = 9;  //vector_add, fp16
 parameter VCUCODE_ADDR_BITS       = 7;
@@ -83,6 +88,13 @@ output wire                            axi4_full_M_AXI_RREADY;
 output wire [IFMAP_ADDR_BITS-1:0]         ifmap_waddr;
 output wire [IFMAP_WIDTH-1:0]             ifmap_wdata;
 output wire                               ifmap_wvalid;
+
+output wire [QACT_ADDR_BITS-1:0]          qact_waddr;
+output wire [QACT_WIDTH-1:0]              qact_wdata;
+output wire                               qact_wvalid;
+
+output wire [WEIGHT_WIDTH-1:0]            weight_wdata;
+output wire                               weight_wvalid;
 
 output wire [VCUCODE_ADDR_BITS:0]         vcucode_waddr;
 output wire [VCUCODE_WIDTH-1:0]           vcucode_wdata;
@@ -149,6 +161,11 @@ load_insn_dma_0 #(
   .ifmap_waddr              ( ifmap_waddr              ),
   .ifmap_wdata              ( ifmap_wdata              ),
   .ifmap_wvalid             ( ifmap_wvalid             ),
+  .qact_waddr               ( qact_waddr               ),
+  .qact_wdata               ( qact_wdata               ),
+  .qact_wvalid              ( qact_wvalid              ),
+  .weight_wvalid            ( weight_wvalid            ),
+  .weight_wdata             ( weight_wdata             ),
   .vcucode_waddr            ( vcucode_waddr            ),
   .vcucode_wdata            ( vcucode_wdata            ),
   .vcucode_wvalid           ( vcucode_wvalid           ),

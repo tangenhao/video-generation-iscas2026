@@ -3,6 +3,7 @@ module qact_ram(
 
   rvalid_0, raddr_0, rdata_0,
 
+  dma_wvalid, dma_waddr, dma_wdata,
   wvalid, waddr, wdata
 );
 
@@ -23,6 +24,10 @@ input                       rvalid_0;
 input       [ADDR_BITS-1:0] raddr_0;
 output reg  [WIDTH-1:0]     rdata_0;
 
+input                       dma_wvalid;
+input       [ADDR_BITS-1:0] dma_waddr;
+input       [WIDTH-1:0]     dma_wdata;
+
 input                       wvalid;
 input       [ADDR_BITS-1:0] waddr;
 input       [WIDTH-1:0]     wdata;
@@ -41,6 +46,11 @@ always @(posedge clk or negedge rst_n) begin
     wen         <= 'd0;
     waddr_reg   <= 'd0;
     wdata_reg   <= 'd0;
+  end
+  else if (dma_wvalid) begin
+    wen         <= dma_wvalid;
+    waddr_reg   <= dma_waddr;
+    wdata_reg   <= dma_wdata;
   end
   else begin
     wen         <= wvalid;
