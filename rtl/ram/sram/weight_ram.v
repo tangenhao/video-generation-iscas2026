@@ -22,7 +22,7 @@ endfunction
 
 parameter WIDTH     = 288;
 parameter ADDR_BITS = 14;
-parameter BANK      = 32;
+parameter BANK      = 36;
 parameter DEPTH     = 128;
 
 input                        clk;
@@ -63,12 +63,12 @@ wire [WIDTH*BANK_DIV_4-1:0] rdata_2dma_1;
 wire [WIDTH*BANK_DIV_4-1:0] rdata_2dma_2;
 wire [WIDTH*BANK_DIV_4-1:0] rdata_2dma_3;
 
-weight_ram_2dma #(
+weight_ram_1dma #(
   .WIDTH     ( WIDTH      ),
   .ADDR_BITS ( ADDR_BITS  ),
   .BANK      ( BANK_DIV_4 ),
   .DEPTH     ( DEPTH      )
-) u_weight_ram_2dma_0(
+) u_weight_ram_1dma_0(
   .clk          ( clk          ),
   .rst_n        ( rst_n        ),
 
@@ -76,18 +76,16 @@ weight_ram_2dma #(
   .raddr_0      ( raddr_0      ),
   .rdata        ( rdata_2dma_0 ),
 
-  .dma_wvalid_0 ( dma_wvalid   ),
-  .dma_wdata_0  ( dma_wdata    ),
-  .dma_wvalid_1 ( dma_wvalid_1 ),
-  .dma_wdata_1  ( dma_wdata_1  )
+  .dma_wvalid_0 ( dma_wvalid_1 ),
+  .dma_wdata_0  ( dma_wdata_1  )
 );
 
-weight_ram_2dma #(
+weight_ram_1dma #(
   .WIDTH     ( WIDTH      ),
   .ADDR_BITS ( ADDR_BITS  ),
   .BANK      ( BANK_DIV_4 ),
   .DEPTH     ( DEPTH      )
-) u_weight_ram_2dma_1(
+) u_weight_ram_1dma_1(
   .clk          ( clk          ),
   .rst_n        ( rst_n        ),
 
@@ -95,18 +93,16 @@ weight_ram_2dma #(
   .raddr_0      ( raddr_0      ),
   .rdata        ( rdata_2dma_1 ),
 
-  .dma_wvalid_0 ( dma_wvalid_2 ),
-  .dma_wdata_0  ( dma_wdata_2  ),
-  .dma_wvalid_1 ( dma_wvalid_3 ),
-  .dma_wdata_1  ( dma_wdata_3  )
+  .dma_wvalid_0 ( dma_wvalid_3 ),
+  .dma_wdata_0  ( dma_wdata_3  )
 );
 
-weight_ram_2dma #(
+weight_ram_1dma #(
   .WIDTH     ( WIDTH      ),
   .ADDR_BITS ( ADDR_BITS  ),
   .BANK      ( BANK_DIV_4 ),
   .DEPTH     ( DEPTH      )
-) u_weight_ram_2dma_2(
+) u_weight_ram_1dma_2(
   .clk          ( clk          ),
   .rst_n        ( rst_n        ),
 
@@ -114,18 +110,16 @@ weight_ram_2dma #(
   .raddr_0      ( raddr_0      ),
   .rdata        ( rdata_2dma_2 ),
 
-  .dma_wvalid_0 ( dma_wvalid_4 ),
-  .dma_wdata_0  ( dma_wdata_4  ),
-  .dma_wvalid_1 ( dma_wvalid_5 ),
-  .dma_wdata_1  ( dma_wdata_5  )
+  .dma_wvalid_0 ( dma_wvalid_5 ),
+  .dma_wdata_0  ( dma_wdata_5  )
 );
 
-weight_ram_2dma #(
+weight_ram_1dma #(
   .WIDTH     ( WIDTH      ),
   .ADDR_BITS ( ADDR_BITS  ),
   .BANK      ( BANK_DIV_4 ),
   .DEPTH     ( DEPTH      )
-) u_weight_ram_2dma_3(
+) u_weight_ram_1dma_3(
   .clk          ( clk          ),
   .rst_n        ( rst_n        ),
 
@@ -133,10 +127,8 @@ weight_ram_2dma #(
   .raddr_0      ( raddr_0      ),
   .rdata        ( rdata_2dma_3 ),
 
-  .dma_wvalid_0 ( dma_wvalid_6 ),
-  .dma_wdata_0  ( dma_wdata_6  ),
-  .dma_wvalid_1 ( dma_wvalid_7 ),
-  .dma_wdata_1  ( dma_wdata_7  )
+  .dma_wvalid_0 ( dma_wvalid_7 ),
+  .dma_wdata_0  ( dma_wdata_7  )
 );
 
 assign rdata_0 = {rdata_2dma_3, rdata_2dma_2, rdata_2dma_1, rdata_2dma_0};

@@ -318,5 +318,6 @@ std::string reg_cfg_file = "../../sim/bench/reg_data.txt";
 std::string res_file     = "../../sim/memory/vcures.txt";
 std::string para_file    = "../../sim/memory/vcupara.txt";
 std::string ifmap_file   = "../../sim/memory/ifmap.txt";
+std::string qact_file    = "../../sim/memory/qact.txt";
 std::string weight_file  = "../../sim/memory/weight.txt";
 bool        save_bin     = false;

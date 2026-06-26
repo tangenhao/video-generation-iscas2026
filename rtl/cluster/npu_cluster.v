@@ -77,19 +77,20 @@ parameter SLAVE_PERI_DATA_WIDTH     = 256;
 parameter SLAVE_PERI_ADDR_WIDTH     = 38;
 parameter SLAVE_PERI_BUSRSTS_WIDTH  = 22;
 
-parameter WEIGHT_BANK             = 32;
+parameter WEIGHT_BANK             = 36;
 
-parameter IFMAP_WIDTH             = 512;  //2*288, double buffer for vcu
+parameter IFMAP_WIDTH             = 576;
 parameter WEIGHT_WIDTH            = 288;
 parameter VCUCODE_WIDTH           = 64;
-parameter VCUPARA_WIDTH           = 512;
+parameter VCUPARA_WIDTH           = 576;
 parameter VCULUT_WIDTH            = 64;
-parameter VCURES_WIDTH            = 512;
+parameter VCURES_WIDTH            = 576;
 parameter OFMAP_WIDTH             = 256;
-parameter PSUM_WIDTH              = 512;
+parameter VCU_OFMAP_WIDTH         = 576;
+parameter PSUM_WIDTH              = 576;
 parameter QACT_WIDTH              = 288;
-parameter SCALE_WIDTH             = 512;
-parameter PEA_OFMAP_WIDTH         = 1024;
+parameter SCALE_WIDTH             = 576;
+parameter PEA_OFMAP_WIDTH         = 1152;
 
 parameter IFMAP_ADDR_BITS         = 9;   //bank:1,0bits; addr:8bits, 144 depth, highaddr:1bits
 parameter WEIGHT_ADDR_BITS        = 14;  //bank:32,5bits; addr:8bits, 144 depth, highaddr:1bits
@@ -102,6 +103,7 @@ parameter PSUM_ADDR_BITS          = 9;  //bank:1,0bits; addr:8bits, 144 depth, h
 parameter QACT_ADDR_BITS          = 9;
 parameter SCALE_ADDR_BITS         = 9;
 parameter PEA_OFMAP_ADDR_BITS     = 9;
+parameter VCU_OFMAP_ADDR_BITS     = 5;
 
 parameter SYNCHRONIZE_FIFO_DEPTH = 128;
 parameter HIGHADDR_BITS          = 24;
@@ -367,7 +369,7 @@ wire [SCALE_WIDTH-1:0]             vcu_scale_wdata;
 
 wire                               ofmap_0_wvalid;
 wire [OFMAP_ADDR_BITS-1:0]         ofmap_0_waddr;
-wire [OFMAP_WIDTH-1:0]             ofmap_0_wdata;
+wire [VCU_OFMAP_WIDTH-1:0]         ofmap_0_wdata;
 
 wire                               psum_vcu_0_wvalid;
 wire [PSUM_ADDR_BITS-1:0]          psum_vcu_0_waddr;
@@ -468,7 +470,7 @@ rst_cluster  u_rst_cluster(
 assign load_dma_rst_n = dma_rst_n;
 
 /* store 0 */
-store_master_dma_0 #(
+store_master_dma_1 #(
   .STORE_INSNBITS         ( INSN_BITS                 ),
   .PERI_ADDR_WIDTH        ( MASTER_PERI_ADDR_WIDTH    ),
   .PERI_BUSRSTS_WIDTH     ( MASTER_PERI_BUSRSTS_WIDTH ),
@@ -488,10 +490,10 @@ store_master_dma_0 #(
   .axi4_rst_n              ( axi4_rst_n              ),
   .clk                     ( clk                     ),
   .fifo_rst_n              ( rst_n                   ),
-  .logic_rst_n             ( dma_rst_n               ),
+  .logic_rst_n             ( dma_rst_n                ),
   
   /* control signals */
-  .work_en                 ( store_0_work_en_reg     ),
+  .work_en                 ( store_0_work_en_reg      ),
   .insn_read               ( store_0_insn_read       ),
   .insn                    ( store_0_insn            ),
   .local_done              ( store_0_local_done_wire ),
@@ -500,15 +502,9 @@ store_master_dma_0 #(
   .highaddr_sel            ( store_highaddr_sel_3rd  ),
   
   /* sram signals */
-  .psum_rvalid             ( dma_0_psum_sram_rvalid  ),
-  .psum_raddr              ( dma_0_psum_sram_raddr   ),
-  .psum_rdata              ( dma_0_psum_sram_rdata   ),
-
   .ofmap_rvalid            ( dma_0_ofmap_sram_rvalid ),
   .ofmap_raddr             ( dma_0_ofmap_sram_raddr  ),
   .ofmap_rdata             ( dma_0_ofmap_sram_rdata  ),
-
-  .psum_store_valid_bits   ( psum_store_valid_bits   ),
   
   /* axi signals */
   .axi4_full_M_AXI_AWREADY ( dma_0_M_AXI_AWREADY     ),
@@ -561,7 +557,7 @@ store_master_dma_1 #(
   .axi4_rst_n              ( axi4_rst_n              ),
   .clk                     ( clk                     ),
   .fifo_rst_n              ( rst_n                   ),
-  .logic_rst_n             ( dma_rst_n               ),
+  .logic_rst_n             ( dma_rst_n                ),
   
   /* control signals */
   .work_en                 ( store_1_work_en_reg     ),
@@ -831,22 +827,21 @@ pea_ofmap_ram #(
   .wdata      ( pea_ofmap_sram_wdata    )
 );
 
-ofmap_ram u_ofmap_ram(
+vcu_ofmap_ram #(
+  .WRITE_WIDTH      (VCU_OFMAP_WIDTH    ),
+  .WRITE_ADDR_BITS  (VCU_OFMAP_ADDR_BITS),
+  .READ_WIDTH       (OFMAP_WIDTH        ),
+  .READ_ADDR_BITS   (OFMAP_ADDR_BITS    )
+) u_vcu_ofmap_ram(
   .clk          ( clk                     ),
   .rst_n        ( rst_n                   ),
-  .wvalid_0     ( ofmap_0_wvalid          ),
-  .waddr_0      ( ofmap_0_waddr           ),
-  .wdata_0      ( ofmap_0_wdata           ),
-  .wvalid_1     ( ofmap_1_wvalid          ),
-  .waddr_1      ( ofmap_1_waddr           ),
-  .wdata_1      ( ofmap_1_wdata           ),
-  .dma_0_rvalid ( dma_0_ofmap_sram_rvalid ),
-  .dma_0_raddr  ( dma_0_ofmap_sram_raddr  ),
-  .dma_0_rdata  ( dma_0_ofmap_sram_rdata  ),
-
-  .dma_1_rvalid ( dma_1_ofmap_sram_rvalid ),
-  .dma_1_raddr  ( dma_1_ofmap_sram_raddr  ),
-  .dma_1_rdata  ( dma_1_ofmap_sram_rdata  )
+  .wvalid       ( ofmap_0_wvalid          ),
+  .waddr        ( ofmap_0_waddr[VCU_OFMAP_ADDR_BITS-1:0]           ),
+  .wdata        ( ofmap_0_wdata           ),
+  
+  .rvalid_0     ( dma_0_ofmap_sram_rvalid ),
+  .raddr_0      ( dma_0_ofmap_sram_raddr  ),
+  .rdata_0      ( dma_0_ofmap_sram_rdata  )
 );
 
 //vcu: fp16

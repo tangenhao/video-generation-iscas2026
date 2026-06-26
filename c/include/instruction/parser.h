@@ -48,11 +48,11 @@ struct instruction_parser {
     else if (sram_addr >= MASTER_VCUPARA_ADDR && sram_addr < MASTER_VCURES_ADDR) {
       sram_name = "VCU para";
     }
-    else if (sram_addr >= MASTER_VCURES_ADDR && sram_addr < MASTER_IFMAPMASK_ADDR) {
+    else if (sram_addr >= MASTER_VCURES_ADDR && sram_addr < MASTER_QACT_ADDR) {
       sram_name = "VCU resadd";
     }
-    else if (sram_addr >= MASTER_IFMAPMASK_ADDR) {
-      sram_name = "Ifmap mask";
+    else if (sram_addr >= MASTER_QACT_ADDR) {
+      sram_name = "QACT / Ifmap mask";
     }
     return sram_name;
   }

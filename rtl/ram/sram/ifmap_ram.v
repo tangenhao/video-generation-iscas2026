@@ -13,7 +13,7 @@ for(clogb2=0; bit_depth>0; clogb2=clogb2+1)
 end     
 endfunction 
 
-parameter WIDTH     = 512;
+parameter WIDTH     = 576;
 parameter ADDR_BITS = 9;
 
 input                       clk;
@@ -49,7 +49,7 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-sram_512x144 u_ram_bank(
+sram_576x128 u_ram_bank(
   .w_clk  ( clk           ),
   .w_en   ( wen           ),
   .w_addr ( waddr         ),

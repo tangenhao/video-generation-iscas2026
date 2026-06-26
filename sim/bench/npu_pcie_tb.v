@@ -1312,7 +1312,7 @@ parameter IFMAP_SCALE_ADDR = 'h40000;
 parameter WEIGHT_SCALE_ADDR = 'h50000;
 parameter OUTLIER_INDEX_ADDR = 'h60000;
 parameter PSUM_ADDR = 'h70000;
-parameter IFMAP_MASK_ADDR = 'h80000;
+parameter QACT_ADDR = 'h80000;
 parameter VCUCODE_ADDR = 'h90000;
 parameter VCUPARA_ADDR = 'ha0000;
 parameter VCURES_ADDR = 'hb0000;
@@ -1337,7 +1337,7 @@ initial begin
   $readmemh("../memory/weight_scale.txt", u_full_slave_ddr0.data_mem, WEIGHT_SCALE_ADDR);
   $readmemh("../memory/outlier_index.txt", u_full_slave_ddr0.data_mem, OUTLIER_INDEX_ADDR);
   $readmemh("../memory/psum.txt", u_full_slave_ddr0.data_mem, PSUM_ADDR);
-  $readmemh("../memory/ifmap_mask.txt", u_full_slave_ddr0.data_mem, IFMAP_MASK_ADDR);
+  $readmemh("../memory/qact.txt", u_full_slave_ddr0.data_mem, QACT_ADDR);
   $readmemh("../memory/vcucode.txt", u_full_slave_ddr1.data_mem, VCUCODE_ADDR);
   $readmemh("../memory/vcucode.txt", u_full_slave_ddr0.data_mem, VCUCODE_ADDR);
   $readmemh("../memory/vcupara.txt", u_full_slave_ddr0.data_mem, VCUPARA_ADDR);

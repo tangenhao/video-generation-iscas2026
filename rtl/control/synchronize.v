@@ -156,7 +156,7 @@ always @(posedge clk or negedge rst_n) begin
         load_highaddr_config      <= sync_insn[106];
         load_highaddr             <= load_highaddr;
         store_highaddr            <= store_highaddr;
-        word_buffer               <= sync_insn[105:10];
+        word_buffer               <= {sync_insn[41:10], sync_insn[73:42], sync_insn[105:74]};
         word_cnt                  <= sync_insn[9:8];
         cross_die_load_config     <= 1'b0;
         cross_die_store_config    <= 1'b0;
@@ -349,4 +349,3 @@ sync_fifo_sram_128x128 words_fifo(
 );
 
 endmodule
-

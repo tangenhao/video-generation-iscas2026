@@ -1,0 +1,162 @@
+# gemm_i8w8 dequant + bias VCU trace
+# RTL path: dequant_rdata int32 lane -> int2fp32 -> fp32_to_fp16 -> fma ifmap, para, resadd, reg0
+# FMA is modeled as IEEE rounded fp16 multiply followed by IEEE rounded fp16 add, matching rtl/vcu/fpu stream-fuse path.
+# Text memory files are rightLow: lane0 is the low bits of the bus and appears at the right side of each 32B line.
+# Layouts: dequant/ofmap_int32 [n_group][m][36], scale [m][n_group][36], bias [n_group][36], ofmap_fp16 [n_group][m][36]
+
+VCU_TILE m=0 n_group=0 dequant_raddr=0 vcupara_raddr=0 vcures_raddr=0 ofmap_waddr=0
+  lane order below is Verilog low-to-high: [16/32*(lane+1)-1 : 16/32*lane]
+  lane=00 n=   0 valid=1 idx(ofmap,scale,bias)=0,0,0 int32=103131(0x000192db) int2fp32=0x47c96d80 dequant_fp16=0x7c00 scale=0x3405 bias=0x18cf mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=01 n=   1 valid=1 idx(ofmap,scale,bias)=1,1,1 int32=-119324(0xfffe2de4) int2fp32=0xc7e90e00 dequant_fp16=0xfc00 scale=0x37b1 bias=0x3762 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=02 n=   2 valid=1 idx(ofmap,scale,bias)=2,2,2 int32=-49547(0xffff3e75) int2fp32=0xc7418b00 dequant_fp16=0xfa0c scale=0x3574 bias=0x3974 mul_fp16=0xf41f out_fp16=0xf41f
+  lane=03 n=   3 valid=1 idx(ofmap,scale,bias)=3,3,3 int32=-281442(0xfffbb49e) int2fp32=0xc8896c40 dequant_fp16=0xfc00 scale=0x3a61 bias=0x38c3 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=04 n=   4 valid=1 idx(ofmap,scale,bias)=4,4,4 int32=-202858(0xfffce796) int2fp32=0xc8461a80 dequant_fp16=0xfc00 scale=0x3952 bias=0x3aa4 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=05 n=   5 valid=1 idx(ofmap,scale,bias)=5,5,5 int32=-99494(0xfffe7b5a) int2fp32=0xc7c25300 dequant_fp16=0xfc00 scale=0x3ac0 bias=0x3981 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=06 n=   6 valid=1 idx(ofmap,scale,bias)=6,6,6 int32=169097(0x00029489) int2fp32=0x48252240 dequant_fp16=0x7c00 scale=0x3874 bias=0x2f42 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=07 n=   7 valid=1 idx(ofmap,scale,bias)=7,7,7 int32=24305(0x00005ef1) int2fp32=0x46bde200 dequant_fp16=0x75ef scale=0x3aa3 bias=0x3946 mul_fp16=0x74ec out_fp16=0x74ec
+  lane=08 n=   8 valid=1 idx(ofmap,scale,bias)=8,8,8 int32=-151032(0xfffdb208) int2fp32=0xc8137e00 dequant_fp16=0xfc00 scale=0x3b28 bias=0x3a50 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=09 n=   9 valid=1 idx(ofmap,scale,bias)=9,9,9 int32=-18263(0xffffb8a9) int2fp32=0xc68eae00 dequant_fp16=0xf475 scale=0x3ba2 bias=0x3687 mul_fp16=0xf441 out_fp16=0xf441
+  lane=10 n=  10 valid=1 idx(ofmap,scale,bias)=10,10,10 int32=113469(0x0001bb3d) int2fp32=0x47dd9e80 dequant_fp16=0x7c00 scale=0x3a34 bias=0x2a7b mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=11 n=  11 valid=1 idx(ofmap,scale,bias)=11,11,11 int32=263667(0x000405f3) int2fp32=0x4880be60 dequant_fp16=0x7c00 scale=0x3b4d bias=0x3a99 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=12 n=  12 valid=1 idx(ofmap,scale,bias)=12,12,12 int32=-41949(0xffff5c23) int2fp32=0xc723dd00 dequant_fp16=0xf91f scale=0x3651 bias=0x34a2 mul_fp16=0xf40b out_fp16=0xf40b
+  lane=13 n=  13 valid=1 idx(ofmap,scale,bias)=13,13,13 int32=-101406(0xfffe73e2) int2fp32=0xc7c60f00 dequant_fp16=0xfc00 scale=0x3b7d bias=0x35f2 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=14 n=  14 valid=1 idx(ofmap,scale,bias)=14,14,14 int32=143200(0x00022f60) int2fp32=0x480bd800 dequant_fp16=0x7c00 scale=0x3a27 bias=0x28ed mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=15 n=  15 valid=1 idx(ofmap,scale,bias)=15,15,15 int32=65070(0x0000fe2e) int2fp32=0x477e2e00 dequant_fp16=0x7bf1 scale=0x3ba4 bias=0x3b48 mul_fp16=0x7b96 out_fp16=0x7b96
+  lane=16 n=  16 valid=1 idx(ofmap,scale,bias)=16,16,16 int32=93750(0x00016e36) int2fp32=0x47b71b00 dequant_fp16=0x7c00 scale=0x36c2 bias=0x3584 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=17 n=  17 valid=1 idx(ofmap,scale,bias)=17,17,17 int32=-1635(0xfffff99d) int2fp32=0xc4cc6000 dequant_fp16=0xe663 scale=0x393d bias=0x34f4 mul_fp16=0xe42f out_fp16=0xe42f
+  lane=18 n=  18 valid=1 idx(ofmap,scale,bias)=18,18,18 int32=-146458(0xfffdc3e6) int2fp32=0xc80f0680 dequant_fp16=0xfc00 scale=0x3a19 bias=0x2652 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=19 n=  19 valid=1 idx(ofmap,scale,bias)=19,19,19 int32=179771(0x0002be3b) int2fp32=0x482f8ec0 dequant_fp16=0x7c00 scale=0x3836 bias=0x2abe mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=20 n=  20 valid=1 idx(ofmap,scale,bias)=20,20,20 int32=13936(0x00003670) int2fp32=0x4659c000 dequant_fp16=0x72ce scale=0x38fc bias=0x33de mul_fp16=0x703d out_fp16=0x703d
+  lane=21 n=  21 valid=1 idx(ofmap,scale,bias)=21,21,21 int32=28177(0x00006e11) int2fp32=0x46dc2200 dequant_fp16=0x76e1 scale=0x3821 bias=0x2812 mul_fp16=0x731a out_fp16=0x731a
+  lane=22 n=  22 valid=1 idx(ofmap,scale,bias)=22,22,22 int32=31735(0x00007bf7) int2fp32=0x46f7ee00 dequant_fp16=0x77bf scale=0x3ac6 bias=0x398b mul_fp16=0x768f out_fp16=0x768f
+  lane=23 n=  23 valid=1 idx(ofmap,scale,bias)=23,23,23 int32=138522(0x00021d1a) int2fp32=0x48074680 dequant_fp16=0x7c00 scale=0x350c bias=0x3031 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=24 n=  24 valid=1 idx(ofmap,scale,bias)=24,24,24 int32=8828(0x0000227c) int2fp32=0x4609f000 dequant_fp16=0x7050 scale=0x36cd bias=0x3acd mul_fp16=0x6b55 out_fp16=0x6b55
+  lane=25 n=  25 valid=1 idx(ofmap,scale,bias)=25,25,25 int32=111332(0x0001b2e4) int2fp32=0x47d97200 dequant_fp16=0x7c00 scale=0x3851 bias=0x2d08 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=26 n=  26 valid=1 idx(ofmap,scale,bias)=26,26,26 int32=-40957(0xffff6003) int2fp32=0xc71ffd00 dequant_fp16=0xf900 scale=0x385c bias=0x38b7 mul_fp16=0xf573 out_fp16=0xf573
+  lane=27 n=  27 valid=1 idx(ofmap,scale,bias)=27,27,27 int32=-86166(0xfffeaf6a) int2fp32=0xc7a84b00 dequant_fp16=0xfc00 scale=0x3ab4 bias=0x319f mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=28 n=  28 valid=1 idx(ofmap,scale,bias)=28,28,28 int32=129215(0x0001f8bf) int2fp32=0x47fc5f80 dequant_fp16=0x7c00 scale=0x3666 bias=0x3a66 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=29 n=  29 valid=1 idx(ofmap,scale,bias)=29,29,29 int32=70672(0x00011410) int2fp32=0x478a0800 dequant_fp16=0x7c00 scale=0x36dc bias=0x35b7 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=30 n=  30 valid=1 idx(ofmap,scale,bias)=30,30,30 int32=107428(0x0001a3a4) int2fp32=0x47d1d200 dequant_fp16=0x7c00 scale=0x34c5 bias=0x2e29 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=31 n=  31 valid=1 idx(ofmap,scale,bias)=31,31,31 int32=-133268(0xfffdf76c) int2fp32=0xc8022500 dequant_fp16=0xfc00 scale=0x38a3 bias=0x3946 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=32 n=  32 valid=1 idx(ofmap,scale,bias)=32,32,32 int32=-219455(0xfffca6c1) int2fp32=0xc8564fc0 dequant_fp16=0xfc00 scale=0x38f2 bias=0x39e3 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=33 n=  33 valid=1 idx(ofmap,scale,bias)=33,33,33 int32=111154(0x0001b232) int2fp32=0x47d91900 dequant_fp16=0x7c00 scale=0x38f5 bias=0x33a9 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=34 n=  34 valid=1 idx(ofmap,scale,bias)=34,34,34 int32=46457(0x0000b579) int2fp32=0x47357900 dequant_fp16=0x79ac scale=0x3699 bias=0x3a99 mul_fp16=0x74ad out_fp16=0x74ad
+  lane=35 n=  35 valid=1 idx(ofmap,scale,bias)=35,35,35 int32=-356074(0xfffa9116) int2fp32=0xc8addd40 dequant_fp16=0xfc00 scale=0x39e2 bias=0x3786 mul_fp16=0xfc00 out_fp16=0xfc00
+
+VCU_TILE m=0 n_group=1 dequant_raddr=1 vcupara_raddr=1 vcures_raddr=1 ofmap_waddr=1
+  lane order below is Verilog low-to-high: [16/32*(lane+1)-1 : 16/32*lane]
+  lane=00 n=  36 valid=1 idx(ofmap,scale,bias)=36,36,36 int32=94262(0x00017036) int2fp32=0x47b81b00 dequant_fp16=0x7c00 scale=0x392b bias=0x3a55 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=01 n=  37 valid=1 idx(ofmap,scale,bias)=37,37,37 int32=45888(0x0000b340) int2fp32=0x47334000 dequant_fp16=0x799a scale=0x3763 bias=0x3b63 mul_fp16=0x752c out_fp16=0x752c
+  lane=02 n=  38 valid=1 idx(ofmap,scale,bias)=38,38,38 int32=48632(0x0000bdf8) int2fp32=0x473df800 dequant_fp16=0x79f0 scale=0x367d bias=0x34fb mul_fp16=0x74d1 out_fp16=0x74d1
+  lane=03 n=  39 valid=1 idx(ofmap,scale,bias)=39,39,39 int32=-119235(0xfffe2e3d) int2fp32=0xc7e8e180 dequant_fp16=0xfc00 scale=0x34d0 bias=0x38d0 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=04 n=  40 valid=1 idx(ofmap,scale,bias)=40,40,40 int32=13392(0x00003450) int2fp32=0x46514000 dequant_fp16=0x728a scale=0x3872 bias=0x2f26 mul_fp16=0x6f44 out_fp16=0x6f44
+  lane=05 n=  41 valid=1 idx(ofmap,scale,bias)=41,41,41 int32=115953(0x0001c4f1) int2fp32=0x47e27880 dequant_fp16=0x7c00 scale=0x390f bias=0x3a1f mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=06 n=  42 valid=1 idx(ofmap,scale,bias)=42,42,42 int32=-192587(0xfffd0fb5) int2fp32=0xc83c12c0 dequant_fp16=0xfc00 scale=0x3931 bias=0x3a63 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=07 n=  43 valid=1 idx(ofmap,scale,bias)=43,43,43 int32=-74011(0xfffedee5) int2fp32=0xc7908d80 dequant_fp16=0xfc00 scale=0x3a07 bias=0x1eea mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=08 n=  44 valid=1 idx(ofmap,scale,bias)=44,44,44 int32=-27249(0xffff958f) int2fp32=0xc6d4e200 dequant_fp16=0xf6a7 scale=0x37a5 bias=0x374a mul_fp16=0xf25b out_fp16=0xf25b
+  lane=09 n=  45 valid=1 idx(ofmap,scale,bias)=45,45,45 int32=70556(0x0001139c) int2fp32=0x4789ce00 dequant_fp16=0x7c00 scale=0x3939 bias=0x3a72 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=10 n=  46 valid=1 idx(ofmap,scale,bias)=46,46,46 int32=25055(0x000061df) int2fp32=0x46c3be00 dequant_fp16=0x761e scale=0x37ec bias=0x37d9 mul_fp16=0x720f out_fp16=0x720f
+  lane=11 n=  47 valid=1 idx(ofmap,scale,bias)=47,47,47 int32=162976(0x00027ca0) int2fp32=0x481f2800 dequant_fp16=0x7c00 scale=0x3ba6 bias=0x3698 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=12 n=  48 valid=1 idx(ofmap,scale,bias)=48,48,48 int32=6577(0x000019b1) int2fp32=0x45cd8800 dequant_fp16=0x6e6c scale=0x3941 bias=0x3a81 mul_fp16=0x6c38 out_fp16=0x6c38
+  lane=13 n=  49 valid=1 idx(ofmap,scale,bias)=49,49,49 int32=-109596(0xfffe53e4) int2fp32=0xc7d60e00 dequant_fp16=0xfc00 scale=0x3763 bias=0x3b63 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=14 n=  50 valid=1 idx(ofmap,scale,bias)=50,50,50 int32=-240589(0xfffc5433) int2fp32=0xc86af340 dequant_fp16=0xfc00 scale=0x3796 bias=0x3b96 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=15 n=  51 valid=1 idx(ofmap,scale,bias)=51,51,51 int32=99194(0x0001837a) int2fp32=0x47c1bd00 dequant_fp16=0x7c00 scale=0x3947 bias=0x351d mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=16 n=  52 valid=1 idx(ofmap,scale,bias)=52,52,52 int32=27194(0x00006a3a) int2fp32=0x46d47400 dequant_fp16=0x76a4 scale=0x3954 bias=0x3551 mul_fp16=0x746c out_fp16=0x746c
+  lane=17 n=  53 valid=1 idx(ofmap,scale,bias)=53,53,53 int32=9167(0x000023cf) int2fp32=0x460f3c00 dequant_fp16=0x707a scale=0x3be3 bias=0x378e mul_fp16=0x706a out_fp16=0x706a
+  lane=18 n=  54 valid=1 idx(ofmap,scale,bias)=54,54,54 int32=-104617(0xfffe6757) int2fp32=0xc7cc5480 dequant_fp16=0xfc00 scale=0x3b1e bias=0x3a3c mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=19 n=  55 valid=1 idx(ofmap,scale,bias)=55,55,55 int32=44339(0x0000ad33) int2fp32=0x472d3300 dequant_fp16=0x796a scale=0x379e bias=0x3b9e mul_fp16=0x7528 out_fp16=0x7528
+  lane=20 n=  56 valid=1 idx(ofmap,scale,bias)=56,56,56 int32=-169478(0xfffd69fa) int2fp32=0xc8258180 dequant_fp16=0xfc00 scale=0x37a4 bias=0x3ba4 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=21 n=  57 valid=1 idx(ofmap,scale,bias)=57,57,57 int32=203467(0x00031acb) int2fp32=0x4846b2c0 dequant_fp16=0x7c00 scale=0x3930 bias=0x34c0 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=22 n=  58 valid=1 idx(ofmap,scale,bias)=58,58,58 int32=-40056(0xffff6388) int2fp32=0xc71c7800 dequant_fp16=0xf8e4 scale=0x3b0d bias=0x3a19 mul_fp16=0xf84f out_fp16=0xf84f
+  lane=23 n=  59 valid=1 idx(ofmap,scale,bias)=59,59,59 int32=88194(0x00015882) int2fp32=0x47ac4100 dequant_fp16=0x7c00 scale=0x355b bias=0x316b mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=24 n=  60 valid=1 idx(ofmap,scale,bias)=60,60,60 int32=50155(0x0000c3eb) int2fp32=0x4743eb00 dequant_fp16=0x7a1f scale=0x3b95 bias=0x3656 mul_fp16=0x79cd out_fp16=0x79cd
+  lane=25 n=  61 valid=1 idx(ofmap,scale,bias)=61,61,61 int32=79664(0x00013730) int2fp32=0x479b9800 dequant_fp16=0x7c00 scale=0x3b6d bias=0x35b6 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=26 n=  62 valid=1 idx(ofmap,scale,bias)=62,62,62 int32=81979(0x0001403b) int2fp32=0x47a01d80 dequant_fp16=0x7c00 scale=0x371a bias=0x3b1a mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=27 n=  63 valid=1 idx(ofmap,scale,bias)=63,63,63 int32=-21184(0xffffad40) int2fp32=0xc6a58000 dequant_fp16=0xf52c scale=0x3ad7 bias=0x39ae mul_fp16=0xf46c out_fp16=0xf46c
+  lane=28 n=  64 valid=1 idx(ofmap,scale,bias)=64,64,64 int32=1501(0x000005dd) int2fp32=0x44bba000 dequant_fp16=0x65dd scale=0x37f1 bias=0x3bf1 mul_fp16=0x61d2 out_fp16=0x61d4
+  lane=29 n=  65 valid=1 idx(ofmap,scale,bias)=65,65,65 int32=41094(0x0000a086) int2fp32=0x47208600 dequant_fp16=0x7904 scale=0x3ac6 bias=0x322d mul_fp16=0x783f out_fp16=0x783f
+  lane=30 n=  66 valid=1 idx(ofmap,scale,bias)=66,66,66 int32=147788(0x0002414c) int2fp32=0x48105300 dequant_fp16=0x7c00 scale=0x36bf bias=0x3abf mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=31 n=  67 valid=1 idx(ofmap,scale,bias)=67,67,67 int32=-267926(0xfffbe96a) int2fp32=0xc882d2c0 dequant_fp16=0xfc00 scale=0x35c2 bias=0x3309 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=32 n=  68 valid=1 idx(ofmap,scale,bias)=68,68,68 int32=49524(0x0000c174) int2fp32=0x47417400 dequant_fp16=0x7a0c scale=0x3951 bias=0x3545 mul_fp16=0x7805 out_fp16=0x7805
+  lane=33 n=  69 valid=1 idx(ofmap,scale,bias)=69,69,69 int32=-6403(0xffffe6fd) int2fp32=0xc5c81800 dequant_fp16=0xee41 scale=0x3a80 bias=0x2ffb mul_fp16=0xed15 out_fp16=0xed15
+  lane=34 n=  70 valid=1 idx(ofmap,scale,bias)=70,70,70 int32=21531(0x0000541b) int2fp32=0x46a83600 dequant_fp16=0x7542 scale=0x35b2 bias=0x32ca mul_fp16=0x6f7c out_fp16=0x6f7c
+  lane=35 n=  71 valid=1 idx(ofmap,scale,bias)=71,71,71 int32=-279216(0xfffbbd50) int2fp32=0xc8885600 dequant_fp16=0xfc00 scale=0x3af8 bias=0x33c4 mul_fp16=0xfc00 out_fp16=0xfc00
+
+VCU_TILE m=0 n_group=2 dequant_raddr=2 vcupara_raddr=2 vcures_raddr=2 ofmap_waddr=2
+  lane order below is Verilog low-to-high: [16/32*(lane+1)-1 : 16/32*lane]
+  lane=00 n=  72 valid=1 idx(ofmap,scale,bias)=72,72,72 int32=-135473(0xfffdeecf) int2fp32=0xc8044c40 dequant_fp16=0xfc00 scale=0x3880 bias=0x2ff8 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=01 n=  73 valid=1 idx(ofmap,scale,bias)=73,73,73 int32=311071(0x0004bf1f) int2fp32=0x4897e3e0 dequant_fp16=0x7c00 scale=0x3a95 bias=0x30a6 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=02 n=  74 valid=1 idx(ofmap,scale,bias)=74,74,74 int32=100681(0x00018949) int2fp32=0x47c4a480 dequant_fp16=0x7c00 scale=0x3bb2 bias=0x3b65 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=03 n=  75 valid=1 idx(ofmap,scale,bias)=75,75,75 int32=-387245(0xfffa1753) int2fp32=0xc8bd15a0 dequant_fp16=0xfc00 scale=0x3b56 bias=0x3557 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=04 n=  76 valid=1 idx(ofmap,scale,bias)=76,76,76 int32=133953(0x00020b41) int2fp32=0x4802d040 dequant_fp16=0x7c00 scale=0x365a bias=0x34b4 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=05 n=  77 valid=1 idx(ofmap,scale,bias)=77,77,77 int32=37191(0x00009147) int2fp32=0x47114700 dequant_fp16=0x788a scale=0x3434 bias=0x2673 mul_fp16=0x70c5 out_fp16=0x70c5
+  lane=06 n=  78 valid=1 idx(ofmap,scale,bias)=78,78,78 int32=-23436(0xffffa474) int2fp32=0xc6b71800 dequant_fp16=0xf5b9 scale=0x37a2 bias=0x3745 mul_fp16=0xf176 out_fp16=0xf176
+  lane=07 n=  79 valid=1 idx(ofmap,scale,bias)=79,79,79 int32=115124(0x0001c1b4) int2fp32=0x47e0da00 dequant_fp16=0x7c00 scale=0x347e bias=0x2bdb mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=08 n=  80 valid=1 idx(ofmap,scale,bias)=80,80,80 int32=-73338(0xfffee186) int2fp32=0xc78f3d00 dequant_fp16=0xfc00 scale=0x3961 bias=0x3586 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=09 n=  81 valid=1 idx(ofmap,scale,bias)=81,81,81 int32=-135494(0xfffdeeba) int2fp32=0xc8045180 dequant_fp16=0xfc00 scale=0x34e0 bias=0x38e0 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=10 n=  82 valid=1 idx(ofmap,scale,bias)=82,82,82 int32=3500(0x00000dac) int2fp32=0x455ac000 dequant_fp16=0x6ad6 scale=0x3615 bias=0x3a15 mul_fp16=0x6532 out_fp16=0x6533
+  lane=11 n=  83 valid=1 idx(ofmap,scale,bias)=83,83,83 int32=-60887(0xffff1229) int2fp32=0xc76dd700 dequant_fp16=0xfb6f scale=0x3a25 bias=0x384b mul_fp16=0xf9b6 out_fp16=0xf9b6
+  lane=12 n=  84 valid=1 idx(ofmap,scale,bias)=84,84,84 int32=-117963(0xfffe3335) int2fp32=0xc7e66580 dequant_fp16=0xfc00 scale=0x39e6 bias=0x3796 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=13 n=  85 valid=1 idx(ofmap,scale,bias)=85,85,85 int32=637(0x0000027d) int2fp32=0x441f4000 dequant_fp16=0x60fa scale=0x3b74 bias=0x3ae7 mul_fp16=0x60a3 out_fp16=0x60a5
+  lane=14 n=  86 valid=1 idx(ofmap,scale,bias)=86,86,86 int32=53819(0x0000d23b) int2fp32=0x47523b00 dequant_fp16=0x7a92 scale=0x36f0 bias=0x3af0 mul_fp16=0x75b3 out_fp16=0x75b3
+  lane=15 n=  87 valid=1 idx(ofmap,scale,bias)=87,87,87 int32=11683(0x00002da3) int2fp32=0x46368c00 dequant_fp16=0x71b4 scale=0x34fd bias=0x38fd mul_fp16=0x6b1d out_fp16=0x6b1d
+  lane=16 n=  88 valid=1 idx(ofmap,scale,bias)=88,88,88 int32=-8501(0xffffdecb) int2fp32=0xc604d400 dequant_fp16=0xf027 scale=0x3b59 bias=0x3ab3 mul_fp16=0xefa1 out_fp16=0xefa1
+  lane=17 n=  89 valid=1 idx(ofmap,scale,bias)=89,89,89 int32=-179440(0xfffd4310) int2fp32=0xc82f3c00 dequant_fp16=0xfc00 scale=0x3a49 bias=0x3893 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=18 n=  90 valid=1 idx(ofmap,scale,bias)=90,90,90 int32=-32975(0xffff7f31) int2fp32=0xc700cf00 dequant_fp16=0xf806 scale=0x39d5 bias=0x3bab mul_fp16=0xf5de out_fp16=0xf5de
+  lane=19 n=  91 valid=1 idx(ofmap,scale,bias)=91,91,91 int32=-152807(0xfffdab19) int2fp32=0xc81539c0 dequant_fp16=0xfc00 scale=0x372c bias=0x3b2c mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=20 n=  92 valid=1 idx(ofmap,scale,bias)=92,92,92 int32=-97004(0xfffe8514) int2fp32=0xc7bd7600 dequant_fp16=0xfc00 scale=0x3670 bias=0x34e0 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=21 n=  93 valid=1 idx(ofmap,scale,bias)=93,93,93 int32=199858(0x00030cb2) int2fp32=0x48432c80 dequant_fp16=0x7c00 scale=0x39ee bias=0x3bdb mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=22 n=  94 valid=1 idx(ofmap,scale,bias)=94,94,94 int32=-235438(0xfffc6852) int2fp32=0xc865eb80 dequant_fp16=0xfc00 scale=0x36ac bias=0x3558 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=23 n=  95 valid=1 idx(ofmap,scale,bias)=95,95,95 int32=-48232(0xffff4398) int2fp32=0xc73c6800 dequant_fp16=0xf9e3 scale=0x365b bias=0x3a5b mul_fp16=0xf4ad out_fp16=0xf4ad
+  lane=24 n=  96 valid=1 idx(ofmap,scale,bias)=96,96,96 int32=-202796(0xfffce7d4) int2fp32=0xc8460b00 dequant_fp16=0xfc00 scale=0x387f bias=0x38fe mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=25 n=  97 valid=1 idx(ofmap,scale,bias)=97,97,97 int32=104823(0x00019977) int2fp32=0x47ccbb80 dequant_fp16=0x7c00 scale=0x37a0 bias=0x3740 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=26 n=  98 valid=1 idx(ofmap,scale,bias)=98,98,98 int32=-118320(0xfffe31d0) int2fp32=0xc7e71800 dequant_fp16=0xfc00 scale=0x3b2e bias=0x3a5d mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=27 n=  99 valid=1 idx(ofmap,scale,bias)=99,99,99 int32=43468(0x0000a9cc) int2fp32=0x4729cc00 dequant_fp16=0x794e scale=0x34f2 bias=0x38f2 mul_fp16=0x728f out_fp16=0x728f
+  lane=28 n= 100 valid=1 idx(ofmap,scale,bias)=100,100,100 int32=-63499(0xffff07f5) int2fp32=0xc7780b00 dequant_fp16=0xfbc0 scale=0x38c4 bias=0x321e mul_fp16=0xf89e out_fp16=0xf89e
+  lane=29 n= 101 valid=1 idx(ofmap,scale,bias)=101,101,101 int32=63517(0x0000f81d) int2fp32=0x47781d00 dequant_fp16=0x7bc1 scale=0x3980 bias=0x3601 mul_fp16=0x7955 out_fp16=0x7955
+  lane=30 n= 102 valid=1 idx(ofmap,scale,bias)=102,102,102 int32=-86806(0xfffeacea) int2fp32=0xc7a98b00 dequant_fp16=0xfc00 scale=0x38a8 bias=0x313d mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=31 n= 103 valid=1 idx(ofmap,scale,bias)=103,103,103 int32=201628(0x0003139c) int2fp32=0x4844e700 dequant_fp16=0x7c00 scale=0x39fe bias=0x37f9 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=32 n= 104 valid=1 idx(ofmap,scale,bias)=104,104,104 int32=61172(0x0000eef4) int2fp32=0x476ef400 dequant_fp16=0x7b78 scale=0x3a77 bias=0x2f6c mul_fp16=0x7a09 out_fp16=0x7a09
+  lane=33 n= 105 valid=1 idx(ofmap,scale,bias)=105,105,105 int32=-73547(0xfffee0b5) int2fp32=0xc78fa580 dequant_fp16=0xfc00 scale=0x37f9 bias=0x37f1 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=34 n= 106 valid=1 idx(ofmap,scale,bias)=106,106,106 int32=-175764(0xfffd516c) int2fp32=0xc82ba500 dequant_fp16=0xfc00 scale=0x38e3 bias=0x39c6 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=35 n= 107 valid=1 idx(ofmap,scale,bias)=107,107,107 int32=-104257(0xfffe68bf) int2fp32=0xc7cba080 dequant_fp16=0xfc00 scale=0x39aa bias=0x3b54 mul_fp16=0xfc00 out_fp16=0xfc00
+
+VCU_TILE m=0 n_group=3 dequant_raddr=3 vcupara_raddr=3 vcures_raddr=3 ofmap_waddr=3
+  lane order below is Verilog low-to-high: [16/32*(lane+1)-1 : 16/32*lane]
+  lane=00 n= 108 valid=1 idx(ofmap,scale,bias)=108,108,108 int32=41949(0x0000a3dd) int2fp32=0x4723dd00 dequant_fp16=0x791f scale=0x3b57 bias=0x355c mul_fp16=0x78b3 out_fp16=0x78b3
+  lane=01 n= 109 valid=1 idx(ofmap,scale,bias)=109,109,109 int32=-64302(0xffff04d2) int2fp32=0xc77b2e00 dequant_fp16=0xfbd9 scale=0x3a2d bias=0x385a mul_fp16=0xfa0f out_fp16=0xfa0f
+  lane=02 n= 110 valid=1 idx(ofmap,scale,bias)=110,110,110 int32=-103892(0xfffe6a2c) int2fp32=0xc7caea00 dequant_fp16=0xfc00 scale=0x34de bias=0x38de mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=03 n= 111 valid=1 idx(ofmap,scale,bias)=111,111,111 int32=131916(0x0002034c) int2fp32=0x4800d300 dequant_fp16=0x7c00 scale=0x39f4 bias=0x37ce mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=04 n= 112 valid=1 idx(ofmap,scale,bias)=112,112,112 int32=169041(0x00029451) int2fp32=0x48251440 dequant_fp16=0x7c00 scale=0x3b80 bias=0x3601 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=05 n= 113 valid=1 idx(ofmap,scale,bias)=113,113,113 int32=6861(0x00001acd) int2fp32=0x45d66800 dequant_fp16=0x6eb3 scale=0x35c5 bias=0x3314 mul_fp16=0x68d5 out_fp16=0x68d5
+  lane=06 n= 114 valid=1 idx(ofmap,scale,bias)=114,114,114 int32=104094(0x0001969e) int2fp32=0x47cb4f00 dequant_fp16=0x7c00 scale=0x3bd2 bias=0x3747 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=07 n= 115 valid=1 idx(ofmap,scale,bias)=115,115,115 int32=39539(0x00009a73) int2fp32=0x471a7300 dequant_fp16=0x78d4 scale=0x3873 bias=0x38e5 mul_fp16=0x755f out_fp16=0x755f
+  lane=08 n= 116 valid=1 idx(ofmap,scale,bias)=116,116,116 int32=23045(0x00005a05) int2fp32=0x46b40a00 dequant_fp16=0x75a0 scale=0x3bb9 bias=0x3b71 mul_fp16=0x756e out_fp16=0x756e
+  lane=09 n= 117 valid=1 idx(ofmap,scale,bias)=117,117,117 int32=-164119(0xfffd7ee9) int2fp32=0xc82045c0 dequant_fp16=0xfc00 scale=0x394d bias=0x3a9b mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=10 n= 118 valid=1 idx(ofmap,scale,bias)=118,118,118 int32=-104394(0xfffe6836) int2fp32=0xc7cbe500 dequant_fp16=0xfc00 scale=0x3ba7 bias=0x369c mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=11 n= 119 valid=1 idx(ofmap,scale,bias)=119,119,119 int32=122645(0x0001df15) int2fp32=0x47ef8a80 dequant_fp16=0x7c00 scale=0x3507 bias=0x301a mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=12 n= 120 valid=1 idx(ofmap,scale,bias)=120,120,120 int32=78606(0x0001330e) int2fp32=0x47998700 dequant_fp16=0x7c00 scale=0x3660 bias=0x34c1 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=13 n= 121 valid=1 idx(ofmap,scale,bias)=121,121,121 int32=91869(0x000166dd) int2fp32=0x47b36e80 dequant_fp16=0x7c00 scale=0x3b81 bias=0x3606 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=14 n= 122 valid=1 idx(ofmap,scale,bias)=122,122,122 int32=93454(0x00016d0e) int2fp32=0x47b68700 dequant_fp16=0x7c00 scale=0x3999 bias=0x3b33 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=15 n= 123 valid=1 idx(ofmap,scale,bias)=123,123,123 int32=-132213(0xfffdfb8b) int2fp32=0xc8011d40 dequant_fp16=0xfc00 scale=0x3b27 bias=0x349c mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=16 n= 124 valid=1 idx(ofmap,scale,bias)=124,124,124 int32=-29106(0xffff8e4e) int2fp32=0xc6e36400 dequant_fp16=0xf71b scale=0x3840 bias=0x2c06 mul_fp16=0xf38d out_fp16=0xf38d
+  lane=17 n= 125 valid=1 idx(ofmap,scale,bias)=125,125,125 int32=90903(0x00016317) int2fp32=0x47b18b80 dequant_fp16=0x7c00 scale=0x3bc9 bias=0x3b91 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=18 n= 126 valid=1 idx(ofmap,scale,bias)=126,126,126 int32=-152972(0xfffdaa74) int2fp32=0xc8156300 dequant_fp16=0xfc00 scale=0x397a bias=0x35e8 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=19 n= 127 valid=1 idx(ofmap,scale,bias)=127,127,127 int32=13694(0x0000357e) int2fp32=0x4655f800 dequant_fp16=0x72b0 scale=0x3be5 bias=0x3bc9 mul_fp16=0x7299 out_fp16=0x7299
+  lane=20 n= 128 valid=1 idx(ofmap,scale,bias)=128,128,128 int32=-107358(0xfffe5ca2) int2fp32=0xc7d1af00 dequant_fp16=0xfc00 scale=0x3626 bias=0x344d mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=21 n= 129 valid=1 idx(ofmap,scale,bias)=129,129,129 int32=47658(0x0000ba2a) int2fp32=0x473a2a00 dequant_fp16=0x79d1 scale=0x390c bias=0x3431 mul_fp16=0x7757 out_fp16=0x7757
+  lane=22 n= 130 valid=1 idx(ofmap,scale,bias)=130,130,130 int32=38366(0x000095de) int2fp32=0x4715de00 dequant_fp16=0x78af scale=0x3864 bias=0x2e39 mul_fp16=0x7524 out_fp16=0x7524
+  lane=23 n= 131 valid=1 idx(ofmap,scale,bias)=131,131,131 int32=-76730(0xfffed446) int2fp32=0xc795dd00 dequant_fp16=0xfc00 scale=0x3878 bias=0x38f1 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=24 n= 132 valid=1 idx(ofmap,scale,bias)=132,132,132 int32=154001(0x00025991) int2fp32=0x48166440 dequant_fp16=0x7c00 scale=0x34ce bias=0x2e6f mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=25 n= 133 valid=1 idx(ofmap,scale,bias)=133,133,133 int32=-120135(0xfffe2ab9) int2fp32=0xc7eaa380 dequant_fp16=0xfc00 scale=0x373b bias=0x3676 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=26 n= 134 valid=1 idx(ofmap,scale,bias)=134,134,134 int32=113663(0x0001bbff) int2fp32=0x47ddff80 dequant_fp16=0x7c00 scale=0x35f5 bias=0x39f5 mul_fp16=0x7c00 out_fp16=0x7c00
+  lane=27 n= 135 valid=1 idx(ofmap,scale,bias)=135,135,135 int32=-15327(0xffffc421) int2fp32=0xc66f7c00 dequant_fp16=0xf37c scale=0x3945 bias=0x3515 mul_fp16=0xf0ee out_fp16=0xf0ee
+  lane=28 n= 136 valid=1 idx(ofmap,scale,bias)=136,136,136 int32=-98144(0xfffe80a0) int2fp32=0xc7bfb000 dequant_fp16=0xfc00 scale=0x3bb0 bias=0x3b61 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=29 n= 137 valid=1 idx(ofmap,scale,bias)=137,137,137 int32=31743(0x00007bff) int2fp32=0x46f7fe00 dequant_fp16=0x77c0 scale=0x390a bias=0x3429 mul_fp16=0x74e2 out_fp16=0x74e2
+  lane=30 n= 138 valid=1 idx(ofmap,scale,bias)=138,138,138 int32=-214234(0xfffcbb26) int2fp32=0xc8513680 dequant_fp16=0xfc00 scale=0x38a0 bias=0x30fe mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=31 n= 139 valid=1 idx(ofmap,scale,bias)=139,139,139 int32=-147445(0xfffdc00b) int2fp32=0xc80ffd40 dequant_fp16=0xfc00 scale=0x3562 bias=0x3962 mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=32 n= 140 valid=1 idx(ofmap,scale,bias)=140,140,140 int32=-183505(0xfffd332f) int2fp32=0xc8333440 dequant_fp16=0xfc00 scale=0x3443 bias=0x282c mul_fp16=0xfc00 out_fp16=0xfc00
+  lane=33 n= 141 valid=1 idx(ofmap,scale,bias)=141,141,141 int32=31419(0x00007abb) int2fp32=0x46f57600 dequant_fp16=0x77ac scale=0x34fb bias=0x38fb mul_fp16=0x70c7 out_fp16=0x70c7
+  lane=34 n= 142 valid=1 idx(ofmap,scale,bias)=142,142,142 int32=25059(0x000061e3) int2fp32=0x46c3c600 dequant_fp16=0x761e scale=0x36c0 bias=0x3ac0 mul_fp16=0x7129 out_fp16=0x7129
+  lane=35 n= 143 valid=1 idx(ofmap,scale,bias)=143,143,143 int32=-37592(0xffff6d28) int2fp32=0xc712d800 dequant_fp16=0xf897 scale=0x39c8 bias=0x3721 mul_fp16=0xf6a2 out_fp16=0xf6a2
+

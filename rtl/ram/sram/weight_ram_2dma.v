@@ -33,7 +33,7 @@ input                        dma_wvalid_1;
 input       [WIDTH-1:0]      dma_wdata_1;
 
 localparam BANK_div_2 = BANK >> 1;
-localparam BANK_BITS = clogb2(BANK_div_2)-1;
+localparam BANK_BITS = clogb2(BANK)-1;
 localparam LOW_ADDR_BITS = ADDR_BITS-BANK_BITS;
 
 wire                           ren;
@@ -173,11 +173,27 @@ endgenerate
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     dma_wdata_0_reg   <= 'd0;
-    dma_wdata_1_reg   <= 'd0;
+  end
+  else if (dma_wvalid_0) begin
+    dma_wdata_0_reg   <= dma_wdata_0;
+  end
+  else if (dma_wvalid_1 & !dma_wvalid_0) begin
+    dma_wdata_0_reg   <= dma_wdata_1;
   end
   else begin
-    dma_wdata_0_reg  <= dma_wdata_0;
-    dma_wdata_1_reg  <= dma_wdata_1;
+    dma_wdata_0_reg  <= dma_wdata_0_reg;
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    dma_wdata_1_reg   <= 'd0;
+  end
+  else if (dma_wvalid_1 ) begin
+    dma_wdata_1_reg   <= dma_wdata_1;
+  end
+  else begin
+    dma_wdata_1_reg  <= dma_wdata_1_reg;
   end
 end
 
@@ -185,7 +201,7 @@ genvar sram_i_0;
 generate
   for (sram_i_0 = 0; sram_i_0 < BANK_div_2; sram_i_0 = sram_i_0 + 1) begin : gen_weight_sram_0
     assign wen_0[sram_i_0]   = dma_wen_0[sram_i_0];
-    assign waddr_0[sram_i_0] = dma_lowaddr_0;
+    assign waddr_0[sram_i_0] = (dma_wvalid_1_reg & !dma_wvalid_0_reg) ? dma_lowaddr_1 : dma_lowaddr_0;
     assign wdata_0[sram_i_0] = dma_wdata_0_reg;
 
     sram_288x128 u_ram_bank(

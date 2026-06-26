@@ -513,9 +513,10 @@ struct load_iteration_2: public instruction {
                    uint64_t hop_offset_1_fra,
                    uint64_t sequ_burst_1,
                    uint64_t sram_addr,
-                   uint64_t all_done)
+                   uint64_t all_done,
+                   uint64_t insn_number = 0)
   {
-    this->storage_t.insn_number       = 0;
+    this->storage_t.insn_number       = insn_number;
     this->storage_t.insn_opcode       = 1 + dma_id;
     this->storage_t.load_insns        = 2;
     this->storage_t.ddr_addr          = ddr_addr;

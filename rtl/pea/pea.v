@@ -10,7 +10,7 @@ module pea(
 );
 
 parameter PARALLELISM  = 36;
-parameter LANE         = 32;
+parameter LANE         = 36;
 
 parameter IFMAP_ADDR_BITS  = 9;
 parameter WEIGHT_ADDR_BITS = 14;
@@ -18,13 +18,13 @@ parameter OFMAP_ADDR_BITS  = 9;
 
 parameter IFMAP_WIDTH  = 288;
 parameter WEIGHT_WIDTH = 288;
-parameter OFMAP_WIDTH  = 1024;
+parameter OFMAP_WIDTH  = 1152;
 
 parameter MAX_K_GROUPS_BITS = 8;
 parameter MAX_N_GROUPS_BITS = 8;
 
 parameter SRAM_DEPTH       = 128;
-parameter OFMAP_SRAM_DEPTH = 144;
+parameter OFMAP_SRAM_DEPTH = 128;
 
 localparam PEA_CONFIG_INSN     = 0;
 localparam GEMM_EXECUTE_INSN   = 2;
@@ -115,7 +115,7 @@ reg [WEIGHT_WIDTH-1:0]      weight_regfile[0:LANE-1];
 
 wire [31:0]                 mpt_result[0:LANE-1];
 wire                        mpt_done;
-wire [PARALLELISM*LANE-1:0] mpt_result_unpack;
+wire [32*LANE-1:0]          mpt_result_unpack;
 
 
 /* -------------------------------------------------------------------------------------------------------- */
@@ -194,16 +194,18 @@ always @(posedge clk or negedge rst_n) begin
   else begin
     if (insn_valid_reg) begin
       insn_kind           <= insn_kind_wire;
-      if (insn_kind_wire == PEA_CONFIG_INSN) begin
-        real_k_groups     <= insn_reg[20:13];
-        real_n_groups     <= insn_reg[28:21];
-        gemm_type         <= insn_reg[30:29];
-      end
-      else if (insn_kind_wire == GEMM_EXECUTE_INSN) begin
+      // if (insn_kind_wire == PEA_CONFIG_INSN) begin
+      //   real_k_groups     <= insn_reg[20:13];
+      //   real_n_groups     <= insn_reg[28:21];
+      //   gemm_type         <= insn_reg[30:29];
+      // end
+      if (insn_kind_wire == GEMM_EXECUTE_INSN) begin
         execute_start     <= 1;
 
-        ifmap_burst_len   <= gemm_tile_m_wire + 1;
-        weight_burst_len  <= gemm_k_groups_wire + 1;
+        ifmap_burst_len   <= gemm_tile_m_wire ;
+        weight_burst_len  <= gemm_tile_m_wire ;
+        real_k_groups     <= gemm_k_groups_wire ;
+        real_n_groups     <= gemm_n_groups_wire ;
         ifmap_highaddr    <= gemm_ifmap_highaddr_wire;
         weight_highaddr   <= gemm_weight_highaddr_wire;
       end
@@ -220,6 +222,36 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
+`ifdef PEA_DEBUG
+always @(posedge clk) begin
+  if (rst_n && insn_valid_reg) begin
+    $display("[%0t][PEA] insn kind=%0d num=%0d raw=%032h tile_m=%0d n_groups=%0d k_groups=%0d acc_clear=%0d last_k=%0d if_hi=%0d wt_hi=%0d",
+             $time, insn_kind_wire, insn_number, insn_reg, gemm_tile_m_wire, gemm_n_groups_wire, gemm_k_groups_wire,
+             gemm_acc_clear, gemm_last_k_groups, gemm_ifmap_highaddr_wire, gemm_weight_highaddr_wire);
+  end
+  if (rst_n && ifmap_sram_rvalid_reg) begin
+    $display("[%0t][PEA] rd ifmap_addr=%0d weight_addr=%0d k_cnt=%0d n_cnt=%0d real_k=%0d real_n=%0d cnt_if=%0d cnt_wt=%0d",
+             $time, ifmap_sram_raddr, weight_sram_raddr, k_group_cnt, n_group_cnt, real_k_groups, real_n_groups,
+             cnt_ifmap_burst_len, cnt_weight_burst_len);
+  end
+  if (rst_n && mpt_valid_pipe) begin
+    $display("[%0t][PEA] mpt_valid acc_clear=%0d lane0_ifmap=%072h lane0_weight=%072h",
+             $time, acc_clear, ifmap_regfile, weight_regfile[0]);
+  end
+  if (rst_n && mpt_done) begin
+    $display("[%0t][PEA] mpt_done insn_kind_wire=%0d insn_kind=%0d last_k_wire=%0d out_wvalid_next=%0d lane0=%08h lane1=%08h",
+             $time, insn_kind_wire, insn_kind, gemm_last_k_groups, gemm_last_k_groups, mpt_result[0], mpt_result[1]);
+  end
+  if (rst_n && ofmap_sram_wvalid) begin
+    $display("[%0t][PEA] ofmap_write addr=%0d data0=%08h data1=%08h data35=%08h",
+             $time, ofmap_sram_waddr, ofmap_sram_wdata[31:0], ofmap_sram_wdata[63:32], ofmap_sram_wdata[1151:1120]);
+  end
+  if (rst_n && done) begin
+    $display("[%0t][PEA] done insn_number=%0d", $time, insn_number);
+  end
+end
+`endif
+
 
 /* -------------------------------------------------------------------------------------------------------- */
 /*                                           Execution Controller                                           */
@@ -231,20 +263,29 @@ assign  n_group_last = (weight_sram_rvalid_reg && n_group_cnt == real_n_groups -
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     k_group_cnt        <= 'd0;
-    n_group_cnt        <= 'd0;
-  end
-  else if (weight_sram_rvalid_reg && k_group_cnt == real_k_groups - 1 && n_group_cnt == real_n_groups - 1) begin
-    n_group_cnt        <= 'd0;
   end
   else if (weight_sram_rvalid_reg && k_group_cnt == real_k_groups - 1) begin
     k_group_cnt        <= 'd0;
-    n_group_cnt        <= n_group_cnt + 1'b1;
   end
   else if (weight_sram_rvalid_reg) begin
     k_group_cnt        <= k_group_cnt + 1'b1;
   end
   else begin
     k_group_cnt        <= k_group_cnt;
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    n_group_cnt        <= 'd0;
+  end
+  else if (weight_sram_rvalid_reg && k_group_cnt == real_k_groups - 1 && n_group_cnt == real_n_groups - 1) begin
+    n_group_cnt        <= 'd0;
+  end
+  else if (weight_sram_rvalid_reg && k_group_cnt == real_k_groups - 1) begin
+    n_group_cnt        <= n_group_cnt + 1'b1;
+  end
+  else begin
     n_group_cnt        <= n_group_cnt;
   end
 end
@@ -255,14 +296,14 @@ end
 
 assign ifmap_sram_raddr     = {ifmap_highaddr, ifmap_sram_raddr_reg};
 assign ifmap_sram_rvalid    = ifmap_sram_rvalid_reg;
-assign cnt_ifmap_burst_len  = ifmap_sram_rvalid_reg ? ifmap_sram_rvalid_reg % ifmap_burst_len : 'd0;
+assign cnt_ifmap_burst_len  = ifmap_sram_rvalid_reg ? ifmap_sram_raddr_reg % ifmap_burst_len : 'd0;
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     ifmap_sram_baseaddr  <= 'd0;
   end
-  else if (execute_start && k_group_cnt == 'd0 && n_group_cnt == 'd0) begin
-    ifmap_sram_baseaddr  <= ifmap_sram_rvalid_reg;
+  else if (ifmap_sram_rvalid_reg && k_group_cnt == 'd0 && n_group_cnt == 'd0) begin
+    ifmap_sram_baseaddr  <= ifmap_sram_raddr_reg;
   end
   else begin
     ifmap_sram_baseaddr  <= ifmap_sram_baseaddr;
@@ -271,29 +312,39 @@ end
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
-    ifmap_sram_raddr_reg  <= 'd0;
     ifmap_sram_rvalid_reg <= 'd0;
   end
-  else if (execute_start) begin
-    if (ifmap_sram_rvalid_reg && ifmap_sram_raddr_reg == SRAM_DEPTH - 1) begin
+  else if (ifmap_sram_rvalid_reg && cnt_ifmap_burst_len == ifmap_burst_len - 1) begin
+    ifmap_sram_rvalid_reg <= 'd0;
+  end
+  // else if (ifmap_sram_rvalid_reg) begin
+  //   ifmap_sram_rvalid_reg <= 1'b1;
+  // end
+  else if (insn_valid_reg) begin
+    ifmap_sram_rvalid_reg <= 1'b1;
+  end
+  else begin
+    ifmap_sram_rvalid_reg <= ifmap_sram_rvalid_reg;
+  end
+end
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    ifmap_sram_raddr_reg  <= 'd0;
+  end
+  else if (ifmap_sram_rvalid_reg) begin
+    if (ifmap_sram_raddr_reg == SRAM_DEPTH - 1) begin
       ifmap_sram_raddr_reg  <= 'd0;
-      ifmap_sram_rvalid_reg <= ifmap_sram_rvalid_reg;
-    end
-    else if (ifmap_sram_rvalid_reg && cnt_ifmap_burst_len == ifmap_burst_len - 1) begin
-      ifmap_sram_raddr_reg  <= ifmap_sram_raddr_reg;
-      ifmap_sram_rvalid_reg <= 'd0;
     end
     else if (k_group_last && !n_group_last) begin
       ifmap_sram_raddr_reg  <= ifmap_sram_baseaddr;
     end
     else begin
       ifmap_sram_raddr_reg  <= ifmap_sram_raddr_reg + 1'b1;
-      ifmap_sram_rvalid_reg <= 1'b1;
     end
   end
   else begin
     ifmap_sram_raddr_reg  <= ifmap_sram_raddr_reg ;
-    ifmap_sram_rvalid_reg <= ifmap_sram_rvalid_reg;
   end
 end
 
@@ -304,30 +355,38 @@ end
 assign weight_sram_raddr          = {weight_highaddr, weight_sram_raddr_reg};
 assign weight_sram_rvalid         = weight_sram_rvalid_reg;
 
-assign cnt_weight_burst_len = weight_sram_rvalid ? weight_sram_rvalid_reg % weight_burst_len : 'd0;
+assign cnt_weight_burst_len = weight_sram_rvalid ? weight_sram_raddr_reg % weight_burst_len : 'd0;
+
+always @(posedge clk or negedge rst_n) begin
+  if (!rst_n) begin
+    weight_sram_rvalid_reg <= 'd0;
+  end
+  else if (weight_sram_rvalid_reg && cnt_weight_burst_len == weight_burst_len - 1) begin
+    weight_sram_rvalid_reg <= 'd0;
+  end
+  else if (insn_valid_reg) begin
+    weight_sram_rvalid_reg <= 1'b1;
+  end
+  else begin
+    weight_sram_rvalid_reg <= weight_sram_rvalid_reg;
+  end
+end
+
 
 always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     weight_sram_raddr_reg  <= 'd0;
-    weight_sram_rvalid_reg <= 'd0;
   end
-  else if (execute_start) begin
-    if (weight_sram_rvalid_reg && weight_sram_raddr_reg == SRAM_DEPTH - 1) begin
+  else if (weight_sram_rvalid_reg) begin
+    if (weight_sram_raddr_reg == SRAM_DEPTH - 1) begin
       weight_sram_raddr_reg  <= 'd0;
-      weight_sram_rvalid_reg <= weight_sram_rvalid_reg;
-    end
-    else if (weight_sram_rvalid_reg && cnt_weight_burst_len == weight_burst_len - 1) begin
-      weight_sram_raddr_reg  <= weight_sram_raddr_reg;
-      weight_sram_rvalid_reg <= 'd0;
     end
     else begin
       weight_sram_raddr_reg  <= weight_sram_raddr_reg + 1'b1;
-      weight_sram_rvalid_reg <= 1'b1;
     end
   end
   else begin
     weight_sram_raddr_reg  <= weight_sram_raddr_reg ;
-    weight_sram_rvalid_reg <= weight_sram_rvalid_reg;
   end
 end
 
@@ -459,7 +518,7 @@ always @(posedge clk or negedge rst_n) begin
   if (!rst_n) begin
     gemm_execute_done     <= 1'b0;
   end
-  else if (gemm_last_k_groups && mpt_done) begin
+  else if (mpt_done && insn_kind_wire == GEMM_EXECUTE_INSN) begin
     gemm_execute_done     <= 1'b1;
   end
   else begin

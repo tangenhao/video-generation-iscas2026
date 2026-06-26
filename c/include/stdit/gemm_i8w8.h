@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
@@ -27,24 +29,44 @@ namespace gemm {
 
 using namespace common;
 
-template<bool READ_FROM_IFMAP_SRAM_          = false,
-         bool DEBUG_                         = false>
+template<bool DEBUG_ = false,
+         int  TYPE_A_ = kInt8,
+         int  TYPE_B_ = kInt8,
+         int  TYPE_ACCUMULATOR_ = kInt32,
+         int  TYPE_OUTPUT_ = kInt32>
 struct insn_gen {
-  static constexpr bool READ_FROM_IFMAP_SRAM = READ_FROM_IFMAP_SRAM_;
-  static constexpr int  DEBUG                = DEBUG_;
+  static constexpr int  DEBUG            = DEBUG_;
+  static constexpr int  TYPE_A           = TYPE_A_;
+  static constexpr int  TYPE_B           = TYPE_B_;
+  static constexpr int  TYPE_ACCUMULATOR = TYPE_ACCUMULATOR_;
+  static constexpr int  TYPE_OUTPUT      = TYPE_OUTPUT_;
 
   int k_group_size;
   int n_group_size;
-  
+
   int bytes_ifmap;
   int bytes_weight;
+  int bytes_scale;
+  int bytes_bias;
   int bytes_ofmap;
 
+
+  static void require_arg(bool condition, const std::string& message)
+  {
+    if (!condition) {
+      std::cerr << "[gemm_i8w8] invalid argument: " << message << std::endl;
+      assert(condition);
+      std::abort();
+    }
+  }
 
   struct Arguments {
     int      m;
     int      n;
     int      k;
+    int      tile_m;
+    int      n_group_size;
+    int      k_group_size;
     int      block_n_group;
     int      block_k_group;
     uint64_t ifmap_base_addr;
@@ -52,28 +74,31 @@ struct insn_gen {
     uint64_t ofmap_base_addr;
     uint64_t opcode_ddr_base_addr ;
     uint64_t bias_base_addr ;
-    uint64_t vecmul_base_addr ;
-    uint64_t vecadd_base_addr ;
-    vcu::VcuConfig::Arguments vcu_cfg_args; 
+    uint64_t scale_base_addr ;
+    std::vector<std::string>  opcode;
   };
 
   insn_gen()
   {
-    
-    k_group_size = 36;
-    n_group_size = 32;
+    k_group_size = 0;
+    n_group_size = 0;
     bytes_ifmap  = 1;
     bytes_weight = 1;
     bytes_ofmap  = 2;
-    
+    bytes_scale  = 2;
+    bytes_bias   = 2;
   }
 
   std::pair<std::vector<insn::instruction>, std::vector<uint64_t>> operator()(const Arguments& args)
   {
     std::vector<insn::instruction> instruction_series;
-    std::vector<uint64_t> vcucode_series;  // 声明在循环外部
+    std::vector<uint64_t> vcucode_series;
 
-    int m_iterations = ceil((double)args.m / (double)args.tile_m);
+    k_group_size = args.k_group_size;
+    n_group_size = args.n_group_size;
+
+    // int m_iterations = ceil((double)args.m / (double)args.tile_m);
+    int m_iterations = args.m ;
     int n_group      = ceil((double)args.n / (double)n_group_size);
     int k_group      = ceil((double)args.k / (double)(k_group_size));
 
@@ -81,634 +106,478 @@ struct insn_gen {
       std::cout << "m_iterations: " << m_iterations << std::endl;
       std::cout << "n_group: " << n_group << std::endl;
       std::cout << "k_group: " << k_group << std::endl;
-      std::cout << "subvec_size: " << subvec << std::endl;
-      std::cout << "kg_eff (per 32-K): " << kg_eff << std::endl;
     }
-
-    int64_t m_start;
 
   /* -------------------------------------------------------------------------------------------------------- */
   /*                                                pea insn gen                                              */
   /* -------------------------------------------------------------------------------------------------------- */
-  
+
     int ifmap_ddr_offset, weight_ddr_offset, ofmap_ddr_offset;
-    int bias_ddr_offset, vecmul_ddr_offset, vecadd_ddr_offset;
-    int n_iterations = ceil((double)n_group / (double)args.block_n_group);
-    int k_iterations = ceil((double)k_group / (double)args.block_k_group);
+    int bias_ddr_offset = 0, scale_ddr_offset, vecmul_ddr_offset, vecadd_ddr_offset;
+    int n_iterations = n_group;
+    int k_iterations = k_group / args.block_k_group + 1;
+    int k_group_burst_size=args.block_k_group;
+    require_arg(args.block_k_group > 0,
+                "block_k_group must be > 0.");
+    require_arg(args.block_k_group >= 8 && args.block_k_group % 2 == 0,
+                "block_k_group must be >= 8 and even for 36x36 i8w8 weight DMA alignment. Current block_k_group=" +
+                  std::to_string(args.block_k_group) + ".");
+    require_arg(k_group / args.block_k_group >= 1,
+                "k_group / block_k_group must be >= 1 because bias and dequant scale need at least one k block. Current k_group=" +
+                  std::to_string(k_group) + ", block_k_group=" + std::to_string(args.block_k_group) + ".");
+    require_arg(k_group % args.block_k_group == 0,
+                "k_group must be divisible by block_k_group. Current k_group=" + std::to_string(k_group) +
+                  ", block_k_group=" + std::to_string(args.block_k_group) + ".");
+    require_arg(n_group_size % 4 == 0,
+                "n_group_size must be divisible by 4 for 4-channel weight DMA. Current n_group_size=" +
+                  std::to_string(n_group_size) + ".");
+    int weight_k_blocks = k_group / args.block_k_group;
+    int64_t weight_block_bytes = bytes_weight * k_group_size * n_group_size * args.block_k_group;
+    bool weight_8_channel_transfer = 0;
+    int m_ifmap_iter = 0;
+    int m_scale_iter = 0;
+    int ofmap_n_iter, ofmap_m_iter;
+
+    int vecmul_sram_depth  = 128;
+    int vecadd_sram_depth  = 128;
+    int dequant_sram_depth = 128;
+    int vcuofmap_sram_depth = 64;
+    int qact_sram_depth     = 128;
+
+    int block_store_group = args.block_n_group;
+    require_arg(block_store_group >= 4,
+                "block_n_group must be >= 4 for store. Current block_n_group=" +
+                  std::to_string(block_store_group) + ".");
+    require_arg(n_group % block_store_group == 0,
+                "n_group must be divisible by block_n_group so each store covers a full n block. Current n_group=" +
+                  std::to_string(n_group) + ", block_n_group=" + std::to_string(block_store_group) + ".");
+    require_arg((int64_t(block_store_group) * n_group_size * bytes_ofmap) % 32 == 0,
+                "block_n_group * n_group_size * bytes_ofmap must be 32B aligned for integer seq_0_burst. Current block_n_group=" +
+                  std::to_string(block_store_group) + ", n_group_size=" + std::to_string(n_group_size) +
+                  ", bytes_ofmap=" + std::to_string(bytes_ofmap) + ".");
+    insn::sync_word_list sync_words;
+
+    auto append_sync_word = [&](uint32_t word, int k_iter, int n_iter, int m_iter, const char* tag) {
+      sync_words.append(word);
+      if (DEBUG) {
+        size_t index = sync_words.size() - 1;
+        auto flags = std::cout.flags();
+        auto fill  = std::cout.fill();
+        std::cout << std::dec
+                  << "[DEBUG][sync_words] index=" << index
+                  << " sync_insn_index=" << (index / 3)
+                  << " slot=sync_word_" << (index % 3)
+                  << " k_iter=" << k_iter
+                  << " n_iter=" << n_iter
+                  << " m_iter=" << m_iter
+                  << " tag=" << tag
+                  << " word=0x" << std::hex << std::setw(8) << std::setfill('0') << word
+                  << std::dec << std::endl;
+        std::cout.flags(flags);
+        std::cout.fill(fill);
+      }
+    };
 
 
     for (int m_iter = 0; m_iter < m_iterations; ++m_iter) {
       for (int n_iter = 0; n_iter < n_iterations; ++n_iter) {
         for (int k_iter = 0; k_iter < k_iterations; ++k_iter) {
 
-          m_start = m_iter * args.tile_m;
-          k_oc    = std::min(n_group - (n_iter * args.block_n_group), args.block_n_group);
-          i_ic = std::min(k_group - (k_iter * args.block_k_group), args.block_k_group);
-          k_ic = std::min((k_group - (k_iter * args.block_k_group)) * 2, args.block_k_group * 2);
-
-
-          ifmap_ddr_offset = int64_t((bytes_ifmap * k_group_size * args.tile_m * 4 * k_iter) + (m_start_ifmap * bytes_ifmap * k_group_size * k_group));
- 
-          ifmap_scale_ddr_offset   = int64_t((m_start) * 32);
-
-          weight_ddr_offset = int64_t(bytes_weight * (n_group_size/subvec) * (k_group_size)
-                                      * k_group * (n_iter * args.block_n_group)
-                                         + ((k_iter * args.block_k_group) * bytes_weight * (n_group_size/subvec) * (k_group_size)*2  ));
-
-          weight_scale_ddr_offset = int64_t(n_group_size * 32 * n_iter);
-          // ofmap_ddr_offset        = int64_t(bytes_ofmap * n_group_size * (args.m * (n_iter) + m_start));
-          ofmap_ddr_offset        = int64_t((bytes_ofmap * k_group_size * args.tile_m * n_iter) + (m_start * bytes_ofmap * k_group_size * k_group));
-
-          //vcu
-          lowrank_1_ddr_offset = int64_t(bytes_lowrank * k_group_size * rank * k_iter * 4);
-          lowrank_2_ddr_offset = int64_t(bytes_lowrank * n_group_size * rank * n_iter * 4);
-          bias_ddr_offset = int64_t(bytes_bias * n_group_size * n_iter * 4);
-          resmul_ddr_offset = int64_t((bytes_resmul * n_group_size * args.tile_m * n_iter * 4) + (m_start * bytes_resmul * n_group_size * n_group));
-          resadd_ddr_offset = int64_t((bytes_resadd * n_group_size * args.tile_m * n_iter * 4) + (m_start * bytes_resadd * n_group_size * n_group));
-
-          //start:同步字
-          
-          if (n_iter == 0 && k_iter == 0) {
-            sw_front = ((uint64_t)1u << 0) | ((uint64_t)1u << 16) | ((uint64_t)1u << 24); //load_0 + pea_0 + vcu_0 (actually all pea + vcu)
-            instruction_series.push_back(insn::synchronize_indie(1, 0, 0, sw_front, 0, 0));
+          if (n_iter == 0 && m_iter == 0)
+          {
+            k_iterations = k_group / args.block_k_group + 1; //inital: 多load一次，为了pingpong
+          }
+          else
+          {
+            k_iterations = k_group / args.block_k_group;
           }
 
-          // if ((m_iter == m_iterations-1 ) && n_iter == 0 && k_iter == 0) {
-          //   sw_front = ((uint64_t)1u << 0) | (uint64_t)1u << 16) | ((uint64_t)1u << 24); //pea_0 + vcu_0   (actually all pea + vcu)
-          //   instruction_series.push_back(insn::synchronize_indie(1, 0, 0, sw_front, 0, 0));
+          int weight_load_block_idx = (n_iter == 0 && m_iter == 0)
+                                        ? k_iter
+                                        : n_iter * weight_k_blocks + k_iter + 1;
+          weight_load_block_idx %= n_group * weight_k_blocks;
+          weight_ddr_offset = int64_t(weight_load_block_idx * weight_block_bytes);
+
+          // else if (n_iter == n_iterations - 1 && m_iter != m_iterations - 1)
+          // {
+          //   k_iterations = k_group / args.block_k_group;
+          //   k_group_burst_size = args.block_k_group;
+          //   weight_8_channel_transfer = 0;
           // }
-          
-          if (k_iter == k_iterations - 1) {
-            sw_back = ((uint64_t)1u << 8); //store_0 (actually all output-sram)
-            instruction_series.push_back(insn::synchronize_indie(1, 0, 0, sw_back, 0, 0));
-          }
-          //end:同步字
-
-          // load ifmap once per (m_iter, k_iter), reuse across all n_iter
-          int all_done_ifmap = 0;
-
-          // if ((subvec == 2 && ff_enable == 1) == false ){
-          //   if ((m_iter > 1) && n_iter == 0 && k_iter == k_iterations/4 - 1) {
-          //     all_done_ifmap = 1;
-          //   }
+          // else
+          // {
+          //   k_iterations = k_group / args.block_k_group / 2;
+          //   k_group_burst_size = args.block_k_group * 2;
+          //   weight_8_channel_transfer = 1;
           // }
 
-          if (n_iter == 0) {
-
-            if (TYPE_ACCUMULATOR == (kHalf) && k_iter < (k_iterations/32 + 1)) {
-              instruction_series.push_back(LoadIfmapScale(args.ifmap_scale_base_addr + ifmap_scale_ddr_offset, args.tile_m, 0));
-            }
-
-            //第一次读两行，后面读一行
-            if (m_iter == 0 && k_iter < (k_iterations/2)) {
-              instruction_series.push_back(LoadIfmap(args.ifmap_base_addr + ifmap_ddr_offset, k_group, args.m, i_ic, args.tile_m, MASTER_IFMAP_ADDR, 0));
-            }
-            // if ((m_iter > 1) && k_iter < (k_iterations/4)) {
-            if ((m_iter > 0 && m_iter < m_iterations - 1) && k_iter < (k_iterations/4)) {
-              instruction_series.push_back(LoadIfmap(args.ifmap_base_addr + ifmap_ddr_offset, k_group, args.m, i_ic, args.tile_m, MASTER_IFMAP_ADDR, all_done_ifmap));
-            }
+          //load ifmap
+          if (k_iter == 0 && n_iter == 0 && m_iter == 0)
+          {
+            int64_t ifmap_sram_offset = (int64_t(m_ifmap_iter) * k_group) % qact_sram_depth;
+            instruction_series.push_back(LoadIfmap(args.ifmap_base_addr,
+                                                   k_group,
+                                                   MASTER_QACT_ADDR + ifmap_sram_offset));
+            m_ifmap_iter = m_ifmap_iter + 1;
+          }
+          else if (k_iter == 0 && n_iter == n_iterations-1 && m_iter != m_iterations-1 )
+          {
+            ifmap_ddr_offset = int64_t(m_ifmap_iter) * bytes_ifmap * args.k;
+            int64_t ifmap_sram_offset = (int64_t(m_ifmap_iter) * k_group) % qact_sram_depth;
+            m_ifmap_iter = m_ifmap_iter + 1;
+            instruction_series.push_back(LoadIfmap(args.ifmap_base_addr + ifmap_ddr_offset,
+                                                   k_group,
+                                                   MASTER_QACT_ADDR + ifmap_sram_offset));
+          }
+          else
+          {
+            ifmap_ddr_offset = 0;
           }
 
-          
+          //load weight
+          if (!(k_iter == k_iterations - 1 && n_iter == n_iterations - 1 && m_iter == m_iterations - 1))
+          {
+            auto load_weight_insns =
+              LoadWeight(args.weight_base_addr + weight_ddr_offset, k_group_burst_size);
+            instruction_series.insert(instruction_series.end(), load_weight_insns.begin(), load_weight_insns.end());
+          }
 
-            auto   num_vcucodes      = vcucode_series.size();
-            size_t vcucode_bytes     = vcucode_series.size() * sizeof(uint64_t);
-            size_t vcucode_ddr_lines = (vcucode_bytes + 31) / 32;
-            vcucode_series.resize(vcucode_ddr_lines * 8, 0);
+          //load scale
+          if (k_iter == 1 && n_iter == 0 && m_iter == 0 )
+          {
+            int64_t scale_sram_offset = (int64_t(m_scale_iter) * n_group) % vecmul_sram_depth;
+            m_scale_iter = m_scale_iter + 1;
+            instruction_series.push_back(LoadScale(args.scale_base_addr,
+                                                   n_group,
+                                                   MASTER_VCUPARA_ADDR + scale_sram_offset*2));
+          }
+          else if (k_iter == 1 && n_iter == n_iterations-1 && m_iter != m_iterations-1 )
+          {
+            scale_ddr_offset = int64_t(m_scale_iter) * bytes_scale * args.n;
+            int64_t scale_sram_offset = (int64_t(m_scale_iter) * n_group) % vecmul_sram_depth;
+            m_scale_iter = m_scale_iter + 1;
+            instruction_series.push_back(LoadScale(args.scale_base_addr + scale_ddr_offset,
+                                                   n_group,
+                                                   MASTER_VCUPARA_ADDR + scale_sram_offset*2));
+          }
+          else
+          {
+            scale_ddr_offset = 0;
+          }
+
+          //load bias
+          if (k_iter == 1 && n_iter == 0 && m_iter == 0)
+          {
+            instruction_series.push_back(LoadBias(args.bias_base_addr + bias_ddr_offset, n_group, 1));
+          }
+
+          //pea insn
+          int gemm_last_k_groups = (k_iter == k_iterations - 1) ? 1 : 0;
+          int gemm_acc_clear =
+            ((n_iter == 0 && m_iter == 0) ? (k_iter == 1) : (k_iter == 0)) ? 1 : 0;
+
+          if (!(k_iter == 0 && n_iter == 0 && m_iter == 0))
+          {
+            instruction_series.push_back(insn::gemm_execute(TYPE_A,
+                                                            TYPE_B,
+                                                            TYPE_ACCUMULATOR - 5,
+                                                            TYPE_OUTPUT - 5,
+                                                            k_group_burst_size,  //ifmap_burst_len, weight_burst_len
+                                                            n_group,             //real_n_groups
+                                                            k_group,             //real_k_groups
+                                                            0,                   //ifmap_highaddr,
+                                                            0,                   //weight_highaddr
+                                                            gemm_acc_clear,      //gemm_acc_clear
+                                                            gemm_last_k_groups,  //gemm_last_k_groups
+                                                            0,
+                                                            0));
+          }
+
+          //vcu insn
+
+          vcucode_series = vcu::asm_vcu_op(args.opcode);  // 生成opcode
+          auto   num_vcucodes      = vcucode_series.size();
+          size_t vcucode_bytes     = vcucode_series.size() * sizeof(uint64_t);
+          size_t vcucode_ddr_lines = (vcucode_bytes + 31) / 32;
+          vcucode_series.resize(vcucode_ddr_lines * 8, 0);
+
+          if (k_iter == 1 && n_iter == 0 && m_iter == 0)
+          {
 
             if (DEBUG) {
               std::cout << "num_vcucodes: " << num_vcucodes << std::endl;
               std::cout << "vcucode_bytes: " << vcucode_bytes << std::endl;
               std::cout << "vcucode_ddr_lines: " << vcucode_ddr_lines << std::endl;
             }
-            instruction_series.push_back(insn::load_iteration_2(VCUCODE_ADDR, vcucode_ddr_lines - 1, 0, 0, 0, MASTER_VCUCODE_ADDR, 0));
+
+            instruction_series.push_back(insn::load_iteration_2<0>(args.opcode_ddr_base_addr, vcucode_ddr_lines - 1, 0, 0, 0,  MASTER_VCUCODE_ADDR, 0));
           }
 
-          // load weight scale
-          // For per vector scale quantization (per n_iter)
-          if (TYPE_ACCUMULATOR == (kHalf) && m_iter == 0 && k_iter == 0 && n_iter < (n_iterations/16)) {
-            instruction_series.push_back(
-              LoadWeightScale(args.weight_scale_base_addr + weight_scale_ddr_offset, n_group, k_group, k_oc, n_group_size));
-          }
+          int special_last_vcu_store_iter = (k_iter == k_iterations - 1 && n_iter == n_iterations - 1 && m_iter == m_iterations - 1) ? 1 : 0; //最后一次iter后，还需要两个k_iter用于vcu和store
+          int vcu_ofmap_n_iter = (special_last_vcu_store_iter) ? n_group-1 : ((n_iter > 0) ? n_iter - 1 : n_group-1);
+          int vcu_ofmap_m_iter = (special_last_vcu_store_iter) ? m_iter : ((m_iter > 0 && n_iter == 0) ? m_iter - 1 : m_iter);
 
-          //load lowrank matrices
-          if ( m_iter == 0 && n_iter == 0 && k_iter < (k_iterations/4)) {
-            int lowrank_1_seq_0_burst = int64_t((bytes_lowrank * k_group_size * rank * 4) / 32);
-            instruction_series.push_back(LoadLowrank(args.lowrank_1_base_addr + lowrank_1_ddr_offset, lowrank_1_seq_0_burst, k_group, k_oc, 1, MASTER_LOWRANK_1_ADDR, 0));
-          }
-          
-          if ( m_iter == 0 && k_iter == k_iterations - 1 && n_iter < (n_iterations/4)) {
-            int lowrank_2_seq_0_burst = int64_t((bytes_lowrank * n_group_size * rank * 4) / 32);
-            instruction_series.push_back(LoadLowrank(args.lowrank_2_base_addr + lowrank_2_ddr_offset, lowrank_2_seq_0_burst, n_group, k_oc, 2, MASTER_LOWRANK_2_ADDR, 0));
-          }
-
-          // load cbpp and cbw once per (m_iter, n_iter), reuse across all k_iter
-          if ( m_iter == 0 && n_iter == 0 && k_iter < (k_iterations/2)) {
-            int subcb_cnt = kg_eff * 2 * i_ic;  // per k_iter, transfer kg_eff subcodebooks; scale with block_k_group if >1
-            int64_t cbpp_ddr_offset = hop_cbpp * kg_eff * 2 * (k_iter * args.block_k_group) ;
-            int64_t cbw_ddr_offset  = hop_cbw  * kg_eff * 2 * (k_iter * args.block_k_group) ;
-            int64_t cbw_seq_0_burst = hop_cbw / 32;
-            int64_t cbpp_seq_0_burst = hop_cbpp / 32;
-
-            instruction_series.push_back(LoadCbW (args.cbw_base_addr  + cbw_ddr_offset,  hop_cbw,  subcb_cnt, cbw_seq_0_burst));
-            instruction_series.push_back(LoadCbPP(args.cbpp_base_addr + cbpp_ddr_offset, hop_cbpp, subcb_cnt, cbpp_seq_0_burst));
-            
-          }
-
-          // if ( m_iter == 0 && k_iter==0 && n_iter < (n_iterations/2) ) {
-          //   int subcb_cnt = kg_eff * 2;  
-          //   int64_t cbpp_ddr_offset = (hop_cbpp * subcb_cnt * n_iter);
-          //   int64_t cbw_ddr_offset  = (hop_cbw  * subcb_cnt * n_iter);
-          //   int64_t cbw_seq_0_burst = hop_cbw / 32;
-          //   int64_t cbpp_seq_0_burst = hop_cbpp / 32;
-
-          //   instruction_series.push_back(LoadCbW (args.cbw_base_addr  + cbw_ddr_offset,  hop_cbw,  subcb_cnt, cbw_seq_0_burst));
-          //   instruction_series.push_back(LoadCbPP(args.cbpp_base_addr + cbpp_ddr_offset, hop_cbpp, subcb_cnt, cbpp_seq_0_burst));
-            
-          // }
-
-          // load weight:
-          // 1. ff and subvector == 2
-          // 2. non(ff and subvector == 2) : load weight once per (m_iter), reuse across all m_iter
-          int all_done_weight = 0;
-
-          if (subvec == 2 && ff_enable == 1) {
-            // int real_weight_k_group = (args.k / subvec) / k_group_size;
-            if (k_iter == k_iterations/2 - 1 && n_iter == n_iterations - 1) {
-              all_done_weight = 1;
-            }
-            if (k_iter < k_iterations/2 ) {
-              instruction_series.push_back(LoadWeight(args.weight_base_addr + weight_ddr_offset, n_group, k_group, k_oc, 1, all_done_weight));
-            }
-          }
-          else {
-            if (m_iter == 0) {
-              if (k_iter == k_iterations/2 - 1 && n_iter == n_iterations - 1) {
-                all_done_weight = 1;
-              }
-              // int real_weight_k_group = (args.k / subvec) / k_group_size;
-              if (k_iter < k_iterations/2 ) {
-                instruction_series.push_back(LoadWeight(args.weight_base_addr + weight_ddr_offset, n_group, k_group, k_oc, 1, all_done_weight));
-              }
-            }
-          }
-
-          //load bias, resmul,resadd
-          int all_done_resadd = 0;
-
-          if ((subvec == 2 && ff_enable == 1) == false ){
-            if ((m_iter >= 1) && k_iter == 0 && n_iter == n_iterations/4 - 1) {
-              all_done_resadd = 1;
-            }
-          }
-
-          if (k_iter == 0) {
-            // load bias
-            if (TYPE_ACCUMULATOR == (kHalf) && m_iter == 0 && n_iter < (n_iterations/4)) {
-              int bias_seq_0_burst = int64_t((bytes_bias * n_group_size * 4) / 32);
-              instruction_series.push_back(LoadBias(args.bias_base_addr + bias_ddr_offset, bias_seq_0_burst, 0, 0, 0, 0));
-            }
-
-            // load resmul, resadd
-            if (n_iter < (n_iterations/4)) {
-              // load resmul
-              int resmul_seq_0_burst = int64_t((bytes_resmul * n_group_size * args.tile_m * 4) / 32);
-              instruction_series.push_back(LoadResMul(args.resmul_base_addr + resmul_ddr_offset, resmul_seq_0_burst, k_group, args.m, i_ic, MASTER_VCUPARA_ADDR, 0));
-
-              // load resadd
-              int resadd_seq_0_burst = int64_t((bytes_resadd * n_group_size * args.tile_m * 4) / 32);
-              instruction_series.push_back(LoadResAdd(args.resadd_base_addr + resadd_ddr_offset, resadd_seq_0_burst, k_group, args.m, i_ic, MASTER_VCUPARA_ADDR, all_done_resadd));
-            }
-          }
-          
-          //只写一次，此后一直复用
-          if(m_iter == 0 && k_iter == 0 && n_iter == 0)
-          {
-            int psum_number = i_ic * k_oc * 2;
-            instruction_series.push_back(insn::gemm_execute(TYPE_A,
-                                                            TYPE_B,
-                                                            TYPE_ACCUMULATOR - 5,
-                                                            TYPE_OUTPUT - 5,
-                                                            m_iterations,
-                                                            k_oc - 1,
-                                                            k_ic - 1,
-                                                            0,
-                                                            0,
-                                                            0,
-                                                            psum_number - 1,
-                                                            k_iter != 0,
-                                                            subvec,
-                                                            kg_eff*n_group,
-                                                            n_group,
-                                                            k_group,
-                                                            weight_uram_overflow,
-                                                            act_overflow,
-                                                            mem_l2_act_type));
-
-          }
-
-          //vcu lowrank mm insn
-          using vcu_cfg_t = vcu::VcuConfig;
-          vcu_cfg_t vcu_cfg;
-          
           using vcu_t = vcu::VcuExecute;
           vcu_t vcu_op;
-
-          //temp = qact * ascales * lr_1
-          if (n_iter == 0)
-          {
-            if (m_iter == 0 && k_iter == 0)
-            {
-              auto vcu_cfg_insns = vcu_cfg(args.vcu_cfg_args);
-              instruction_series.insert(instruction_series.end(), vcu_cfg_insns.begin(), vcu_cfg_insns.end());
-            }
-            
-          /** ============ Step 0-0: dequant ============*/
-            vcu_t::Arguments step_0_0_config_args  = {
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_resadd_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                 
-              VcuOutSram::PSUM, 
-              1,                      // opcode_number
-              0,                      // opcode_addr
-              0,                      // psum_in_addr
-              0,                      // para_in_addr
-              0,                      // resadd_in_addr
-              0,                      // vcu_in_1_in_addr
-              0,                      // ram_out_addr
-              1-1,                    // num_data_cnt
-              0,                      // oc_group
-              0,                      // para_func_cnt
-              0,                      // psum_sram_valid  
-              0,                      // resadd_sram_valid
-              0,                      // para_sram_valid  
-              0,                      // lr_sram_valid  
-              1,                      // in0_sram_valid 
-              1,                      // in1_sram_valid 
-              0,                      // psum_in1_addr_no_hop
-              0,                      // sram_change_psum_flag
-              0                       //all_done 
-            };
-            auto step_0_0_config_insns = vcu_op(step_0_0_config_args);
-            instruction_series.insert(instruction_series.end(), step_0_0_config_insns.begin(), step_0_0_config_insns.end());
-
-          /** ============ Step 0-1: mul ============*/
-            vcu_t::Arguments step_0_1_config_args  = {
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_resadd_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                 
-              VcuOutSram::PSUM, 
-              1,                      // opcode_number
-              1,                      // opcode_addr
-              0,                      // psum_in_addr
-              0,                      // para_in_addr
-              0,                      // resadd_in_addr
-              0,                      // vcu_in_1_in_addr
-              0,                      // ram_out_addr
-              (uint64_t)args.tile_m - 1,        // num_data_cnt
-              0,                      // oc_group
-              0,                      // para_func_cnt
-              0,                      // psum_sram_valid  
-              0,                      // resadd_sram_valid
-              0,                      // para_sram_valid  
-              1,                      // lr_sram_valid  
-              0,                      // in0_sram_valid 
-              0,                      // in1_sram_valid 
-              0,                      // psum_in1_addr_no_hop
-              0,                      // sram_change_psum_flag
-              0                       //all_done 
-            };
-            auto step_0_1_config_insns = vcu_op(step_0_1_config_args);
-            instruction_series.insert(instruction_series.end(), step_0_1_config_insns.begin(), step_0_1_config_insns.end());
-          
-          /** ============ Step 1: reducesum + add ============*/
-          uint64_t psum_in1_addr_no_hop;
-
-          if (k_iter == k_iterations - 1)
-          {
-            psum_in1_addr_no_hop = 1;
-          }
-          else
-          {
-            psum_in1_addr_no_hop = 0;
-          }
-
-          vcu_t::Arguments step_1_config_args  = {
-            vcu_out_dtype.at(TYPE_ACCUMULATOR),                  
-            vcu_resadd_dtype.at(TYPE_ACCUMULATOR),                  
-            vcu_out_dtype.at(TYPE_ACCUMULATOR),                 
-            VcuOutSram::IN1, 
-            2,                      // opcode_number
-            2,                      // opcode_addr
-            0,                      // psum_in_addr
-            0,                      // para_in_addr
-            0,                      // resadd_in_addr
-            0,                      // vcu_in_1_in_addr
-            0,                      // ram_out_addr
-            (uint64_t)args.tile_m - 1,        // num_data_cnt
-            0,                      // oc_group
-            0,                      // para_func_cnt
-            1,                      // psum_sram_valid  
-            0,                      // resadd_sram_valid
-            0,                      // para_sram_valid  
-            0,                      // lr_sram_valid  
-            0,                      // in0_sram_valid 
-            1,                      // in1_sram_valid 
-            psum_in1_addr_no_hop,   // psum_in1_addr_no_hop 
-            1,                      // sram_change_psum_flag 
-            0,                       //all_done 
-            0,                       //psum_addr_hop   
-            1,                        //acc_clear       
-            1                        //stream_reduce_en
+          vcu_t::Arguments vcu_args = {
+            vcu_psum_dtype.at(kInt32),                // psum_data_type: 3 for int32(dequant_Sram); 0 for fp16(ifmap_vcu_sram)
+            0,                                        // vcu_resadd_dtype.at(kHalf)
+            vcu_out_dtype.at(kHalf),                  // data_out_type: 3 for int32
+            VcuOutSram::OFMAP,                        // data_out_ram
+            num_vcucodes,                             // opcode_number: pair-fuse trigger requires 2
+            0,                                        // opcode_addr
+            0,                                        // psum_in_addr
+            (uint64_t)((vcu_ofmap_m_iter*n_group+vcu_ofmap_n_iter)%vecmul_sram_depth),                                        // para_in_addr
+            (uint64_t)(vcu_ofmap_n_iter%vecadd_sram_depth),                                        // resadd_in_addr
+            (uint64_t)(vcu_ofmap_n_iter%vcuofmap_sram_depth),                                        // ram_out_addr
+            (uint64_t)1 - 1,                          // num_data
+            0,                                        // oc_group
+            0,                                        // para_func
+            0,                                        // psum_sram_valid
+            1,                                        // resadd_sram_valid
+            1,                                        // para_sram_valid
+            0,                                        // psum_addr_hop
+            1,                                        // acc_clear
+            1,                                        // stream_en
+            1,                                        // ifmap_sram_valid
+            (uint64_t)((vcu_ofmap_m_iter*n_group+vcu_ofmap_n_iter)%dequant_sram_depth)                                         // ifmap_in_addr
           };
-          auto step_1_config_insns = vcu_op(step_1_config_args);
-          instruction_series.insert(instruction_series.end(), step_1_config_insns.begin(), step_1_config_insns.end());
-          }
-          
-          //low_rank_out = qact * ascales * lr_1 * lr_2
-          //pea_out + low_rank_out -> ofmap_sram
-          if (k_iter == k_iterations - 1)
+
+          if (k_iter == 0 && !(n_iter == 0 && m_iter == 0))
           {
-            /** ============ Step 2: copy + mul ============*/
-
-            if (n_iter == 0)
-            {
-              vcu_t::Arguments step_2_0_config_args  = {
-                vcu_out_dtype.at(TYPE_ACCUMULATOR),                  
-                vcu_resadd_dtype.at(TYPE_ACCUMULATOR),                  
-                vcu_out_dtype.at(TYPE_ACCUMULATOR),                 
-                VcuOutSram::PSUM, 
-                1,                      // opcode_number
-                4,                      // opcode_addr
-                0,                      // psum_in_addr
-                0,                      // para_in_addr
-                0,                      // resadd_in_addr
-                0,                      // vcu_in_1_in_addr
-                0,                      // ram_out_addr
-                1-1,                    // num_data_cnt
-                0,                      // oc_group
-                0,                      // para_func_cnt
-                0,                      // psum_sram_valid  
-                0,                      // resadd_sram_valid
-                0,                      // para_sram_valid  
-                0,                      // lr_sram_valid  
-                0,                      // in0_sram_valid 
-                1,                      // in1_sram_valid 
-                1,                      // psum_in1_addr_no_hop
-                1,                      // sram_change_psum_flag
-                0                       //all_done 
-              };
-              auto step_2_0_config_insns = vcu_op(step_2_0_config_args);
-              instruction_series.insert(instruction_series.end(), step_2_0_config_insns.begin(), step_2_0_config_insns.end());
-            }
-            
-            //mul
-            vcu_t::Arguments step_2_1_config_args  = {
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_resadd_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                 
-              VcuOutSram::PSUM, 
-              1,                      // opcode_number
-              5,                      // opcode_addr
-              0,                      // psum_in_addr
-              0,                      // para_in_addr
-              0,                      // resadd_in_addr
-              0,                      // vcu_in_1_in_addr
-              0,                      // ram_out_addr
-              (uint64_t)args.tile_m - 1,        // num_data_cnt
-              0,                      // oc_group
-              0,                      // para_func_cnt
-              0,                      // psum_sram_valid  
-              0,                      // resadd_sram_valid
-              0,                      // para_sram_valid  
-              1,                      // lr_sram_valid  
-              0,                      // in0_sram_valid 
-              0,                      // in1_sram_valid 
-              0,                      // psum_in1_addr_no_hop   vcu_offset=1,copy指令读取串转并后的数据
-              0,                      // sram_change_psum_flag  
-              0                       //all_done 
-            };
-            auto step_2_1_config_insns = vcu_op(step_2_1_config_args);
-            instruction_series.insert(instruction_series.end(), step_2_1_config_insns.begin(), step_2_1_config_insns.end());
-
-            /** ============ Step 4: reducesum ============*/
-            vcu_t::Arguments step_3_config_args  = {
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_resadd_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                 
-              VcuOutSram::IN1, 
-              1,                      // opcode_number
-              6,                      // opcode_addr
-              0,                      // psum_in_addr
-              0,                      // para_in_addr
-              0,                      // resadd_in_addr
-              0,                      // vcu_in_1_in_addr
-              256,                    // ram_out_addr
-              (uint64_t)args.tile_m - 1,        // num_data_cnt
-              0,                      // oc_group
-              0,                      // para_func_cnt
-              1,                      // psum_sram_valid  
-              0,                      // resadd_sram_valid
-              0,                      // para_sram_valid  
-              0,                      // lr_sram_valid  
-              0,                      // in0_sram_valid 
-              0,                      // in1_sram_valid 
-              1,                      // psum_in1_addr_no_hop  
-              1,                      // sram_change_psum_flag  
-              0                       //all_done 
-            };
-            auto step_3_config_insns = vcu_op(step_3_config_args);
-            instruction_series.insert(instruction_series.end(), step_3_config_insns.begin(), step_3_config_insns.end());
-            
-            //pea_out + low_rank_out -> ofmap_sram
-            /** ============ Step 5: add ============*/
-            uint64_t vcu_all_done;
-
-            if (n_iter == n_iterations - 1 && k_iter == k_iterations - 1)
-            {
-              vcu_all_done = 1;
-            }
-            else
-            {
-              vcu_all_done = 0;
-            }
-            
-            vcu_t::Arguments step_4_config_args  = {
-              1,     //psum_data_type: 0->VCU_PSUM; 1->VCU_PEA; 2->write to mem_l1_pe
-              vcu_resadd_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                 
-              VcuOutSram::PSUM, 
-              3,                      // opcode_number
-              7,                      // opcode_addr
-              (uint64_t)n_iter,       // psum_in_addr
-              (uint64_t)(n_iter%256) + 256, // para_in_addr (resmul: in vcupara sram addr[256-512])
-              (uint64_t)(n_iter%256),       // resadd_in_addr (bias: in vcuresadd sram addr[0-255])
-              256,                    // vcu_in_1_in_addr
-              0,                      // ram_out_addr
-              1 - 1,                  // num_data_cnt
-              0,                      // oc_group
-              0,                      // para_func_cnt
-              1,                      // psum_sram_valid  
-              1,                      // resadd_sram_valid
-              1,                      // para_sram_valid  
-              0,                      // lr_sram_valid  
-              0,                      // in0_sram_valid 
-              1,                      // in1_sram_valid 
-              1,                      // psum_in1_addr_no_hop  
-              1,                      // sram_change_psum_flag  
-              0                       //all_done 
-            };
-            auto step_4_config_insns = vcu_op(step_4_config_args);
-            instruction_series.insert(instruction_series.end(), step_4_config_insns.begin(), step_4_config_insns.end());
-
-            vcu_t::Arguments step_5_config_args  = {
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_resadd_dtype.at(TYPE_ACCUMULATOR),                  
-              vcu_out_dtype.at(TYPE_ACCUMULATOR),                 
-              VcuOutSram::OFMAP, 
-              1,                      // opcode_number
-              10,                      // opcode_addr
-              0,                      // psum_in_addr
-              0,                                  // para_in_addr 
-              (uint64_t)(n_iter%256) + 256,       // resadd_in_addr (resadd: in vcuresadd sram addr[256-511])
-              0,                                  // vcu_in_1_in_addr
-              (uint64_t)n_iter,                   // ram_out_addr
-              1 - 1,                  // num_data_cnt
-              0,                      // oc_group
-              0,                      // para_func_cnt
-              1,                      // psum_sram_valid  
-              1,                      // resadd_sram_valid
-              0,                      // para_sram_valid  
-              0,                      // lr_sram_valid  
-              0,                      // in0_sram_valid 
-              0,                      // in1_sram_valid 
-              0,                      // psum_in1_addr_no_hop  
-              0,                      // sram_change_psum_flag  
-              vcu_all_done            //all_done 
-            };
-            auto step_5_config_insns = vcu_op(step_5_config_args);
-            instruction_series.insert(instruction_series.end(), step_5_config_insns.begin(), step_5_config_insns.end());
-            
+            auto vcu_insns = vcu_op(vcu_args);
+            instruction_series.insert(instruction_series.end(), vcu_insns.begin(), vcu_insns.end());
           }
 
-          int store_all_done=1;
+          if ( special_last_vcu_store_iter)
+          {
+            auto vcu_insns = vcu_op(vcu_args);
+            instruction_series.insert(instruction_series.end(), vcu_insns.begin(), vcu_insns.end());
+          }
 
-          // if (n_iter == n_iterations - 1 && k_iter == k_iterations - 1)
-          // {
-          //   store_all_done = 1;
-          // }
-          // else
-          // {
-          //   store_all_done = 0;
-          // }
-          
-          // store only when a full ofmap tile is ready (i.e., at the last k_iter)
-          if (k_iter == k_iterations - 1) {
+          //store insn
+          bool store_block_ready = ((vcu_ofmap_n_iter + 1) % block_store_group) == 0;
+          int store_block_n_iter = vcu_ofmap_n_iter + 1 - block_store_group;
+          int64_t store_sram_bytes = int64_t(store_block_n_iter) * n_group_size * bytes_ofmap;
+          require_arg(!store_block_ready || store_sram_bytes % 32 == 0,
+                      "store SRAM offset must be 32B aligned. Choose block_n_group so block_n_group * n_group_size * bytes_ofmap is divisible by 32.");
+          int64_t store_sram_offset = store_sram_bytes / 32;
+          bool regular_store_enabled =
+            (k_iter == 1 && !(n_iter == 0 && m_iter == 0) && !special_last_vcu_store_iter && store_block_ready);
+          bool special_store_enabled = special_last_vcu_store_iter && store_block_ready;
+
+          if (regular_store_enabled)
+          {
+            ofmap_ddr_offset = int64_t(bytes_ofmap * n_group_size * store_block_n_iter + bytes_ofmap * args.n * vcu_ofmap_m_iter);
             instruction_series.push_back(Store(args.ofmap_base_addr + ofmap_ddr_offset,
-                                               n_group,
-                                               args.m,
-                                               args.block_n_group,
-                                               args.tile_m,
-                                               store_all_done));
+                                               block_store_group,
+                                               MASTER_OFMAP_ADDR + (store_sram_offset%vcuofmap_sram_depth),
+                                               0));
           }
-          
+
+          if (special_store_enabled)
+          {
+            ofmap_ddr_offset = int64_t(bytes_ofmap * n_group_size * store_block_n_iter + bytes_ofmap * args.n * vcu_ofmap_m_iter);
+            instruction_series.push_back(Store(args.ofmap_base_addr + ofmap_ddr_offset,
+                                               block_store_group,
+                                               MASTER_OFMAP_ADDR + (store_sram_offset%vcuofmap_sram_depth),
+                                               special_last_vcu_store_iter));
+          }
+
+          //同步字
+          if (k_iter == 0 && n_iter == 0 && m_iter == 0)
+          {
+            append_sync_word(insn::sync_word().load(0).load(1).load(3).load(5).load(7),
+                             k_iter,
+                             n_iter,
+                             m_iter,
+                             "initial_load"); //load ifmap and weight, load0 for ifmap, and load_odd(1,3,5,7) for weight
+          }
+          else if (k_iter == 0 && !(n_iter == 0 && m_iter == 0)) //vcu enable
+          {
+            // if (weight_8_channel_transfer) {
+            //   append_sync_word(insn::sync_word().load(0).load(1).load(2).load(3).load(4).load(5).load(6).load(7).pea(0).vcu(0),
+            //                    k_iter,
+            //                    n_iter,
+            //                    m_iter,
+            //                    "load_pea_vcu_all_weight");
+            // }
+            if (n_iter == n_iterations-1 && m_iter != m_iterations-1 ) {
+              append_sync_word(insn::sync_word().load(0).load(1).load(3).load(5).load(7).pea(0).vcu(0),
+                               k_iter,
+                               n_iter,
+                               m_iter,
+                               "load0+load_odd_pea_vcu");
+            }
+            else {
+              append_sync_word(insn::sync_word().load(1).load(3).load(5).load(7).pea(0).vcu(0),
+                               k_iter,
+                               n_iter,
+                               m_iter,
+                               "load_odd_pea_vcu");
+            }
+          }
+          else if (k_iter == 1 && !(n_iter == 0 && m_iter == 0)) //store enable
+          {
+            // if (weight_8_channel_transfer) {
+            //   append_sync_word(insn::sync_word().load(0).load(1).load(2).load(3).load(4).load(5).load(6).load(7).pea(0).vcu(0).store(0),
+            //                    k_iter,
+            //                    n_iter,
+            //                    m_iter,
+            //                    "load_pea_vcu_store_all_weight");
+            // }
+            if (n_iter == n_iterations-1 && m_iter != m_iterations-1 ) {
+              auto sync_word = insn::sync_word().load(0).load(1).load(3).load(5).load(7).pea(0);
+              if (regular_store_enabled) {
+                sync_word.store(0);
+              }
+              append_sync_word(sync_word,
+                               k_iter,
+                               n_iter,
+                               m_iter,
+                               regular_store_enabled ? "load0+load_odd_pea_store" : "load0+load_odd_pea");
+            }
+            else if (n_iter == n_iterations-1 && m_iter == m_iterations-1 && k_iter == k_iterations-1) {
+              append_sync_word(insn::sync_word().pea(0),
+                               k_iter,
+                               n_iter,
+                               m_iter,
+                               "last_iter_only_pea");
+            }
+            else {
+              auto sync_word = insn::sync_word().load(1).load(3).load(5).load(7).pea(0);
+              if (regular_store_enabled) {
+                sync_word.store(0);
+              }
+              append_sync_word(sync_word,
+                               k_iter,
+                               n_iter,
+                               m_iter,
+                               regular_store_enabled ? "load_odd_pea_store" : "load_odd_pea");
+            }
+          }
+          else if ((m_iter == 0 && n_iter == 0 && k_iter != 0) ) //pea+load_0+load_odd(weight)
+          {
+            append_sync_word(insn::sync_word().load(0).load(1).load(3).load(5).load(7).pea(0),
+                             k_iter,
+                             n_iter,
+                             m_iter,
+                             "load_0+load_odd(weight)+pea");
+
+          }
+          else if (special_last_vcu_store_iter) //last iter, only pea
+          {
+            append_sync_word(insn::sync_word().pea(0),
+                               k_iter,
+                               n_iter,
+                               m_iter,
+                               "last_pea");
+          }
+          else //pea+load_odd(weight)
+          {
+            if (weight_8_channel_transfer) {
+              append_sync_word(insn::sync_word().load(1).load(2).load(3).load(4).load(5).load(6).load(7).pea(0),
+                               k_iter,
+                               n_iter,
+                               m_iter,
+                               "load_pea_all_weight");
+            }
+            else {
+              append_sync_word(insn::sync_word().load(1).load(3).load(5).load(7).pea(0),
+                               k_iter,
+                               n_iter,
+                               m_iter,
+                               "load_odd_pea");
+            }
+          }
+
+          if (special_last_vcu_store_iter) //vcu and store enable
+          {
+            append_sync_word(insn::sync_word().vcu(0), k_iter, n_iter, m_iter, "last_vcu");
+            if (special_store_enabled) {
+              append_sync_word(insn::sync_word().store(0), k_iter, n_iter, m_iter, "last_store");
+            }
+          }
+
+
         }
-        if (DEBUG) {
-          std::cout << "m_iter: " << m_iter << " m_iterations: " << m_iterations << std::endl;
-          std::cout << "n_iter: " << n_iter << " n_iterations: " << n_iterations << std::endl;
-        }
-        
       }
     }
-
+    common::insn::pad_manual_sync_word(instruction_series, sync_words);
     return std::make_pair(instruction_series, vcucode_series);
   }
 
   private:
-  insn::instruction LoadIfmap(int64_t ddr_base_addr, int64_t k_group_size, int64_t bytes_ifmap, int64_t block_k_group, int64_t k_group)
+  insn::instruction LoadIfmap(int64_t ddr_base_addr, int64_t block_k_group, int64_t sram_addr)
   {
     auto seq_1_offset = split_exp_fra(block_k_group * k_group_size * bytes_ifmap);
-    
+    int64_t seq_0_burst = block_k_group * bytes_ifmap * k_group_size / 32 - 1;
+
     if (DEBUG) {
       std::cout << "======== Load Ifmap ========" << std::endl;
       std::cout << std::hex << "ddr_base_addr: " << ddr_base_addr << std::endl;
-      std::cout << "m: " << m << std::endl;
-      std::cout << "tile_m: " << tile_m << std::endl;
-      std::cout << "k_group: " << k_group << std::endl;
+      std::cout << "sram_addr: " << sram_addr << std::endl;
       std::cout << "== Config Parameters ==" << std::endl;
-      std::cout << "seq_0_burst: " << tile_m*2 << std::endl;
+      std::cout << "seq_0_burst: " << seq_0_burst << std::endl;
       std::cout << "seq_1_hop_exp: " << seq_1_offset.first << std::endl;
       std::cout << "seq_1_hop_fra: " << seq_1_offset.second << std::endl;
       std::cout << "seq_1_burst: " << block_k_group << std::endl;
       std::cout << "==========================" << std::endl;
     }
 
-    return insn::load_iteration_2<0>(ddr_base_addr, block_k_group * bytes_ifmap * k_group_size / 32 - 1, seq_1_offset.first, seq_1_offset.second, k_group - 1, MASTER_IFMAP_ADDR, 0);
+    return insn::load_iteration_2<0>(ddr_base_addr, seq_0_burst, seq_1_offset.first, seq_1_offset.second, 1 - 1, sram_addr, 0);
   }
 
-  insn::instruction LoadWeight(int64_t ddr_base_addr, int n_group, int k_group, int block_n_group, int block_k_group, int all_done_weight)
+  std::vector<insn::instruction> LoadWeight(int64_t ddr_base_addr, int block_k_group)
   {
-    // (n_group, k_group, 32, 32)
-    auto seq_1_offset = split_exp_fra(bytes_weight * k_group_size * n_group_size);
-    auto seq_2_offset = split_exp_fra(bytes_weight * k_group_size * n_group_size * k_group);
+    constexpr int weight_dma_channels = 4;
+
+    require_arg(n_group_size % weight_dma_channels == 0,
+                "n_group_size must be divisible by 4 for 4-channel weight DMA. Current n_group_size=" +
+                  std::to_string(n_group_size) + ".");
+    int n_group_size_per_channel = n_group_size / weight_dma_channels;
+    int64_t channel_bytes        = int64_t(block_k_group) * bytes_weight * k_group_size * n_group_size_per_channel;
+    require_arg(channel_bytes >= 32 && channel_bytes % 32 == 0,
+                "per-channel weight transfer bytes must be >= 32 and 32B aligned. Current channel_bytes=" +
+                  std::to_string(channel_bytes) + "; adjust block_k_group, k_group_size, or n_group_size.");
+
+    auto seq_1_offset = split_exp_fra(channel_bytes);
+    int64_t seq_0_burst = channel_bytes / 32 - 1;
 
     if (DEBUG) {
       std::cout << "======== Load Weight ========" << std::endl;
       std::cout << std::hex << "ddr_base_addr: " << ddr_base_addr << std::endl;
-      std::cout << "n_group: " << n_group << std::endl;
-      std::cout << "k_group: " << k_group << std::endl;
       std::cout << "== Config Parameters ==" << std::endl;
-      std::cout << "seq_0_burst: " << n_group_size << std::endl;
+      std::cout << "seq_0_burst: " << seq_0_burst << std::endl;
       std::cout << "seq_1_hop_exp: " << seq_1_offset.first << std::endl;
       std::cout << "seq_1_hop_fra: " << seq_1_offset.second << std::endl;
-      std::cout << "seq_1_burst: " << block_k_group << std::endl;
-      std::cout << "seq_2_hop_exp: " << seq_2_offset.first << std::endl;
-      std::cout << "seq_2_hop_fra: " << seq_2_offset.second << std::endl;
-      std::cout << "seq_2_burst: " << block_n_group << std::endl;
-      std::cout << "all_done_weight: " << all_done_weight << std::endl;
+      std::cout << "seq_1_burst: " << 0 << std::endl;
+      std::cout << "ddr_channel_offset: " << channel_bytes << std::endl;
       std::cout << "==========================" << std::endl;
     }
-    return insn::load_iteration_3<1>(ddr_base_addr,
-                                     n_group_size - 1,
-                                     seq_1_offset.first,
-                                     seq_1_offset.second,
-                                     block_k_group - 1,
-                                     seq_2_offset.first,
-                                     seq_2_offset.second,
-                                     block_n_group - 1,
-                                     MASTER_WEIGHT_ADDR,
-                                     all_done_weight);
+
+    std::vector<insn::instruction> load_insns;
+
+    load_insns.push_back(insn::load_iteration_2<1>(ddr_base_addr + channel_bytes * 0, seq_0_burst, seq_1_offset.first, seq_1_offset.second, 0, MASTER_WEIGHT_ADDR, 0));
+    load_insns.push_back(insn::load_iteration_2<3>(ddr_base_addr + channel_bytes * 1, seq_0_burst, seq_1_offset.first, seq_1_offset.second, 0, MASTER_WEIGHT_ADDR, 0));
+    load_insns.push_back(insn::load_iteration_2<5>(ddr_base_addr + channel_bytes * 2, seq_0_burst, seq_1_offset.first, seq_1_offset.second, 0, MASTER_WEIGHT_ADDR, 0));
+    load_insns.push_back(insn::load_iteration_2<7>(ddr_base_addr + channel_bytes * 3, seq_0_burst, seq_1_offset.first, seq_1_offset.second, 0, MASTER_WEIGHT_ADDR, 0));
+
+
+    return load_insns;
   }
 
-  insn::instruction LoadWeightScale(int64_t ddr_base_addr, int n_group, int k_group, int64_t block_n_group, int n_group_size)
+  insn::instruction LoadScale(int64_t ddr_base_addr, int64_t block_n_group, int64_t sram_addr)
   {
-    auto seq_1_offset = split_exp_fra(n_group_size);
+    auto seq_1_offset = split_exp_fra(block_n_group*n_group_size);
+
+    int64_t seq_0_burst = block_n_group * n_group_size * bytes_scale  / 32 - 1;
 
     if (DEBUG) {
       std::cout << "======== Load Weight Scale ========" << std::endl;
       std::cout << "ddr_base_addr: " << ddr_base_addr << std::endl;
-      std::cout << "n_group: " << n_group << std::endl;
-      std::cout << "== Config Parameters ==" << std::endl;
-      std::cout << "seq_0_burst: " << n_group_size - 1 << std::endl;
-      std::cout << "seq_1_hop_exp: " << seq_1_offset.first << std::endl;
-      std::cout << "seq_1_hop_fra: " << seq_1_offset.second << std::endl;
-      std::cout << "seq_1_burst: " << block_n_group << std::endl;
-      std::cout << "==========================" << std::endl;
-    }
-
-    auto load_insn =
-      insn::load_iteration_3<1>(ddr_base_addr, n_group_size  - 1, 0, 0, block_n_group - 1, 0, 0, 0, MASTER_WEIGHT_SCALE_ADDR, 0);
-    return load_insn;
-  }
-
-  insn::instruction LoadBias(int64_t ddr_base_addr, int64_t seq_0_burst, int n_group, int k_group, int64_t block_n_group, int n_group_size)
-  {
-    auto seq_1_offset = split_exp_fra(n_group_size);
-
-    if (DEBUG) {
-      std::cout << "======== Load Bias ========" << std::endl;
-      std::cout << "ddr_base_addr: " << ddr_base_addr << std::endl;
-      std::cout << "n_group: " << n_group << std::endl;
+      std::cout << "sram_addr: " << sram_addr << std::endl;
+      std::cout << "block_n_group: " << block_n_group << std::endl;
       std::cout << "== Config Parameters ==" << std::endl;
       std::cout << "seq_0_burst: " << seq_0_burst << std::endl;
       std::cout << "seq_1_hop_exp: " << seq_1_offset.first << std::endl;
@@ -717,33 +586,58 @@ struct insn_gen {
       std::cout << "==========================" << std::endl;
     }
 
-    return insn::load_iteration_2(ddr_base_addr, seq_0_burst - 1, seq_1_offset.first, seq_1_offset.second, 0, MASTER_BIAS_ADDR, 0);
-  }
-  
+    auto load_insn =
+      insn::load_iteration_2<0>(ddr_base_addr, seq_0_burst, seq_1_offset.first, seq_1_offset.second, 1 - 1, sram_addr, 0);
 
-  insn::instruction Store(int64_t ddr_base_addr, int64_t n_group, int64_t m, int64_t block_n_group, int64_t tile_m, int all_done)
+    return load_insn;
+  }
+
+  insn::instruction LoadBias(int64_t ddr_base_addr, int64_t block_n_group, int64_t insn_num)
   {
-    auto seq_1_offset = split_exp_fra(bytes_ofmap * k_group_size * tile_m);
+    auto seq_1_offset = split_exp_fra(block_n_group * n_group_size);
+
+    int64_t seq_0_burst = block_n_group * n_group_size * bytes_bias  / 32 - 1;
+
+    if (DEBUG) {
+      std::cout << "======== Load Bias ========" << std::endl;
+      std::cout << "ddr_base_addr: " << ddr_base_addr << std::endl;
+      std::cout << "block_n_group: " << block_n_group << std::endl;
+      std::cout << "== Config Parameters ==" << std::endl;
+      std::cout << "seq_0_burst: " << seq_0_burst << std::endl;
+      std::cout << "seq_1_hop_exp: " << seq_1_offset.first << std::endl;
+      std::cout << "seq_1_hop_fra: " << seq_1_offset.second << std::endl;
+      std::cout << "seq_1_burst: " << block_n_group << std::endl;
+      std::cout << "==========================" << std::endl;
+    }
+
+    return insn::load_iteration_2<0>(ddr_base_addr, seq_0_burst, seq_1_offset.first, seq_1_offset.second, 0, MASTER_VCURES_ADDR, 0, insn_num);
+  }
+
+  insn::instruction Store(int64_t ddr_base_addr, int64_t block_n_group, int64_t sram_addr, int64_t all_done)
+  {
+    require_arg(block_n_group >= 4,
+                "store block_n_group must be >= 4. Current block_n_group=" + std::to_string(block_n_group) + ".");
+    require_arg((int64_t(block_n_group) * n_group_size * bytes_ofmap) % 32 == 0,
+                "store block_n_group * n_group_size * bytes_ofmap must be 32B aligned for integer seq_0_burst. Current block_n_group=" +
+                  std::to_string(block_n_group) + ", n_group_size=" + std::to_string(n_group_size) +
+                  ", bytes_ofmap=" + std::to_string(bytes_ofmap) + ".");
+    auto seq_1_offset = split_exp_fra(bytes_ofmap * n_group_size * block_n_group);
+    int64_t seq_0_burst = block_n_group * n_group_size * bytes_ofmap  / 32 - 1;
 
     if (DEBUG) {
       std::cout << "======== Store ========" << std::endl;
       std::cout << "ddr_base_addr: " << ddr_base_addr << std::endl;
-      std::cout << "n_group: " << n_group << std::endl;
-      std::cout << "m: " << m << std::endl;
       std::cout << "block_n_group: " << block_n_group << std::endl;
-      std::cout << "tile_m: " << tile_m << std::endl;
-      std::cout << "all_done: " << all_done << std::endl;
+      std::cout << "sram_addr: " << sram_addr << std::endl;
       std::cout << "== Config Parameters ==" << std::endl;
-      std::cout << "seq_0_burst: " << 512 << std::endl;  //OFMAP SRAM Depth is 512 (with 256bits data width)
+      std::cout << "seq_0_burst: " << seq_0_burst << std::endl;
       std::cout << "seq_1_hop_exp: " << seq_1_offset.first << std::endl;
       std::cout << "seq_1_hop_fra: " << seq_1_offset.second << std::endl;
       std::cout << "seq_1_burst: " << block_n_group << std::endl;
     }
 
-    return insn::store_iteration_2(
-      ddr_base_addr, (tile_m * k_group_size * bytes_ofmap/32 ) - 1, seq_1_offset.first, seq_1_offset.second, block_n_group - 1, MASTER_OFMAP_ADDR, all_done);
-    // return insn::store_iteration_2(
-    //   ddr_base_addr, 16 - 1, seq_1_offset.first, seq_1_offset.second, block_n_group - 1, MASTER_OFMAP_ADDR, all_done);
+    return insn::store_iteration_2<0>(
+      ddr_base_addr, seq_0_burst, seq_1_offset.first, seq_1_offset.second, 1 - 1, sram_addr, all_done);
   }
 
   std::pair<int, int> split_exp_fra(int64_t x)
@@ -761,5 +655,6 @@ struct insn_gen {
     return {exp, x};
   }
 };
+
 }
 }

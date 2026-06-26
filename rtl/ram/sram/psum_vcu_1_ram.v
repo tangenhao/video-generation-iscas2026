@@ -8,7 +8,7 @@ module psum_vcu_1_ram(
   dma_rvalid, dma_raddr, dma_rdata
 );
 
-parameter WIDTH     = 512;
+parameter WIDTH     = 576;
 parameter ADDR_BITS = 9;
 
 function integer clogb2 (input integer bit_depth);              
@@ -54,7 +54,7 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-sram_512x144 u_ram_bank(
+sram_576x128 u_ram_bank(
   .w_clk  ( clk           ),
   .w_en   ( wen           ),
   .w_addr ( waddr         ),

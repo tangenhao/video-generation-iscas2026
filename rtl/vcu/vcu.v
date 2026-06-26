@@ -13,7 +13,6 @@ module vcu(
   psum_wvalid, psum_waddr, psum_wdata,
   psum_1_wvalid, psum_1_waddr, psum_1_wdata,
   vcucode_wvalid, vcucode_waddr, vcucode_wdata,
-  vculut_wvalid, vculut_waddr, vculut_wdata,
   ofmap_wvalid, ofmap_waddr, ofmap_wdata,
   vcures_wvalid, vcures_waddr, vcures_wdata,
   qact_wvalid, qact_waddr, qact_wdata,
@@ -23,16 +22,16 @@ module vcu(
 );
 
 
-parameter PSUM_WIDTH        = 512;
-parameter IFMAP_WIDTH       = 512;
-parameter DEQUANT_WIDTH     = 1024;
+parameter PSUM_WIDTH        = 576;
+parameter IFMAP_WIDTH       = 576;
+parameter DEQUANT_WIDTH     = 1152;
 parameter VCUCODE_WIDTH     = 64;
-parameter VCUPARA_WIDTH     = 512;
+parameter VCUPARA_WIDTH     = 576;
 parameter VCULUT_WIDTH      = 64;
-parameter VCURES_WIDTH      = 512;
-parameter OFMAP_WIDTH       = 256;
-parameter QACT_WIDTH        = 256;
-parameter SCALE_WIDTH       = 512;
+parameter VCURES_WIDTH      = 576;
+parameter OFMAP_WIDTH       = 576;
+parameter QACT_WIDTH        = 288;
+parameter SCALE_WIDTH       = 576;
 
 parameter PSUM_ADDR_BITS    = 9;
 parameter IFMAP_ADDR_BITS   = 9;
@@ -45,7 +44,7 @@ parameter VCUCODE_ADDR_BITS = 7;
 parameter VCULUT_ADDR_BITS  = 9;
 
 parameter INSN_WIDTH        = 128;
-parameter PARALLELISM       = 32;
+parameter PARALLELISM       = 36;
 parameter DATA_WIDTH        = 16;
 parameter VCU_INSN_OPCODE   = 5'd10;
 parameter VCU_SERIAL_NUMBER = 3'b000;
@@ -136,10 +135,6 @@ output reg   [PSUM_WIDTH-1:0]        psum_wdata;
 output reg                           psum_1_wvalid;
 output reg   [PSUM_ADDR_BITS-1:0]    psum_1_waddr;
 output reg   [PSUM_WIDTH-1:0]        psum_1_wdata;
-
-input                                vculut_wvalid;
-input        [VCULUT_ADDR_BITS-1:0]  vculut_waddr;
-input        [VCULUT_WIDTH-1:0]      vculut_wdata;
 
 input                                work_en;
 input        [INSN_WIDTH-1:0]        insn;
@@ -1492,10 +1487,12 @@ end
 
 assign psum_compute_in    = vcu_execute_psum_rdata_reg;
 assign psum_1_compute_in  = vcu_execute_psum_1_rdata_reg;
-assign ifmap_compute_in   = stream_en ? ((psum_data_type == 3'd3) ? dequant_compute_in : stream_ifmap_rdata_reg ) : ifmap_rdata_reg;
+// assign ifmap_compute_in   = stream_en ? ((psum_data_type == 3'd3) ? dequant_compute_in : stream_ifmap_rdata_reg ) : ifmap_rdata_reg;
+assign ifmap_compute_in   = (psum_data_type == 3'd3) ? dequant_compute_in : ifmap_rdata_reg ;
 assign resadd_compute_in  = vcures_rdata_reg;
 assign para_compute_in    = (stream_ewise_opcode || stream_pair_fuse_opcode) ? stream_vcupara_rdata_reg : vcupara_rdata_reg;
-assign dequant_convert_src = dequant_sram_rvalid_delay ? dequant_rdata : dequant_rdata_reg;
+// assign dequant_convert_src = dequant_sram_rvalid_delay ? dequant_rdata : dequant_rdata_reg;
+assign dequant_convert_src = dequant_rdata_reg;
 assign stream_reduce_source = vcucode_rdata_reg[12:6];
 assign stream_reduce_data = (stream_reduce_source == SRC_PSUM  ) ? psum_compute_in   :
                             (stream_reduce_source == SRC_PSUM_1) ? psum_1_compute_in :
@@ -2449,9 +2446,6 @@ operator u_operator(
   .ini_addr                    ( ini_addr                        ), 
   .end_addr                    ( end_addr                        ),
   .loop_address                ( loop_address                    ),
-  .vculut_wvalid               ( vculut_wvalid                   ),
-  .vculut_waddr                ( vculut_waddr                    ),
-  .vculut_wdata                ( vculut_wdata                    ),
   .func_base_highaddr          ( func_base_highaddr              )
 );
 

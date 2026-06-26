@@ -40,12 +40,12 @@ localparam integer LOAD_INSN_OPCODE_ID      = 1;
 localparam integer LOAD_INSN_OPCODE_ID_BITS = 5;
 localparam integer LOAD_INSN_ID_BITS        = 2;
 
-parameter IFMAP_WIDTH             = 512;
+parameter IFMAP_WIDTH             = 576;
 parameter QACT_WIDTH              = 288;
 parameter VCUCODE_WIDTH           = 64;
-parameter VCUPARA_WIDTH           = 512;
+parameter VCUPARA_WIDTH           = 576;
 parameter VCULUT_WIDTH            = 64;
-parameter VCURES_WIDTH            = 512;
+parameter VCURES_WIDTH            = 576;
 parameter WEIGHT_WIDTH            = 288;
 
 parameter IFMAP_ADDR_BITS         = 9;  //bank:4,2bits; addr:6bits, 36 depth, highaddr:1bits
@@ -638,7 +638,7 @@ always @(posedge clk or negedge rst_n) begin
     if ((write_high_addr == IFMAP_ID) ||
         (write_high_addr == VCUPARA_ID) ||
         (write_high_addr == VCURES_ID)) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         two_cat_one_cnt <= two_cat_one_cnt + 1'b1;
       end
       else begin
@@ -717,9 +717,9 @@ always @(posedge clk or negedge rst_n) begin
   end
 end
 
-// assign need_256_to_288_conversion = (write_high_addr == IFMAP_ID) || (write_high_addr == VCUPARA_ID) || (write_high_addr == VCURES_ID ) || (write_high_addr == QACT_ID) || (write_high_addr == WEIGHT_ID);
+assign need_256_to_288_conversion = (write_high_addr == IFMAP_ID) || (write_high_addr == VCUPARA_ID) || (write_high_addr == VCURES_ID ) || (write_high_addr == QACT_ID) || (write_high_addr == WEIGHT_ID);
 
-assign need_256_to_288_conversion = (write_high_addr == QACT_ID) || (write_high_addr == WEIGHT_ID);
+// assign need_256_to_288_conversion = (write_high_addr == QACT_ID) || (write_high_addr == WEIGHT_ID);
 
 gearbox_256_to_288 u_cb_pp_256_to_288(
   .clk              (clk                                      ),
@@ -741,17 +741,17 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == IFMAP_ID) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         case(two_cat_one_cnt)
           1'b0: begin
             ifmap_wvalid <= 1'b0;
             ifmap_waddr  <= sram_addr[IFMAP_ADDR_BITS:1];
-            ifmap_wdata  <= {sram_wdata, 256'd0};
+            ifmap_wdata  <= {data_out_288b, 288'd0};
           end
           1'b1: begin
             ifmap_wvalid <= 1'b1;
             ifmap_waddr  <= sram_addr[IFMAP_ADDR_BITS:1];
-            ifmap_wdata  <= {sram_wdata, ifmap_wdata[511:256]};
+            ifmap_wdata  <= {data_out_288b, ifmap_wdata[575:288]};
           end
         endcase
       end
@@ -873,17 +873,17 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == VCURES_ID) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         case(two_cat_one_cnt)
           1'b0: begin
             vcures_wvalid <= 1'b0;
             vcures_waddr  <= sram_addr[VCURES_ADDR_BITS:1];
-            vcures_wdata  <= {sram_wdata, 256'd0};
+            vcures_wdata  <= {data_out_288b, 288'd0};
           end
           1'b1: begin
             vcures_wvalid <= 1'b1;
             vcures_waddr  <= sram_addr[VCURES_ADDR_BITS:1];
-            vcures_wdata  <= {sram_wdata, vcures_wdata[511:256]};
+            vcures_wdata  <= {data_out_288b, vcures_wdata[575:288]};
           end
         endcase
       end
@@ -909,17 +909,17 @@ always @(posedge clk or negedge rst_n) begin
   end
   else begin
     if (write_high_addr == VCUPARA_ID) begin
-      if (sram_wvalid) begin
+      if (valid_data_out_288b) begin
         case(two_cat_one_cnt)
           1'b0: begin
             vcupara_wvalid <= 1'b0;
             vcupara_waddr  <= sram_addr[VCUPARA_ADDR_BITS:1];
-            vcupara_wdata  <= {sram_wdata, 256'd0};
+            vcupara_wdata  <= {data_out_288b, 288'd0};
           end
           1'b1: begin
             vcupara_wvalid <= 1'b1;
             vcupara_waddr  <= sram_addr[VCUPARA_ADDR_BITS:1];
-            vcupara_wdata  <= {sram_wdata, vcupara_wdata[511:256]};
+            vcupara_wdata  <= {data_out_288b, vcupara_wdata[575:288]};
           end
         endcase
       end

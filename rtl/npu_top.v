@@ -160,12 +160,12 @@ parameter integer INSN_FIFO_DEPTH      = 128;
 parameter REG_WIDTH                    = 32;
 parameter REG_NUM_BITS                 = 8;
 
-parameter CLUSTER_IFMAP_WIDTH       = 512;
+parameter CLUSTER_IFMAP_WIDTH       = 576;
 parameter CLUSTER_QACT_WIDTH        = 288;
 parameter CLUSTER_VCUCODE_WIDTH     = 64;
-parameter CLUSTER_VCUPARA_WIDTH     = 512;
+parameter CLUSTER_VCUPARA_WIDTH     = 576;
 parameter CLUSTER_VCULUT_WIDTH      = 64;
-parameter CLUSTER_VCURES_WIDTH      = 512;
+parameter CLUSTER_VCURES_WIDTH      = 576;
 
 parameter CLUSTER_IFMAP_ADDR_BITS   = 9;
 parameter CLUSTER_QACT_ADDR_BITS    = 9;
@@ -173,7 +173,7 @@ parameter CLUSTER_VCUCODE_ADDR_BITS = 7;
 parameter CLUSTER_VCUPARA_ADDR_BITS = 9;
 parameter CLUSTER_VCULUT_ADDR_BITS  = 9;
 parameter CLUSTER_VCURES_ADDR_BITS  = 9;
-parameter WEIGHT_BANK               = 32;
+parameter WEIGHT_BANK               = 36;  //与lane对齐
 parameter WEIGHT_WIDTH              = 288;
 parameter WEIGHT_ADDR_BITS          = 14;
   
@@ -1638,8 +1638,8 @@ npu_cluster #(
   .vcu_0_work_en        ( vcu_0_work_en                 ),
   .vcu_1_work_en        ( vcu_1_work_en                 ),
 
-  .load_0_local_done    ( load_0_local_done             ),
-  .load_1_local_done    ( load_1_local_done             ),
+  .load_0_local_done    (              ),
+  .load_1_local_done    (              ),
   .store_0_local_done   ( store_0_local_done            ),
   .store_1_local_done   ( store_1_local_done            ),
   .pea_0_done           ( pea_0_done                    ),
@@ -1842,7 +1842,7 @@ npu_cluster_load_router #(
 ) u_cluster_1_load_router(
   .clk                 ( clk                            ),
   .rst_n               ( rst_n                          ),
-  .logic_rst_n         ( cluster_1_load_dma_rst_n       ),
+  .logic_rst_n         ( cluster_0_load_dma_rst_n       ),
   .axi4_clk            ( axi4_clk                       ),
   .axi4_rst_n          ( axi4_rst_n                     ),
   .load_highaddr       ( load_highaddr                  ),
@@ -1934,7 +1934,7 @@ npu_cluster_load_router #(
   .AXI_M_AXI_ADDR_WIDTH   ( AXI_M_AXI_ADDR_WIDTH      ),
   .AXI_M_AXI_USER_WIDTH   ( AXI_M_AXI_USER_WIDTH      ),
   .AXI_M_AXI_DATA_WIDTH   ( AXI_M_AXI_DATA_WIDTH      ),
-  .AXI_M_AXI_MIN_ID       ( 192                        ),
+  .AXI_M_AXI_MIN_ID       ( 256                       ),
   .MASTER_PERI_ADDR_WIDTH ( MASTER_PERI_ADDR_WIDTH    ),
   .MASTER_PERI_BUSRSTS_WIDTH ( MASTER_PERI_BUSRSTS_WIDTH ),
   .MASTER_PERI_DATA_WIDTH ( MASTER_PERI_DATA_WIDTH    ),
@@ -1957,7 +1957,7 @@ npu_cluster_load_router #(
 ) u_cluster_2_load_router(
   .clk                 ( clk                            ),
   .rst_n               ( rst_n                          ),
-  .logic_rst_n         ( cluster_2_load_dma_rst_n       ),
+  .logic_rst_n         ( cluster_0_load_dma_rst_n       ),
   .axi4_clk            ( axi4_clk                       ),
   .axi4_rst_n          ( axi4_rst_n                     ),
   .load_highaddr       ( load_highaddr                  ),
@@ -2049,7 +2049,7 @@ npu_cluster_load_router #(
   .AXI_M_AXI_ADDR_WIDTH   ( AXI_M_AXI_ADDR_WIDTH      ),
   .AXI_M_AXI_USER_WIDTH   ( AXI_M_AXI_USER_WIDTH      ),
   .AXI_M_AXI_DATA_WIDTH   ( AXI_M_AXI_DATA_WIDTH      ),
-  .AXI_M_AXI_MIN_ID       ( 256                        ),
+  .AXI_M_AXI_MIN_ID       ( 512                        ),
   .MASTER_PERI_ADDR_WIDTH ( MASTER_PERI_ADDR_WIDTH    ),
   .MASTER_PERI_BUSRSTS_WIDTH ( MASTER_PERI_BUSRSTS_WIDTH ),
   .MASTER_PERI_DATA_WIDTH ( MASTER_PERI_DATA_WIDTH    ),
@@ -2072,7 +2072,7 @@ npu_cluster_load_router #(
 ) u_cluster_3_load_router(
   .clk                 ( clk                            ),
   .rst_n               ( rst_n                          ),
-  .logic_rst_n         ( cluster_3_load_dma_rst_n       ),
+  .logic_rst_n         ( cluster_0_load_dma_rst_n       ),
   .axi4_clk            ( axi4_clk                       ),
   .axi4_rst_n          ( axi4_rst_n                     ),
   .load_highaddr       ( load_highaddr                  ),
@@ -2386,6 +2386,28 @@ regfile_top u_regfile_top(
 /*                                               Debug Signal                                               */
 /* -------------------------------------------------------------------------------------------------------- */
 
+assign vcu_7_fifo_empty = 1'b0;
+assign vcu_6_fifo_empty = 1'b0;
+assign vcu_5_fifo_empty = 1'b0;
+assign vcu_4_fifo_empty = 1'b0;
+assign vcu_3_fifo_empty = 1'b0;
+assign vcu_2_fifo_empty = 1'b0;
+
+assign pea_7_fifo_empty = 1'b0;
+assign pea_6_fifo_empty = 1'b0;
+assign pea_5_fifo_empty = 1'b0;
+assign pea_4_fifo_empty = 1'b0;
+assign pea_3_fifo_empty = 1'b0;
+assign pea_2_fifo_empty = 1'b0;
+
+assign store_7_fifo_empty = 1'b0;
+assign store_6_fifo_empty = 1'b0;
+assign store_5_fifo_empty = 1'b0;
+assign store_4_fifo_empty = 1'b0;
+assign store_3_fifo_empty = 1'b0;
+assign store_2_fifo_empty = 1'b0;
+
+
 assign insn_fifo_empty_debug = {vcu_7_fifo_empty,   vcu_6_fifo_empty,   vcu_5_fifo_empty,   vcu_4_fifo_empty,
                                 vcu_3_fifo_empty,   vcu_2_fifo_empty,   vcu_1_fifo_empty,   vcu_0_fifo_empty,
                                 pea_7_fifo_empty,   pea_6_fifo_empty,   pea_5_fifo_empty,   pea_4_fifo_empty,
@@ -2403,6 +2425,38 @@ assign insn_fifo_full_debug = {vcu_7_fifo_full,   vcu_6_fifo_full,   vcu_5_fifo_
                                store_3_fifo_full, store_2_fifo_full, store_1_fifo_full, store_0_fifo_full,
                                load_7_fifo_full,  load_6_fifo_full,  load_5_fifo_full,  load_4_fifo_full,
                                load_3_fifo_full,  load_2_fifo_full,  load_1_fifo_full,  load_0_fifo_full};
+
+
+assign load_0_local_done = cluster_0_load_0_local_done_wire;
+assign load_1_local_done = cluster_0_load_1_local_done_wire;
+assign load_2_local_done = cluster_1_load_0_local_done_wire;
+assign load_3_local_done = cluster_1_load_1_local_done_wire;
+assign load_4_local_done = cluster_2_load_0_local_done_wire;
+assign load_5_local_done = cluster_2_load_1_local_done_wire;
+assign load_6_local_done = cluster_3_load_0_local_done_wire;
+assign load_7_local_done = cluster_3_load_1_local_done_wire;
+
+assign pea_2_done = 1'b0;
+assign pea_3_done = 1'b0;
+assign pea_4_done = 1'b0;
+assign pea_5_done = 1'b0;
+assign pea_6_done = 1'b0;
+assign pea_7_done = 1'b0;
+
+assign vcu_2_done = 1'b0;
+assign vcu_3_done = 1'b0;
+assign vcu_4_done = 1'b0;
+assign vcu_5_done = 1'b0;
+assign vcu_6_done = 1'b0;
+assign vcu_7_done = 1'b0;
+
+assign store_2_local_done = 1'b0;
+assign store_3_local_done = 1'b0;
+assign store_4_local_done = 1'b0;
+assign store_5_local_done = 1'b0;
+assign store_6_local_done = 1'b0;
+assign store_7_local_done = 1'b0;
+
 
 assign collect_done = {vcu_7_done,         vcu_6_done,         vcu_5_done,         vcu_4_done,
                        vcu_3_done,         vcu_2_done,         vcu_1_done,         vcu_0_done,
