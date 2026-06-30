@@ -507,8 +507,8 @@ int main(int argc, const char** argv)
   using namespace compute_model::tensor;
 
   int      m                    = 2;
-  int      n                    = 144;
-  int      k                    = 576;
+  int      n                    = 1152;
+  int      k                    = 1152;
   int      n_group_size         = 36;
   int      k_group_size         = 36;
   int      n_group              = n / n_group_size;  //store时，n_group_size=36，需要seq_0_burst为整数
@@ -560,16 +560,17 @@ int main(int argc, const char** argv)
     opcode_ddr_base_addr,
     bias_base_addr,
     scale_base_addr,
-    opcode
+    opcode,
+    gemm_t::kLoad0Default
   };
   gemm_t gemm_op;
   auto   temp           = gemm_op(args);
   auto   insn_series    = temp.first;
   auto   vcucode_series = temp.second;
   
-  for (auto& insn : insn_series) {
-    std::cout << insn.to_string() << std::endl;
-  }
+  // for (auto& insn : insn_series) {
+  //   std::cout << insn.to_string() << std::endl;
+  // }
 
   common::file_utils::saveCharArrayToFormattedTextFile(
     insn_file.c_str(), reinterpret_cast<char*>(insn_series.data()), insn_series.size() * sizeof(common::insn::instruction), 32, true);

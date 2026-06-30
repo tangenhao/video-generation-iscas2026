@@ -272,7 +272,19 @@ always @(posedge clk or negedge rst_n) begin
       load_working <= load_working;
     end
 
-    if (insn_valid_reg && (insn_reg[11:10] == LOAD_ITERATION_3_INSN_ID)) begin
+    if (insn_valid_reg && (insn_reg[11:10] == LOAD_ITERATION_4_INSN_ID)) begin
+      ddr_baseaddr  <= insn_reg[49:12];
+      sequ_burst_0  <= insn_reg[58:50];
+      ddr_offset_1  <= (insn_reg[69:62] << insn_reg[61:59]);
+      sequ_burst_1  <= insn_reg[74:70];
+      ddr_offset_2  <= (insn_reg[86:79] << insn_reg[78:75]);
+      sequ_burst_2  <= insn_reg[90:87];
+      ddr_offset_3  <= (insn_reg[103:96] << insn_reg[95:91]);
+      sequ_burst_3  <= insn_reg[106:104];
+      sram_baseaddr <= insn_reg[126:107];
+      all_done      <= insn_reg[127];
+    end
+    else if (insn_valid_reg && (insn_reg[11:10] == LOAD_ITERATION_3_INSN_ID)) begin
       ddr_baseaddr  <= insn_reg[49:12];
       sequ_burst_0  <= insn_reg[60:50];
       ddr_offset_1  <= (insn_reg[73:66] << insn_reg[65:61]);

@@ -60,6 +60,16 @@ struct insn_gen {
     }
   }
 
+  enum Load0Data : uint32_t {
+    kLoad0Ifmap   = 1u << 0,
+    kLoad0Scale   = 1u << 1,
+    kLoad0Bias    = 1u << 2,
+    kLoad0VcuCode = 1u << 3,
+  };
+
+  static constexpr uint32_t kLoad0Default =
+    kLoad0Ifmap | kLoad0Scale | kLoad0Bias | kLoad0VcuCode;
+
   struct Arguments {
     int      m;
     int      n;
@@ -76,6 +86,7 @@ struct insn_gen {
     uint64_t bias_base_addr ;
     uint64_t scale_base_addr ;
     std::vector<std::string>  opcode;
+    uint32_t load_0_data = kLoad0Default;
   };
 
   insn_gen()
@@ -211,16 +222,22 @@ struct insn_gen {
           //   weight_8_channel_transfer = 1;
           // }
 
+          bool load0_this_iter = false;
+          auto load0_data_enabled = [&](uint32_t flag) {
+            return (args.load_0_data & flag) != 0;
+          };
+
           //load ifmap
-          if (k_iter == 0 && n_iter == 0 && m_iter == 0)
+          if (load0_data_enabled(kLoad0Ifmap) && k_iter == 0 && n_iter == 0 && m_iter == 0)
           {
             int64_t ifmap_sram_offset = (int64_t(m_ifmap_iter) * k_group) % qact_sram_depth;
             instruction_series.push_back(LoadIfmap(args.ifmap_base_addr,
                                                    k_group,
                                                    MASTER_QACT_ADDR + ifmap_sram_offset));
             m_ifmap_iter = m_ifmap_iter + 1;
+            load0_this_iter = true;
           }
-          else if (k_iter == 0 && n_iter == n_iterations-1 && m_iter != m_iterations-1 )
+          else if (load0_data_enabled(kLoad0Ifmap) && k_iter == 0 && n_iter == n_iterations-1 && m_iter != m_iterations-1 )
           {
             ifmap_ddr_offset = int64_t(m_ifmap_iter) * bytes_ifmap * args.k;
             int64_t ifmap_sram_offset = (int64_t(m_ifmap_iter) * k_group) % qact_sram_depth;
@@ -228,6 +245,7 @@ struct insn_gen {
             instruction_series.push_back(LoadIfmap(args.ifmap_base_addr + ifmap_ddr_offset,
                                                    k_group,
                                                    MASTER_QACT_ADDR + ifmap_sram_offset));
+            load0_this_iter = true;
           }
           else
           {
@@ -243,15 +261,16 @@ struct insn_gen {
           }
 
           //load scale
-          if (k_iter == 1 && n_iter == 0 && m_iter == 0 )
+          if (load0_data_enabled(kLoad0Scale) && k_iter == 1 && n_iter == 0 && m_iter == 0 )
           {
             int64_t scale_sram_offset = (int64_t(m_scale_iter) * n_group) % vecmul_sram_depth;
             m_scale_iter = m_scale_iter + 1;
             instruction_series.push_back(LoadScale(args.scale_base_addr,
                                                    n_group,
                                                    MASTER_VCUPARA_ADDR + scale_sram_offset*2));
+            load0_this_iter = true;
           }
-          else if (k_iter == 1 && n_iter == n_iterations-1 && m_iter != m_iterations-1 )
+          else if (load0_data_enabled(kLoad0Scale) && k_iter == 1 && n_iter == n_iterations-1 && m_iter != m_iterations-1 )
           {
             scale_ddr_offset = int64_t(m_scale_iter) * bytes_scale * args.n;
             int64_t scale_sram_offset = (int64_t(m_scale_iter) * n_group) % vecmul_sram_depth;
@@ -259,6 +278,7 @@ struct insn_gen {
             instruction_series.push_back(LoadScale(args.scale_base_addr + scale_ddr_offset,
                                                    n_group,
                                                    MASTER_VCUPARA_ADDR + scale_sram_offset*2));
+            load0_this_iter = true;
           }
           else
           {
@@ -266,9 +286,10 @@ struct insn_gen {
           }
 
           //load bias
-          if (k_iter == 1 && n_iter == 0 && m_iter == 0)
+          if (load0_data_enabled(kLoad0Bias) && k_iter == 2 && n_iter == 0 && m_iter == 0)
           {
             instruction_series.push_back(LoadBias(args.bias_base_addr + bias_ddr_offset, n_group, 1));
+            load0_this_iter = true;
           }
 
           //pea insn
@@ -301,7 +322,7 @@ struct insn_gen {
           size_t vcucode_ddr_lines = (vcucode_bytes + 31) / 32;
           vcucode_series.resize(vcucode_ddr_lines * 8, 0);
 
-          if (k_iter == 1 && n_iter == 0 && m_iter == 0)
+          if (load0_data_enabled(kLoad0VcuCode) && k_iter == 2 && n_iter == 0 && m_iter == 0)
           {
 
             if (DEBUG) {
@@ -311,6 +332,7 @@ struct insn_gen {
             }
 
             instruction_series.push_back(insn::load_iteration_2<0>(args.opcode_ddr_base_addr, vcucode_ddr_lines - 1, 0, 0, 0,  MASTER_VCUCODE_ADDR, 0));
+            load0_this_iter = true;
           }
 
           int special_last_vcu_store_iter = (k_iter == k_iterations - 1 && n_iter == n_iterations - 1 && m_iter == m_iterations - 1) ? 1 : 0; //最后一次iter后，还需要两个k_iter用于vcu和store
@@ -385,13 +407,20 @@ struct insn_gen {
           }
 
           //同步字
+          auto load0_if_needed = [&](insn::sync_word word) {
+            if (load0_this_iter) {
+              word.load(0);
+            }
+            return word;
+          };
+
           if (k_iter == 0 && n_iter == 0 && m_iter == 0)
           {
-            append_sync_word(insn::sync_word().load(0).load(1).load(3).load(5).load(7),
+            append_sync_word(load0_if_needed(insn::sync_word().load(1).load(3).load(5).load(7)),
                              k_iter,
                              n_iter,
                              m_iter,
-                             "initial_load"); //load ifmap and weight, load0 for ifmap, and load_odd(1,3,5,7) for weight
+                             load0_this_iter ? "initial_load0+load_odd" : "initial_load_odd"); // load0 for configured side data, load_odd(1,3,5,7) for weight
           }
           else if (k_iter == 0 && !(n_iter == 0 && m_iter == 0)) //vcu enable
           {
@@ -402,20 +431,11 @@ struct insn_gen {
             //                    m_iter,
             //                    "load_pea_vcu_all_weight");
             // }
-            if (n_iter == n_iterations-1 && m_iter != m_iterations-1 ) {
-              append_sync_word(insn::sync_word().load(0).load(1).load(3).load(5).load(7).pea(0).vcu(0),
-                               k_iter,
-                               n_iter,
-                               m_iter,
-                               "load0+load_odd_pea_vcu");
-            }
-            else {
-              append_sync_word(insn::sync_word().load(1).load(3).load(5).load(7).pea(0).vcu(0),
-                               k_iter,
-                               n_iter,
-                               m_iter,
-                               "load_odd_pea_vcu");
-            }
+            append_sync_word(load0_if_needed(insn::sync_word().load(1).load(3).load(5).load(7).pea(0).vcu(0)),
+                             k_iter,
+                             n_iter,
+                             m_iter,
+                             load0_this_iter ? "load0+load_odd_pea_vcu" : "load_odd_pea_vcu");
           }
           else if (k_iter == 1 && !(n_iter == 0 && m_iter == 0)) //store enable
           {
@@ -427,7 +447,7 @@ struct insn_gen {
             //                    "load_pea_vcu_store_all_weight");
             // }
             if (n_iter == n_iterations-1 && m_iter != m_iterations-1 ) {
-              auto sync_word = insn::sync_word().load(0).load(1).load(3).load(5).load(7).pea(0);
+              auto sync_word = load0_if_needed(insn::sync_word().load(1).load(3).load(5).load(7).pea(0));
               if (regular_store_enabled) {
                 sync_word.store(0);
               }
@@ -435,7 +455,9 @@ struct insn_gen {
                                k_iter,
                                n_iter,
                                m_iter,
-                               regular_store_enabled ? "load0+load_odd_pea_store" : "load0+load_odd_pea");
+                               load0_this_iter ?
+                                 (regular_store_enabled ? "load0+load_odd_pea_store" : "load0+load_odd_pea") :
+                                 (regular_store_enabled ? "load_odd_pea_store" : "load_odd_pea"));
             }
             else if (n_iter == n_iterations-1 && m_iter == m_iterations-1 && k_iter == k_iterations-1) {
               append_sync_word(insn::sync_word().pea(0),
@@ -445,7 +467,7 @@ struct insn_gen {
                                "last_iter_only_pea");
             }
             else {
-              auto sync_word = insn::sync_word().load(1).load(3).load(5).load(7).pea(0);
+              auto sync_word = load0_if_needed(insn::sync_word().load(1).load(3).load(5).load(7).pea(0));
               if (regular_store_enabled) {
                 sync_word.store(0);
               }
@@ -453,16 +475,18 @@ struct insn_gen {
                                k_iter,
                                n_iter,
                                m_iter,
-                               regular_store_enabled ? "load_odd_pea_store" : "load_odd_pea");
+                               load0_this_iter ?
+                                 (regular_store_enabled ? "load0+load_odd_pea_store" : "load0+load_odd_pea") :
+                                 (regular_store_enabled ? "load_odd_pea_store" : "load_odd_pea"));
             }
           }
-          else if ((m_iter == 0 && n_iter == 0 && k_iter != 0) ) //pea+load_0+load_odd(weight)
+          else if ((m_iter == 0 && n_iter == 0 && k_iter != 0) ) //pea+optional load_0+load_odd(weight)
           {
-            append_sync_word(insn::sync_word().load(0).load(1).load(3).load(5).load(7).pea(0),
+            append_sync_word(load0_if_needed(insn::sync_word().load(1).load(3).load(5).load(7).pea(0)),
                              k_iter,
                              n_iter,
                              m_iter,
-                             "load_0+load_odd(weight)+pea");
+                             load0_this_iter ? "load0+load_odd(weight)+pea" : "load_odd(weight)+pea");
 
           }
           else if (special_last_vcu_store_iter) //last iter, only pea
@@ -476,18 +500,18 @@ struct insn_gen {
           else //pea+load_odd(weight)
           {
             if (weight_8_channel_transfer) {
-              append_sync_word(insn::sync_word().load(1).load(2).load(3).load(4).load(5).load(6).load(7).pea(0),
+              append_sync_word(load0_if_needed(insn::sync_word().load(1).load(2).load(3).load(4).load(5).load(6).load(7).pea(0)),
                                k_iter,
                                n_iter,
                                m_iter,
-                               "load_pea_all_weight");
+                               load0_this_iter ? "load0+load_pea_all_weight" : "load_pea_all_weight");
             }
             else {
-              append_sync_word(insn::sync_word().load(1).load(3).load(5).load(7).pea(0),
+              append_sync_word(load0_if_needed(insn::sync_word().load(1).load(3).load(5).load(7).pea(0)),
                                k_iter,
                                n_iter,
                                m_iter,
-                               "load_odd_pea");
+                               load0_this_iter ? "load0+load_odd_pea" : "load_odd_pea");
             }
           }
 
